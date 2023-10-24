@@ -1,0 +1,38 @@
+/**
+ * Copyright © Scalexpert.
+ * This file is part of Scalexpert plugin for PrestaShop.
+ *
+ * @author    Société Générale
+ * @copyright Scalexpert
+ */
+
+.payment_module .scalexpertplugin {
+    background: none 15px center no-repeat transparent;
+    background-size: 64px 64px;
+}
+.payment_module .scalexpertplugin:after {
+    display: block;
+    content: "\f054";
+    position: absolute;
+    right: 15px;
+    margin-top: -11px;
+    top: 50%;
+    font-family: "FontAwesome";
+    font-size: 25px;
+    height: 22px;
+    width: 14px;
+    color: #777;
+}
+
+.payment_module .scalexpertplugin .scalexpertplugin_subtitle {
+    color: #232323;
+    font-weight: 700;
+    line-height: 1.1;
+    font-size: 17px;
+    margin-top: 9px;
+    margin-bottom: 9px;
+}
+
+.payment_module .scalexpertplugin .scalexpertplugin_content {
+    font-weight: 400;
+}

@@ -1,0 +1,21 @@
+/**
+ * Copyright © Scalexpert.
+ * This file is part of Scalexpert plugin for PrestaShop.
+ *
+ * @author    Société Générale
+ * @copyright Scalexpert
+ */
+
+.payment-options .sep_financialSolution {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.payment-options .sep_financialSolution-title {
+    width: 50%;
+}
+
+.payment-options .sep_financialSolution-i {
+    cursor: pointer;
+}

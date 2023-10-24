@@ -1,0 +1,104 @@
+{% if insuranceSubscriptionsByProduct is defined and insuranceSubscriptionsByProduct is not empty %}
+    <div id="customerCard" class="customer card">
+        <div class="card-header">
+            <h3 class="card-header-title">
+                {{ 'Insurance subscriptions'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
+            </h3>
+        </div>
+
+        <div class="card-body">
+            {% for insuranceSubscriptionsByProductElement in insuranceSubscriptionsByProduct %}
+
+                <p><b>{{ insuranceSubscriptionsByProductElement.insuranceName }}</b></p>
+
+                {% if insuranceSubscriptionsByProductElement.subscriptions|length %}
+                    {% for insuranceSubscription in insuranceSubscriptionsByProductElement.subscriptions %}
+                        <div class="mt-2 info-block">
+                            <div class="row">
+                                {{ 'Subscription ID'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
+                                : {{ insuranceSubscription.subscriptionId }}
+                            </div>
+                            <div class="row">
+                                {{ 'Insurance price'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
+                                : {{ insuranceSubscription.producerQuoteInsurancePrice }}
+                            </div>
+                            <div class="row">
+                                {{ 'Insurance duration'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
+                                : {{ insuranceSubscription.duration }}
+                            </div>
+                            <div class="row">
+                                {{ 'Status'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
+                                : {{ insuranceSubscription.consolidatedStatus }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="mt-2 info-block">
+                        <div class="row">
+                            {{ 'En attente du paiement'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+
+{% if financialSubscriptions is defined and financialSubscriptions is not empty %}
+    <div id="customerCard" class="customer card">
+        <div class="card-header">
+            <h3 class="card-header-title">
+                {{ 'Financing subscriptions'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
+            </h3>
+        </div>
+
+        <div class="card-body">
+            {% for financialSubscription in financialSubscriptions %}
+                <div class="mt-2 info-block">
+                    <div class="row">
+                        {{ 'Subscription ID'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
+                        : {{ financialSubscription.creditSubscriptionId }}
+                    </div>
+                    <div class="row">
+                        {{ 'Consolidated status'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
+                        : {{ financialSubscription.consolidatedStatus }}
+                    </div>
+                    <div class="row">
+                        {{ 'Buyer financed amount'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
+                        : {{ financialSubscription.buyerFinancedAmount }}
+                    </div>
+                    <div class="row">
+                        {{ 'Registration timestamp'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
+                        : {{ financialSubscription.registrationTimestamp }}
+                    </div>
+
+
+                    {% if financialSubscription.consolidatedStatus == 'ACCEPTED' %}
+                        <br/>
+                        <div>
+                            <form action="" method="POST">
+
+                                <input type="hidden" name="scalexpert_cancel_financial_subscription_id"
+                                       value="{{ financialSubscription.creditSubscriptionId }}">
+
+                                <label for="scalexpert_cancel_financial_subscription_amount">
+                                    {{ 'Cancellation amount'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
+                                    ({{ 'format : 1234.56'|trans({}, 'Modules.Scalexpertplugin.Admin') }}) :
+                                </label>
+                                <input type="text" id="scalexpert_cancel_financial_subscription_amount"
+                                       name="scalexpert_cancel_financial_subscription_amount"
+                                       value="{{ financialSubscription.buyerFinancedAmountFloat }}" class="form-control"
+                                       style="width: 50%;">
+                                <br/>
+
+                                <button class="btn btn-danger" type="submit"
+                                        name="scalexpert_cancel_financial_subscription">Cancel
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}

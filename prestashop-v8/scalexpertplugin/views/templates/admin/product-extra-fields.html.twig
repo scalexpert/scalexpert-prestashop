@@ -1,0 +1,19 @@
+<div class="mb-3">
+    <div>
+        <h2>{{ 'Scalexpertplugin'|trans({}, 'Modules.Scalexpertplugin.Admin') }}</h2>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <label class="form-control-label">{{ 'Model'|trans({}, 'Modules.Scalexpertplugin.Admin') }}</label>
+            <input type="text" name="scalexpertplugin_model" aria-label="input" class="form-control" value="{% if productCustomFields.model is defined %}{{ productCustomFields.model }}{% endif %}">
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <label class="form-control-label">{{ 'Characteristics'|trans({}, 'Modules.Scalexpertplugin.Admin') }}</label>
+            <input type="text" name="scalexpertplugin_characteristics" aria-label="input" class="form-control" value="{% if productCustomFields.characteristics is defined %}{{ productCustomFields.characteristics }}{% endif %}">
+        </div>
+    </div>
+</div>

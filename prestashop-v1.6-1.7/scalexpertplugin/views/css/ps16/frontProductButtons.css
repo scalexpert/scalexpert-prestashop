@@ -1,0 +1,53 @@
+/**
+ * Copyright © Scalexpert.
+ * This file is part of Scalexpert plugin for PrestaShop.
+ *
+ * @author    Société Générale
+ * @copyright Scalexpert
+ */
+
+.sep_main_productsButtons {
+}
+
+.sep_main_productsButtons-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: inherit;
+    text-decoration: none;
+}
+
+.sep_main_productsButtons-content:hover {
+    color: inherit;
+    text-decoration: none;
+}
+
+.sep_main_productsButtons-title {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+}
+
+.sep_main_productsButtons-i {
+    margin-left: 4px;
+}
+
+.sep_main_productsButtons-logo {
+    margin-left: 8px;
+}
+
+.sep_contentModal {
+    max-width: 774px;
+}
+.sep_contentModal ol {
+    list-style: decimal inside;
+}
+.sep_contentModal .sep_contentModal-img {
+    max-width: 100%;
+    display: block;
+    margin: 1rem auto;
+}
+
+.sep_contentModal .sep_contentModal-listlink {
+    margin-top: 1rem;
+}

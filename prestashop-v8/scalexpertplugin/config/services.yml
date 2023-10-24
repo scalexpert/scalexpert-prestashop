@@ -1,0 +1,228 @@
+services:
+  _defaults:
+    public: true
+
+  # Handlers
+  scalexpert.handler.logs:
+    class: ScalexpertPlugin\Handler\LogsHandler
+    arguments:
+      - '@prestashop.adapter.legacy.configuration'
+
+  scalexpert.handler.solution_name:
+    class: ScalexpertPlugin\Handler\SolutionNameHandler
+
+  scalexpert.handler.order_state:
+    class: ScalexpertPlugin\Handler\OrderStateHandler
+
+  scalexpert.handler.hash:
+    class: ScalexpertPlugin\Handler\HashHandler
+
+  # Commands
+  scalexpert.command.update_orders_states:
+    class: ScalexpertPlugin\Command\UpdateOrdersStatesCommand
+    tags:
+      - { name: 'console.command', command: 'scalexpertplugin:updateOrdersStates' }
+
+  # API client
+  scalexpert.api.guzzle.client:
+    class: GuzzleHttp\Client
+
+  scalexpert.api.client:
+    class: ScalexpertPlugin\Helper\API\Client
+    arguments:
+      - '@prestashop.adapter.legacy.configuration'
+      - '@scalexpert.api.guzzle.client'
+      - '@scalexpert.handler.logs'
+      - '@doctrine.orm.default_entity_manager'
+      - '@scalexpert.handler.hash'
+
+  # Helpers
+  scalexpert.conf.config_checker:
+    class: ScalexpertPlugin\Helper\ConfigChecker
+    arguments:
+      - '@prestashop.adapter.legacy.configuration'
+
+  # Services
+  scalexpert.service.available_solutions:
+    class: ScalexpertPlugin\Service\AvailableSolutionsService
+    arguments:
+      - '@scalexpert.api.client'
+      - '@prestashop.adapter.legacy.configuration'
+      - '@prestashop.adapter.legacy.context'
+
+  scalexpert.service.insurances_subscriptions:
+    class: ScalexpertPlugin\Service\InsurancesSubscriptionsService
+    arguments:
+      - '@scalexpert.api.client'
+      - '@doctrine.orm.default_entity_manager'
+
+  scalexpert.service.update_orders_states:
+    class: ScalexpertPlugin\Service\UpdateOrdersStatesService
+    arguments:
+      - '@scalexpert.api.client'
+      - '@scalexpert.handler.order_state'
+
+  # Keys configuration form
+  scalexpert.form.type.keys_configuration_form:
+    class: 'ScalexpertPlugin\Form\Configuration\KeysConfigurationFormType'
+    parent: 'form.type.translatable.aware'
+    public: true
+    tags:
+      - { name: form.type }
+
+  scalexpert.form.keys_configuration_data_configuration:
+    class: ScalexpertPlugin\Form\Configuration\KeysConfigurationFormDataConfiguration
+    arguments:
+      - '@prestashop.adapter.legacy.configuration'
+      - '@scalexpert.handler.hash'
+
+  scalexpert.form.keys_configuration_form_data_provider:
+    class: 'ScalexpertPlugin\Form\Configuration\KeysConfigurationFormDataProvider'
+    arguments:
+      - '@scalexpert.form.keys_configuration_data_configuration'
+
+  scalexpert.form.keys_configuration_form_data_handler:
+    class: 'PrestaShop\PrestaShop\Core\Form\Handler'
+    arguments:
+      - '@form.factory'
+      - '@prestashop.core.hook.dispatcher'
+      - '@scalexpert.form.keys_configuration_form_data_provider'
+      - 'ScalexpertPlugin\Form\Configuration\KeysConfigurationFormType'
+      - 'keysConfiguration'
+
+  # Regroup payment configuration form
+  scalexpert.form.type.regroup_payments_configuration_form:
+    class: 'ScalexpertPlugin\Form\Configuration\RegroupPaymentsConfigurationFormType'
+    parent: 'form.type.translatable.aware'
+    public: true
+    tags:
+      - { name: form.type }
+
+  scalexpert.form.regroup_payments_configuration_data_configuration:
+    class: ScalexpertPlugin\Form\Configuration\RegroupPaymentsConfigurationFormDataConfiguration
+    arguments: [ '@prestashop.adapter.legacy.configuration' ]
+
+  scalexpert.form.regroup_payments_configuration_form_data_provider:
+    class: 'ScalexpertPlugin\Form\Configuration\RegroupPaymentsConfigurationFormDataProvider'
+    arguments:
+      - '@scalexpert.form.regroup_payments_configuration_data_configuration'
+
+  scalexpert.form.regroup_payments_configuration_form_data_handler:
+    class: 'PrestaShop\PrestaShop\Core\Form\Handler'
+    arguments:
+      - '@form.factory'
+      - '@prestashop.core.hook.dispatcher'
+      - '@scalexpert.form.regroup_payments_configuration_form_data_provider'
+      - 'ScalexpertPlugin\Form\Configuration\RegroupPaymentsConfigurationFormType'
+      - 'regroupPaymentsConfiguration'
+
+  # Financing configuration form
+  scalexpert.form.type.financing_configuration_form:
+    class: 'ScalexpertPlugin\Form\Configuration\FinancingConfigurationFormType'
+    parent: 'form.type.translatable.aware'
+    public: true
+    tags:
+      - { name: form.type }
+    arguments:
+      - '@scalexpert.api.client'
+      - '@scalexpert.handler.solution_name'
+
+  scalexpert.form.financing_configuration_data_configuration:
+    class: ScalexpertPlugin\Form\Configuration\FinancingConfigurationFormDataConfiguration
+    arguments: [ '@prestashop.adapter.legacy.configuration' ]
+
+  scalexpert.form.financing_configuration_form_data_provider:
+    class: 'ScalexpertPlugin\Form\Configuration\FinancingConfigurationFormDataProvider'
+    arguments:
+      - '@scalexpert.form.financing_configuration_data_configuration'
+
+  scalexpert.form.financing_configuration_form_data_handler:
+    class: 'PrestaShop\PrestaShop\Core\Form\Handler'
+    arguments:
+      - '@form.factory'
+      - '@prestashop.core.hook.dispatcher'
+      - '@scalexpert.form.financing_configuration_form_data_provider'
+      - 'ScalexpertPlugin\Form\Configuration\FinancingConfigurationFormType'
+      - 'financingConfiguration'
+
+  # Insurance configuration form
+  scalexpert.form.type.insurance_configuration_form:
+    class: 'ScalexpertPlugin\Form\Configuration\InsuranceConfigurationFormType'
+    parent: 'form.type.translatable.aware'
+    public: true
+    tags:
+      - { name: form.type }
+    arguments:
+      - '@scalexpert.api.client'
+      - '@scalexpert.handler.solution_name'
+
+  scalexpert.form.insurance_configuration_data_configuration:
+    class: ScalexpertPlugin\Form\Configuration\InsuranceConfigurationFormDataConfiguration
+    arguments: [ '@prestashop.adapter.legacy.configuration' ]
+
+  scalexpert.form.insurance_configuration_form_data_provider:
+    class: 'ScalexpertPlugin\Form\Configuration\InsuranceConfigurationFormDataProvider'
+    arguments:
+      - '@scalexpert.form.insurance_configuration_data_configuration'
+
+  scalexpert.form.insurance_configuration_form_data_handler:
+    class: 'PrestaShop\PrestaShop\Core\Form\Handler'
+    arguments:
+      - '@form.factory'
+      - '@prestashop.core.hook.dispatcher'
+      - '@scalexpert.form.insurance_configuration_form_data_provider'
+      - 'ScalexpertPlugin\Form\Configuration\InsuranceConfigurationFormType'
+      - 'insuranceConfiguration'
+
+  # Debug configuration form
+  scalexpert.form.type.debug_configuration_form:
+    class: 'ScalexpertPlugin\Form\Configuration\DebugConfigurationFormType'
+    parent: 'form.type.translatable.aware'
+    public: true
+    tags:
+      - { name: form.type }
+
+  scalexpert.form.debug_configuration_data_configuration:
+    class: ScalexpertPlugin\Form\Configuration\DebugConfigurationFormDataConfiguration
+    arguments: [ '@prestashop.adapter.legacy.configuration' ]
+
+  scalexpert.form.debug_configuration_form_data_provider:
+    class: 'ScalexpertPlugin\Form\Configuration\DebugConfigurationFormDataProvider'
+    arguments:
+      - '@scalexpert.form.debug_configuration_data_configuration'
+
+  scalexpert.form.debug_configuration_form_data_handler:
+    class: 'PrestaShop\PrestaShop\Core\Form\Handler'
+    arguments:
+      - '@form.factory'
+      - '@prestashop.core.hook.dispatcher'
+      - '@scalexpert.form.debug_configuration_form_data_provider'
+      - 'ScalexpertPlugin\Form\Configuration\DebugConfigurationFormType'
+      - 'debugConfiguration'
+
+  # Design customize form
+  scalexpert.form.type.design_customize_form:
+    class: 'ScalexpertPlugin\Form\Customize\DesignCustomizeFormType'
+    parent: 'form.type.translatable.aware'
+    public: true
+    tags:
+      - { name: form.type }
+    arguments: [ '@scalexpert.api.client' ]
+
+  scalexpert.form.design_customize_data_configuration:
+    class: ScalexpertPlugin\Form\Customize\DesignCustomizeFormDataConfiguration
+    arguments: [ '@prestashop.adapter.legacy.configuration' ]
+
+  scalexpert.form.design_customize_form_data_provider:
+    class: 'ScalexpertPlugin\Form\Customize\DesignCustomizeFormDataProvider'
+    arguments:
+      - '@scalexpert.form.design_customize_data_configuration'
+
+  scalexpert.form.design_customize_form_data_handler:
+    class: 'PrestaShop\PrestaShop\Core\Form\Handler'
+    arguments:
+      - '@form.factory'
+      - '@prestashop.core.hook.dispatcher'
+      - '@scalexpert.form.design_customize_form_data_provider'
+      - 'ScalexpertPlugin\Form\Customize\DesignCustomizeFormType'
+      - 'designCustomize'

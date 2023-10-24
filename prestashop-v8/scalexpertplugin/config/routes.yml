@@ -1,0 +1,39 @@
+scalexpert_controller_tabs_admin_active:
+    path: /scalexpert-configure/config
+    methods: [GET, POST]
+    defaults:
+        _controller: 'ScalexpertPlugin\Controller\Admin\ConfigTabController::indexAction'
+        _legacy_controller: 'AdminScalexpertPluginConfigTab'
+        _legacy_link: 'AdminScalexpertPluginConfigTab'
+
+scalexpert_controller_tabs_admin_debug:
+    path: /scalexpert-configure/debug
+    methods: [GET, POST]
+    defaults:
+        _controller: 'ScalexpertPlugin\Controller\Admin\DebugTabController::indexAction'
+        _legacy_controller: 'AdminScalexpertPluginDebugTab'
+        _legacy_link: 'AdminScalexpertPluginDebugTab'
+
+scalexpert_controller_tabs_admin_keys:
+    path: /scalexpert-configure/keys
+    methods: [GET, POST]
+    defaults:
+        _controller: 'ScalexpertPlugin\Controller\Admin\KeysTabController::indexAction'
+        _legacy_controller: 'AdminScalexpertPluginKeysTab'
+        _legacy_link: 'AdminScalexpertPluginKeysTab'
+
+scalexpert_controller_tabs_admin_keys_check:
+    path: /scalexpert-configure/keys/check
+    methods: [ GET, POST ]
+    defaults:
+        _controller: 'ScalexpertPlugin\Controller\Admin\KeysTabController::checkKeysAction'
+        _legacy_controller: 'AdminScalexpertPluginKeysTab'
+        _legacy_link: 'AdminScalexpertPluginKeysTab'
+
+scalexpert_controller_tabs_admin_design:
+    path: /scalexpert-customize/design
+    methods: [ GET, POST ]
+    defaults:
+        _controller: 'ScalexpertPlugin\Controller\Admin\DesignTabController::indexAction'
+        _legacy_controller: 'AdminScalexpertPluginDesignTab'
+        _legacy_link: 'AdminScalexpertPluginDesignTab'

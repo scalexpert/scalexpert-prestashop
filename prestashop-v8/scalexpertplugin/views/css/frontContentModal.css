@@ -1,0 +1,71 @@
+/**
+ * Copyright © Scalexpert.
+ * This file is part of Scalexpert plugin for PrestaShop.
+ *
+ * @author    Société Générale
+ * @copyright Scalexpert
+ */
+
+.sep_contentModal ol {
+    list-style: decimal outside;
+}
+
+.sep_contentModal .modal-header {
+    border: 0 none;
+}
+
+.sep_contentModal .modal-header .modal-header-title {
+    float: left;
+    display: flex;
+    align-items: center;
+    width: calc(100% - 24px);
+}
+
+.sep_contentModal .modal-header .modal-header-title > img {
+    margin-right: 12px;
+}
+
+.sep_contentModal .sep_contentModal-img {
+    max-width: 100%;
+    display: block;
+    margin: 1rem auto;
+}
+
+.sep_contentModal .sep_contentModal-listlink {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #E6E6E6;
+}
+
+.sep_contentModal .sep_contentModal-listlink a {
+    color: #545454;
+    font-weight: 600;
+    font-size: 12px;
+    text-decoration: underline;
+    padding-left: 16px;
+}
+.sep_contentModal .sep_contentModal-listlink a:first-child {
+    padding-left: 0;
+}
+
+.sep_contentModal .modal-content .modal-body p {
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+.scalexpert_title,
+.scalexpert_subtitle {
+    color: #232323;
+    font-weight: 700;
+}
+
+.scalexpert_title {
+    text-transform: uppercase;
+}
+
+.scalexpert_subtitle {
+    font-size: 1rem;
+    margin-top: 0.625rem;
+    margin-bottom: 1.25rem;
+}

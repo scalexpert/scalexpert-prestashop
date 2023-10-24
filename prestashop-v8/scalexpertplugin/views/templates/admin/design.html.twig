@@ -1,0 +1,83 @@
+
+{% extends '@!PrestaShop/Admin/layout.html.twig' %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col">
+            {{ form_start(designConfigurationForm) }}
+            {% if allSolutions is defined %}
+                {% for solution in allSolutions %}
+                    <div class="card">
+                        <h3 class="card-header">
+                            <img src="{{ solution.countryFlag }}" alt="{{ solution.buyerBillingCountry }}"> {{ solution.visualTitle }}
+                        </h3>
+                        <div class="card-body">
+                            <div class="form-wrapper">
+                                {% if solution.active %}
+                                    <div class="alert alert-success">
+                                {% else %}
+                                    <div class="alert alert-danger">
+                                {% endif %}
+                                    <p>
+                                        {% if solution.active %}
+                                            {{ 'The option "%visualTitle%" is activated on your site'|trans({'%visualTitle%': solution.visualTitle}, 'Modules.Scalexpertplugin.Admin') }}
+                                        {% else %}
+                                            {{ 'The option "%visualTitle%" is not activated on your site'|trans({'%visualTitle%': solution.visualTitle}, 'Modules.Scalexpertplugin.Admin') }}
+                                        {% endif %}
+                                        <a class="float-right" href="{{ activeLink }}">{{ 'enable/disable'|trans({}, 'Modules.Scalexpertplugin.Admin') }}</a>
+                                    </p>
+                                </div>
+
+                                <h4 class="card-title">{{ 'General'|trans({}, 'Modules.Scalexpertplugin.Admin') }}</h4>
+                                <hr>
+
+                                {% for field in solution.generalFields %}
+                                    {{ form_row(designConfigurationForm[field]) }}
+                                {% endfor %}
+
+                                <h4 class="card-title">{{ 'Product page design'|trans({}, 'Modules.Scalexpertplugin.Admin') }}</h4>
+                                <hr>
+
+                                {% for field in solution.productFields %}
+                                    {{ form_row(designConfigurationForm[field]) }}
+                                {% endfor %}
+
+                                {% if solution.paymentFields is defined %}
+                                    <h4 class="card-title">{{ 'Payment page design'|trans({}, 'Modules.Scalexpertplugin.Admin') }}</h4>
+                                    <hr>
+
+                                    {% for field in solution.paymentFields %}
+                                        {{ form_row(designConfigurationForm[field]) }}
+                                    {% endfor %}
+                                {% endif %}
+
+                                {% if solution.cartFields is defined %}
+                                    <h4 class="card-title">{{ 'Cart page design'|trans({}, 'Modules.Scalexpertplugin.Admin') }}</h4>
+                                    <hr>
+
+                                    {% for field in solution.cartFields %}
+                                        {{ form_row(designConfigurationForm[field]) }}
+                                    {% endfor %}
+                                {% endif %}
+
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-end">
+                                <button class="btn btn-primary float-right" id="save-button">
+                                    {{ 'Save'|trans({}, 'Admin.Actions') }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            {{ form_end(designConfigurationForm) }}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('../modules/scalexpertplugin/views/js/choice-tree.js') }}"></script>
+{% endblock %}
