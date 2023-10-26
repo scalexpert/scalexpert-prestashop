@@ -1,0 +1,17 @@
+
+{% extends '@!PrestaShop/Admin/layout.html.twig' %}
+
+{% block content %}
+    <div class="alert alert-danger d-print-none" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true"><i class="material-icons">close</i></span>
+        </button>
+        <div class="alert-text">
+        </div>
+        <p>{{ 'Error missing API keys'|trans({}, 'Modules.Scalexpertplugin.Admin') }} :
+            <a href="{{ url('scalexpert_controller_tabs_admin_keys') }}">{{ 'Configure my key'|trans({}, 'Modules.Scalexpertplugin.Admin') }}</a></p>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+{% endblock %}

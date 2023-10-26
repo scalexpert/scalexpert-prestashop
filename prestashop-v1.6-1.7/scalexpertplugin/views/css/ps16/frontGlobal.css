@@ -1,0 +1,26 @@
+/**
+ * Copyright © Scalexpert.
+ * This file is part of Scalexpert plugin for PrestaShop.
+ *
+ * @author    Société Générale
+ * @copyright Scalexpert
+ */
+
+.scalexpert_title,
+.scalexpert_subtitle {
+    color: #232323;
+    font-weight: 500;
+    line-height: 1.1;
+}
+
+.scalexpert_title {
+    font-size: 27px;
+    margin-top: 18px;
+    margin-bottom: 9px;
+}
+
+.scalexpert_subtitle {
+    font-size: 17px;
+    margin-top: 9px;
+    margin-bottom: 9px;
+}

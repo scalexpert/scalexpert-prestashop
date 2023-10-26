@@ -1,0 +1,14 @@
+/**
+ * Copyright © Scalexpert.
+ * This file is part of Scalexpert plugin for PrestaShop.
+ *
+ * @author    Société Générale
+ * @copyright Scalexpert
+ */
+
+.icon-AdminScalexpert:before{content:""}
+
+.bootstrap .excluded-categories-custom-type {
+    min-height: 300px;
+    width: 500px!important;
+}

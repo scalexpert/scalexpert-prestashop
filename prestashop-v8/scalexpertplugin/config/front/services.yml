@@ -1,0 +1,47 @@
+services:
+  _defaults:
+    public: true
+
+  # Logs
+  scalexpert.handler.logs:
+    class: ScalexpertPlugin\Handler\LogsHandler
+    arguments:
+      - '@prestashop.adapter.legacy.configuration'
+
+  scalexpert.handler.hash:
+    class: ScalexpertPlugin\Handler\HashHandler
+
+  # API client
+  scalexpert.api.guzzle.client:
+    class: GuzzleHttp\Client
+
+  scalexpert.api.client:
+    class: ScalexpertPlugin\Helper\API\Client
+    arguments:
+      - '@prestashop.adapter.legacy.configuration'
+      - '@scalexpert.api.guzzle.client'
+      - '@scalexpert.handler.logs'
+      - '@doctrine.orm.default_entity_manager'
+      - '@scalexpert.handler.hash'
+
+  # Services
+  scalexpert.service.available_solutions:
+    class: ScalexpertPlugin\Service\AvailableSolutionsService
+    arguments:
+      - '@scalexpert.api.client'
+      - '@prestashop.adapter.legacy.configuration'
+      - '@prestashop.adapter.legacy.context'
+
+  scalexpert.service.cart_insurance_products:
+    class: ScalexpertPlugin\Service\CartInsuranceProductsService
+    arguments:
+      - '@scalexpert.api.client'
+      - '@doctrine.orm.default_entity_manager'
+      - '@scalexpert.service.available_solutions'
+      - '@prestashop.adapter.legacy.configuration'
+
+  scalexpert.service.insurances_subscriptions:
+    class: ScalexpertPlugin\Service\InsurancesSubscriptionsService
+    arguments:
+      - '@scalexpert.api.client'
+      - '@doctrine.orm.default_entity_manager'

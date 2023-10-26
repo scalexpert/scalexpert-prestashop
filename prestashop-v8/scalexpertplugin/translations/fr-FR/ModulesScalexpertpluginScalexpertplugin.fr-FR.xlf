@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file original="admin123456789abcdefg" source-language="fr-FR" target-language="fr-FR" datatype="plaintext">
+    <body>
+      <trans-unit id="66b914a3d0878daed70f10d165196200">
+        <source>An error occured. Please contact the merchant to have more informations</source>
+        <target>Une erreur est survenue. Veuillez contacter le marchant pour plus d'informations.</target>
+        <note>Line: </note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
