@@ -45,21 +45,16 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
         }
 
         if ($secure_key === $customer->secure_key) {
+
+            sleep(2);
+
             /**
              * The order has been placed so we redirect the customer on the confirmation page.
              */
             $module_id = $this->module->id;
             Tools::redirect('index.php?controller=order-confirmation&id_cart=' . $order->id_cart . '&id_module=' . $module_id . '&id_order=' . $order->id . '&key=' . $secure_key);
         } else {
-            $order->setCurrentState((int) \Configuration::get('PS_OS_ERROR'));
             $this->handleError($this->module->l('An error occured. Please contact the merchant to have more informations'));
-
-            /*
-             * An error occured and is shown on a new page.
-             */
-//            $this->errors[] = $this->module->l('An error occured. Please contact the merchant to have more informations');
-
-//            return $this->setTemplate('module:scalexpertplugin/views/templates/front/error.tpl');
         }
     }
 

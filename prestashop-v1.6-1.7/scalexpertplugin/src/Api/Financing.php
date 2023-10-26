@@ -7,9 +7,9 @@
  * @copyright Scalexpert
  */
 
-namespace DATASOLUTION\Module\Scalexpert\Api;
+namespace ScalexpertPlugin\Api;
 
-use DATASOLUTION\Module\Scalexpert\Helper\BuyerFormatter;
+use ScalexpertPlugin\Helper\BuyerFormatter;
 
 class Financing extends Entity
 {
@@ -144,7 +144,7 @@ class Financing extends Entity
             'merchantBasketId' => (string)$order->id_cart,
             'merchantGlobalOrderId' => (string)$order->reference,
             'merchantBuyerId' => (string)$customer->id,
-            'financedAmount' => (float)$order->getTotalPaid(),
+            'financedAmount' => (float) \Tools::ps_round($order->total_paid, 2),
             'merchantUrls' => [
                 'confirmation' => \Context::getContext()->link->getModuleLink('scalexpertplugin', 'confirmation', [
                     'order_ref' => $order->reference,

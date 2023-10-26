@@ -32,6 +32,8 @@ class ScalexpertpluginConfirmationModuleFrontController extends ModuleFrontContr
         }
 
         if ($order->secure_key == $this->context->customer->secure_key) {
+            sleep(2);
+
             Tools::redirect($this->context->link->getPageLink(
                 'order-confirmation',
                 true,

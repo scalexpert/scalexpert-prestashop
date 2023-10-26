@@ -1,23 +1,21 @@
 {**
-* Copyright © DATASOLUTION.
+* Copyright © Scalexpert.
 * This file is part of Scalexpert plugin for PrestaShop.
 *
-* @author    DATASOLUTION (https://www.datasolution.fr/)
-* @copyright DATASOLUTION
-* @license   https://opensource.org/licenses/afl-3.0.php Academic Free License (AFL 3.0)
+* @author    Société Générale
+* @copyright Scalexpert
 *}
 
 {if (isset($status) == true) && ($status == 'ok')}
 	<p>
-		{l s='Your order on %s is complete.' sprintf=[$shop_name] d='scalexpertplugin'}
-		<br />{l s='Your informations payment:' mod='scalexpertplugin'}
+		{l s='Your informations payment:' mod='scalexpertplugin'}
 	</p>
 
 	<section>
 		<ul>
 			<li>- {l s='Amount' mod='scalexpertplugin'} : <span class="price"><strong>{$total|escape:'htmlall':'UTF-8'}</strong></span></li>
 			<li>- {l s='Order reference' mod='scalexpertplugin'} : <span class="reference"><strong>{$reference|escape:'html':'UTF-8'}</strong></span></li>
-			<li>- {l s='Financial status' mod='scalexpertplugin'} : <span class="subscription_status"><strong>{$subscription_status|escape:'html':'UTF-8'}</strong></span></li>
+			<li>- {l s='Financial status' mod='scalexpertplugin'} : <span class="subscription_status" {if !empty($subscription_status_error)}style="color:red;" {/if}><strong>{$subscription_status|escape:'html':'UTF-8'}</strong></span></li>
 		</ul>
 		<p>
 			{l s='An email has been sent with this information.' mod='scalexpertplugin'}

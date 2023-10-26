@@ -7,10 +7,10 @@
  * @copyright Scalexpert
  */
 
-use DATASOLUTION\Module\Scalexpert\Api\Client;
-use DATASOLUTION\Module\Scalexpert\Api\Financing;
-use DATASOLUTION\Module\Scalexpert\Api\Insurance;
-use DATASOLUTION\Module\Scalexpert\Helper\Hash;
+use ScalexpertPlugin\Api\Client;
+use ScalexpertPlugin\Api\Financing;
+use ScalexpertPlugin\Api\Insurance;
+use ScalexpertPlugin\Helper\Hash;
 
 class AdminScalexpertAdministrationController extends ModuleAdminController
 {
@@ -406,14 +406,6 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
             'type' => 'html',
             'name' => 'html_data',
             'html_content' => '<button class="btn btn-default" onclick="checkKeys(); return false;">' . $this->l('Check keys') . '</button>',
-            'tab' => $tabName
-        ];
-        $this->_formInputs[] = [
-            'type' => 'html',
-            'name' => 'html_data',
-            'html_content' => '<b>' . $this->l('Cron task') . '</b><br>' .
-                $this->l('You configure this cron task (every hour) on your server : ') .
-                '<br>0 * * * * <a href="#">' . $this->context->link->getModuleLink($this->module->name, 'maintenance', [], true) . '</a>',
             'tab' => $tabName
         ];
     }

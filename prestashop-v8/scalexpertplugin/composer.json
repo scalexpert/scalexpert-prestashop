@@ -1,10 +1,9 @@
 {
     "name": "module/scalexpertplugin",
     "description": "Description of Scalexpert module.",
-    "license": "AFL-3.0",
     "authors": [
         {
-            "name": "DATASOLUTION"
+            "name": "Société générale"
         }
     ],
     "autoload": {

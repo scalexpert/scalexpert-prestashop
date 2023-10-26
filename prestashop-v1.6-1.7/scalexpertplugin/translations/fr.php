@@ -52,8 +52,6 @@ $_MODULE['<{scalexpertplugin}prestashop>adminscalexpertadministration_6ca725316d
 $_MODULE['<{scalexpertplugin}prestashop>adminscalexpertadministration_9521a7176ab45d428acc830358b3c561'] = 'Entrez votre ID de production';
 $_MODULE['<{scalexpertplugin}prestashop>adminscalexpertadministration_f8d23980497ad15a4f875900f2493c40'] = 'Entrez votre clé de production';
 $_MODULE['<{scalexpertplugin}prestashop>adminscalexpertadministration_3e2ed561bda45e67efe63f55cd3aa0c6'] = 'Vérifier ma clé';
-$_MODULE['<{scalexpertplugin}prestashop>adminscalexpertadministration_84c5e3e99a3639c800fa9dad2ebc206b'] = 'Tâche cron';
-$_MODULE['<{scalexpertplugin}prestashop>adminscalexpertadministration_8002c6759f0793d8f6aa3c81ce76aef1'] = 'Configurez cette tâche cron (toutes les heures) sur votre serveur :';
 $_MODULE['<{scalexpertplugin}prestashop>adminscalexpertcustomize_d5a0c7bb5920a9290f7ade5ed65460cb'] = 'Sous le bloc d\'ajout au panier';
 $_MODULE['<{scalexpertplugin}prestashop>adminscalexpertcustomize_a665cc5987fd298be2edc007739daf2a'] = 'Personnaliser le plugin Scalexpert';
 $_MODULE['<{scalexpertplugin}prestashop>adminscalexpertcustomize_c9cc8cce247e49bae79f15173ce97354'] = 'Enregistrer';
@@ -77,7 +75,6 @@ $_MODULE['<{scalexpertplugin}prestashop>adminscalexpertcustomize_34f017a5b573186
 $_MODULE['<{scalexpertplugin}prestashop>adminscalexpertcustomize_035f4e29da2d6d31303f7d7cfa1be13b'] = 'Sous-titre';
 $_MODULE['<{scalexpertplugin}prestashop>adminscalexpertcustomize_6794986846165af9674c2e532bcb66e3'] = 'Le plugin n\'est pas activé, veuillez saisir vos clés API dans l\'onglet de configuration';
 $_MODULE['<{scalexpertplugin}prestashop>confirmation_66b914a3d0878daed70f10d165196200'] = 'Une erreur s\'est produite. Veuillez contacter le marchant pour plus d\'informations';
-$_MODULE['<{scalexpertplugin}prestashop>redirect_ab83e358ad7fdaaddaa91a85351f3fab'] = 'Veuillez choisir une option de financement.';
 $_MODULE['<{scalexpertplugin}prestashop>validation_9816839e1f9b3c31bf84f80d29d67350'] = 'La panier est invalide.';
 $_MODULE['<{scalexpertplugin}prestashop>validation_f02f75a914b5464ce1b32e5517c86f79'] = 'Le moyen de paiement a été désactivé.';
 $_MODULE['<{scalexpertplugin}prestashop>validation_03aecdcf8bb36ffa88d4410f4df4a8c6'] = 'Aucun client trouvé.';
@@ -95,6 +92,8 @@ $_MODULE['<{scalexpertplugin}prestashop>order-side_1b4bb5588c0bf9fddd72b62648e1c
 $_MODULE['<{scalexpertplugin}prestashop>order-side_41967a8b8b5075eddc7d5d8c25ca9fc8'] = 'Montant du financement';
 $_MODULE['<{scalexpertplugin}prestashop>order-side_df655244337594ef91dbf6951fdef591'] = 'Date de souscription';
 $_MODULE['<{scalexpertplugin}prestashop>order-side_d9d0228e07f7e9a6d2df6272332cc85b'] = 'Confirmez-vous l\'envoi d\'une demande d\'annulation ?';
+$_MODULE['<{scalexpertplugin}prestashop>order-side_79ac313a5372328947387fb8431b0872'] = 'Montant de l\'annulation';
+$_MODULE['<{scalexpertplugin}prestashop>order-side_e5435eaa28ed0f13bafcf25677ef18f3'] = 'format : 1234.56';
 $_MODULE['<{scalexpertplugin}prestashop>order-side_01660840b062884fd856f49c71246112'] = 'Annuler le financement';
 $_MODULE['<{scalexpertplugin}prestashop>error_a25c753ee3e4be15ec0daa5a40deb7b8'] = 'Un erreur s\'est produite';
 $_MODULE['<{scalexpertplugin}prestashop>hookdisplayadminproductsextra_c0779c2ec256a3379dafc02236b1e1f5'] = 'Scalexpert - Champs produit spécifiques';

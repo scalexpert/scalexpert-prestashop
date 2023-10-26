@@ -7,7 +7,7 @@
  * @copyright Scalexpert
  */
 
-use DATASOLUTION\Module\Scalexpert\Api\Financing;
+use ScalexpertPlugin\Api\Financing;
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 
 require_once __DIR__ . '/vendor/autoload.php';
@@ -30,94 +30,9 @@ class ScalexpertPlugin extends PaymentModule
 
     const ORDER_STATES = [
         0 => [
-            'configuration' => 'SCALEXPERT_ORDER_STATE_ACCEPTED',
-            'name' => 'Financing request accepted',
-            'color' => '#228B22',
-            'logable' => true,
-            'paid' => true,
-            'invoice' => false,
-            'shipped' => false,
-            'delivery' => false,
-            'pdf_delivery' => false,
-            'pdf_invoice' => false,
-            'send_email' => false,
-            'hidden' => false,
-            'unremovable' => false,
-            'template' => '',
-            'deleted' => false,
-        ],
-        1 => [
-            'configuration' => 'SCALEXPERT_ORDER_STATE_INITIALIZED',
-            'name' => 'Financing request initialized',
-            'color' => '#ADFF2F',
-            'logable' => true,
-            'paid' => true,
-            'invoice' => false,
-            'shipped' => false,
-            'delivery' => false,
-            'pdf_delivery' => false,
-            'pdf_invoice' => false,
-            'send_email' => false,
-            'hidden' => false,
-            'unremovable' => false,
-            'template' => '',
-            'deleted' => false,
-        ],
-        2 => [
-            'configuration' => 'SCALEXPERT_ORDER_STATE_REQUESTED',
-            'name' => 'Financing request requested',
-            'color' => '#66CDAA',
-            'logable' => true,
-            'paid' => true,
-            'invoice' => false,
-            'shipped' => false,
-            'delivery' => false,
-            'pdf_delivery' => false,
-            'pdf_invoice' => false,
-            'send_email' => false,
-            'hidden' => false,
-            'unremovable' => false,
-            'template' => '',
-            'deleted' => false,
-        ],
-        3 => [
-            'configuration' => 'SCALEXPERT_ORDER_STATE_PRE_ACCEPTED',
-            'name' => 'Financing request pre accepted',
-            'color' => '#00FF7F',
-            'logable' => true,
-            'paid' => true,
-            'invoice' => false,
-            'shipped' => false,
-            'delivery' => false,
-            'pdf_delivery' => false,
-            'pdf_invoice' => false,
-            'send_email' => false,
-            'hidden' => false,
-            'unremovable' => false,
-            'template' => '',
-            'deleted' => false,
-        ],
-        4 => [
-            'configuration' => 'SCALEXPERT_ORDER_STATE_REJECTED',
-            'name' => 'Financing request rejected',
-            'color' => '#8B0000',
-            'logable' => true,
-            'paid' => true,
-            'invoice' => false,
-            'shipped' => false,
-            'delivery' => false,
-            'pdf_delivery' => false,
-            'pdf_invoice' => false,
-            'send_email' => false,
-            'hidden' => false,
-            'unremovable' => false,
-            'template' => '',
-            'deleted' => false,
-        ],
-        5 => [
-            'configuration' => 'SCALEXPERT_ORDER_STATE_ABORTED',
-            'name' => 'Financing request aborted',
-            'color' => '#FF0000',
+            'configuration' => 'SCALEXPERT_ORDER_STATE_WAITING',
+            'name' => 'En attente de financement',
+            'color' => '#4169E1',
             'logable' => false,
             'paid' => false,
             'invoice' => false,
@@ -127,48 +42,12 @@ class ScalexpertPlugin extends PaymentModule
             'pdf_invoice' => false,
             'send_email' => false,
             'hidden' => false,
-            'unremovable' => false,
+            'unremovable' => true,
             'template' => '',
             'deleted' => false,
         ],
-        5 => [
-            'configuration' => 'SCALEXPERT_ORDER_STATE_CANCELLED',
-            'name' => 'Financing request cancelled',
-            'color' => '#FF0000',
-            'logable' => false,
-            'paid' => false,
-            'invoice' => false,
-            'shipped' => false,
-            'delivery' => false,
-            'pdf_delivery' => false,
-            'pdf_invoice' => false,
-            'send_email' => false,
-            'hidden' => false,
-            'unremovable' => false,
-            'template' => '',
-            'deleted' => false,
-        ],
-    ];
-    const API_FINANCING_STATES = [
-        0 => 'ACCEPTED',
-        1 => 'INITIALIZED',
-        2 => 'REQUESTED',
-        3 => 'PRE_ACCEPTED',
-        4 => 'REJECTED',
-        5 => 'ABORTED',
-        6 => 'CANCELLED',
-    ];
 
-    const MATCHING_STATES = [
-        self::API_FINANCING_STATES[0] => self::ORDER_STATES[0]['configuration'],
-        self::API_FINANCING_STATES[1] => self::ORDER_STATES[1]['configuration'],
-        self::API_FINANCING_STATES[2] => self::ORDER_STATES[2]['configuration'],
-        self::API_FINANCING_STATES[3] => self::ORDER_STATES[3]['configuration'],
-        self::API_FINANCING_STATES[4] => self::ORDER_STATES[4]['configuration'],
-        self::API_FINANCING_STATES[5] => self::ORDER_STATES[5]['configuration'],
-        self::API_FINANCING_STATES[6] => self::ORDER_STATES[6]['configuration'],
     ];
-
 
     public function __construct()
     {
@@ -202,12 +81,13 @@ class ScalexpertPlugin extends PaymentModule
 
         return parent::install() &&
             $this->installTabs() &&
+            $this->installDatabase() &&
             $this->createFinancingOrderStates() &&
             $this->registerHook('displayBackOfficeHeader') &&
             $this->registerHook('header') &&
             $this->registerHook('displayProductButtons') &&
             //$this->registerHook('displayAdminProductsExtra') &&
-            $this->registerHook('hookDisplayAdminOrder') &&
+            $this->registerHook('DisplayAdminOrder') &&
             $this->registerHook('displayAdminOrderSide') &&
             $this->registerHook('payment') &&
             $this->registerHook('paymentReturn') &&
@@ -261,6 +141,19 @@ class ScalexpertPlugin extends PaymentModule
             $tab->module = $this->name;
             $tab->add();
         }
+
+        return true;
+    }
+
+    public function installDatabase()
+    {
+        Db::getInstance()->execute(
+            'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . \ScalexpertPlugin\Helper\FinancingOrder::table . '` (
+            `id_order` INT(10) UNSIGNED NOT NULL,
+            `id_subscription` VARCHAR(255) NULL,
+            PRIMARY KEY (`id_order`)
+            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
+        );
 
         return true;
     }
@@ -370,11 +263,6 @@ class ScalexpertPlugin extends PaymentModule
             'SCALEXPERT_ORDER_STATE_ACCEPTED',
             'SCALEXPERT_ORDER_STATE_ACCEPTED',
             self::ORDER_STATES[0]['configuration'],
-            self::ORDER_STATES[1]['configuration'],
-            self::ORDER_STATES[2]['configuration'],
-            self::ORDER_STATES[3]['configuration'],
-            self::ORDER_STATES[4]['configuration'],
-            self::ORDER_STATES[5]['configuration'],
         ];
 
         foreach ($vars as $name) {
@@ -503,12 +391,12 @@ class ScalexpertPlugin extends PaymentModule
         /** @var Cart $oCart */
         $oCart = $params['cart'];
 
-        $customizeProduct = DATASOLUTION\Module\Scalexpert\Helper\FinancingEligibility::getEligibleSolutionByCart($oCart);
+        $customizeProduct = ScalexpertPlugin\Helper\FinancingEligibility::getEligibleSolutionByCart($oCart);
         if (empty($customizeProduct)) {
             return false;
         }
 
-        $eligibleSolutions = DATASOLUTION\Module\Scalexpert\Api\Financing::getEligibleSolutionsForFront(
+        $eligibleSolutions = ScalexpertPlugin\Api\Financing::getEligibleSolutionsForFront(
             $oCart->getOrderTotal(),
             strtoupper($this->context->language->iso_code)
         );
@@ -551,7 +439,7 @@ class ScalexpertPlugin extends PaymentModule
         /** @var Cart $oCart */
         $oCart = $params['cart'];
 
-        $customizeProduct = DATASOLUTION\Module\Scalexpert\Helper\FinancingEligibility::getEligibleSolutionByCart($oCart);
+        $customizeProduct = ScalexpertPlugin\Helper\FinancingEligibility::getEligibleSolutionByCart($oCart);
         if (empty($customizeProduct)) {
             return;
         }
@@ -567,7 +455,7 @@ class ScalexpertPlugin extends PaymentModule
             }
         }
 
-        $eligibleSolutions = DATASOLUTION\Module\Scalexpert\Api\Financing::getEligibleSolutionsForFront(
+        $eligibleSolutions = ScalexpertPlugin\Api\Financing::getEligibleSolutionsForFront(
             $oCart->getOrderTotal(),
             $buyerCountry
         );
@@ -671,23 +559,20 @@ class ScalexpertPlugin extends PaymentModule
             $this->smarty->assign('status', 'ok');
         }
 
-        $payment = $order->getOrderPaymentCollection()->getFirst();
-        $subscriptionInfo = DATASOLUTION\Module\Scalexpert\Api\Financing::getSubscriptionInfo($payment->transaction_id);
+        $idSubscription = \ScalexpertPlugin\Helper\FinancingOrder::get($order->id);
+        $subscriptionInfo = ScalexpertPlugin\Api\Financing::getSubscriptionInfo($idSubscription);
 
         $status = $this->l('Unknown state');
         if (isset($subscriptionInfo['consolidatedStatus'])) {
-            $orderState = $this->getOrderSateByApiState($subscriptionInfo['consolidatedStatus']);
-            if ($orderState) {
-                $order->setCurrentState((int) $orderState->id);
-                $status = $this->getFinancialStateName($subscriptionInfo['consolidatedStatus']);
-            }
+            $status = $this->getFinancialStateName($subscriptionInfo['consolidatedStatus']);
         }
 
         $this->smarty->assign(array(
             'id_order' => $order->id,
             'reference' => $order->reference,
-            'id_subscription' => $payment->transaction_id,
+            'id_subscription' => $idSubscription,
             'subscription_status' => $status,
+            'subscription_status_error' => ('REJECTED' == $subscriptionInfo['consolidatedStatus']),
             'params' => $params,
             'total' => $total,
             'shop_name' => $this->context->shop->name,
@@ -725,12 +610,8 @@ class ScalexpertPlugin extends PaymentModule
 
     public function hookDisplayAdminOrder(array $params)
     {
-        $financialSubscriptions = $this->getOrderSubscriptions($params);
-
-        if (!empty($financialSubscriptions)) {
-            $this->context->smarty->assign([
-                'financialSubscriptions' => $financialSubscriptions,
-            ]);
+        if (version_compare(_PS_VERSION_, '1.7.7.0', '>=')) {
+            return  '';
         }
 
         if (Tools::isSubmit('submitSubscriptionCancelRequest')) {
@@ -747,9 +628,20 @@ class ScalexpertPlugin extends PaymentModule
             }
         }
 
-        $this->context->smarty->assign([
-            'acceptedStatus' => self::API_FINANCING_STATES[0],
-        ]);
+        $financialSubscriptions = $this->getOrderSubscriptions($params);
+
+        if (!empty($financialSubscriptions)) {
+
+            foreach ($financialSubscriptions as &$element) {
+                $element['buyerFinancedAmountDisplay'] = Tools::displayPrice(
+                    $element['buyerFinancedAmount']
+                );
+            }
+
+            $this->context->smarty->assign([
+                'financialSubscriptions' => $financialSubscriptions,
+            ]);
+        }
 
         return $this->display(__FILE__, 'views/templates/admin/ps16/order-side.tpl');
     }
@@ -759,6 +651,13 @@ class ScalexpertPlugin extends PaymentModule
         $financialSubscriptions = $this->getOrderSubscriptions($params);
 
         if (!empty($financialSubscriptions)) {
+
+            foreach ($financialSubscriptions as &$element) {
+                $element['buyerFinancedAmountDisplay'] = Tools::displayPrice(
+                    $element['buyerFinancedAmount']
+                );
+            }
+
             $this->context->smarty->assign([
                 'financialSubscriptions' => $financialSubscriptions,
             ]);
@@ -774,7 +673,7 @@ class ScalexpertPlugin extends PaymentModule
             if ($response['hasError']) {
                 $this->get('session')->getFlashBag()->add('error', $response['error']);
             } else {
-                $this->get('session')->getFlashBag()->add('success', 'Your cancel request has been successfully sent.');
+                $this->get('session')->getFlashBag()->add('success', $this->l('Your cancel request has been successfully sent.'));
             }
 
             Tools::redirectAdmin(
@@ -783,10 +682,6 @@ class ScalexpertPlugin extends PaymentModule
                 ])
             );
         }
-
-        $this->context->smarty->assign([
-            'acceptedStatus' => self::API_FINANCING_STATES[0],
-        ]);
 
         return $this->display(__FILE__, 'views/templates/admin/ps17/order-side.tpl');
     }
@@ -907,7 +802,9 @@ class ScalexpertPlugin extends PaymentModule
                 }
             }
             if (!$found) {
-                $missingSolution[] = $solutionGroup[0];
+                foreach ($solutionGroup as $element) {
+                    $missingSolution[] = $element;
+                }
             }
         }
 
@@ -927,13 +824,6 @@ class ScalexpertPlugin extends PaymentModule
         ];
 
         return $data[strtolower($offerCode)][strtolower($isoCode)] ?? $data[self::TYPES[0]]['en'];
-    }
-
-    public function getOrderSateByApiState($consolidatedStatus)
-    {
-        $financingState = Configuration::get(self::MATCHING_STATES[$consolidatedStatus]);
-        $orderState = new OrderState((int) $financingState, $this->context->language->id);
-        return Validate::isLoadedObject($orderState) ? $orderState : null;
     }
 
     public function getFinancialStateName($idOrderState)

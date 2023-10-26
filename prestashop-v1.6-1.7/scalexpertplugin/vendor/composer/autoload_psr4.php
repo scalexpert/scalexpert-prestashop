@@ -6,5 +6,5 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'DATASOLUTION\\Module\\Scalexpert\\' => array($baseDir . '/src'),
+    'ScalexpertPlugin\\' => array($baseDir . '/src'),
 );

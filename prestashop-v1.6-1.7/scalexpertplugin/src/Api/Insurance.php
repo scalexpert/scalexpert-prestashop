@@ -7,7 +7,7 @@
  * @copyright Scalexpert
  */
 
-namespace DATASOLUTION\Module\Scalexpert\Api;
+namespace ScalexpertPlugin\Api;
 
 class Insurance extends Entity
 {

@@ -12,7 +12,7 @@ declare(strict_types=1);
 namespace ScalexpertPlugin\Service;
 
 use PrestaShop\PrestaShop\Core\ConfigurationInterface;
-use ScalexpertPlugin\Entity\CartInsurance;
+use ScalexpertPlugin\Entity\ScalexpertCartInsurance;
 use ScalexpertPlugin\Helper\API\Client;
 
 class CartInsuranceProductsService
@@ -37,7 +37,7 @@ class CartInsuranceProductsService
         $this->entityManager = $entityManager;
         $this->availableSolutions = $availableSolutions;
         $this->configuration = $configuration;
-        $this->cartInsuranceRepository = $this->entityManager->getRepository(CartInsurance::class);
+        $this->cartInsuranceRepository = $this->entityManager->getRepository(ScalexpertCartInsurance::class);
         $this->inProgress = false;
     }
 
@@ -149,7 +149,7 @@ class CartInsuranceProductsService
                         ]);
 
                         if (empty($cartInsuranceToUpdate)) {
-                            $cartInsurance = new CartInsurance();
+                            $cartInsurance = new ScalexpertCartInsurance();
                         } else {
                             $cartInsurance = reset($cartInsuranceToUpdate);
                         }

@@ -11,17 +11,8 @@ services:
   scalexpert.handler.solution_name:
     class: ScalexpertPlugin\Handler\SolutionNameHandler
 
-  scalexpert.handler.order_state:
-    class: ScalexpertPlugin\Handler\OrderStateHandler
-
   scalexpert.handler.hash:
     class: ScalexpertPlugin\Handler\HashHandler
-
-  # Commands
-  scalexpert.command.update_orders_states:
-    class: ScalexpertPlugin\Command\UpdateOrdersStatesCommand
-    tags:
-      - { name: 'console.command', command: 'scalexpertplugin:updateOrdersStates' }
 
   # API client
   scalexpert.api.guzzle.client:
@@ -55,12 +46,6 @@ services:
     arguments:
       - '@scalexpert.api.client'
       - '@doctrine.orm.default_entity_manager'
-
-  scalexpert.service.update_orders_states:
-    class: ScalexpertPlugin\Service\UpdateOrdersStatesService
-    arguments:
-      - '@scalexpert.api.client'
-      - '@scalexpert.handler.order_state'
 
   # Keys configuration form
   scalexpert.form.type.keys_configuration_form:

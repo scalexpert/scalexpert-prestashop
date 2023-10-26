@@ -51,12 +51,10 @@ class KeysTabController extends FrameworkBundleAdminController
             $this->flashErrors($errors);
         }
 
-        $maintenanceLink = $context->link->getModuleLink('scalexpertplugin', 'maintenance', [], true);
 
         return $this->render('@Modules/scalexpertplugin/views/templates/admin/keys.html.twig', [
             'keysConfigurationForm' => $textForm->createView(),
             'findMyKeyLink' => $this->getFindMyKeyLink($isoCode),
-            'maintenanceLink' => $maintenanceLink,
         ]);
     }
 

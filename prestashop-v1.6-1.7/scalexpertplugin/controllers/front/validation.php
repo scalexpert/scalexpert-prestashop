@@ -1,4 +1,7 @@
 <?php
+
+use ScalexpertPlugin\Helper\FinancingOrder;
+
 /**
  * Copyright © Scalexpert.
  * This file is part of Scalexpert plugin for PrestaShop.
@@ -38,7 +41,7 @@ class ScalexpertPluginValidationModuleFrontController extends ModuleFrontControl
         $secure_key = Context::getContext()->customer->secure_key;
 
         if ($this->isValidOrder() === true) {
-            $payment_status = Configuration::get('SCALEXPERT_ORDER_STATE_INITIALIZED');
+            $payment_status = Configuration::get('SCALEXPERT_ORDER_STATE_WAITING');
             $message = null;
         } else {
             $payment_status = Configuration::get('PS_OS_ERROR');
@@ -69,15 +72,17 @@ class ScalexpertPluginValidationModuleFrontController extends ModuleFrontControl
             $validateOrder
             && \Validate::isLoadedObject($newOrder)
         ) {
-            $subscription = DATASOLUTION\Module\Scalexpert\Api\Financing::createFinancingSubscription(
+            $subscription = ScalexpertPlugin\Api\Financing::createFinancingSubscription(
                 $newOrder,
                 $solutionCode
             );
 
             if (!$subscription['hasError']) {
-                $payment = $newOrder->getOrderPaymentCollection()->getFirst();
-                $payment->transaction_id = $subscription['data']['id'] ?? '';
-                $payment->update();
+
+                FinancingOrder::save(
+                    $newOrder->id,
+                    $subscription['data']['id'] ?? ''
+                );
 
                 if (isset($subscription['data']['redirect']['value'])) {
                     \Tools::redirect($subscription['data']['redirect']['value']);

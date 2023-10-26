@@ -7,7 +7,7 @@
  * @copyright Scalexpert
  */
 
-namespace DATASOLUTION\Module\Scalexpert\Log;
+namespace ScalexpertPlugin\Log;
 
 use Configuration;
 

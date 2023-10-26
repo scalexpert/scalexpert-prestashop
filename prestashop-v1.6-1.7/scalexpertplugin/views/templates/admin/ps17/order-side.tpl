@@ -66,18 +66,25 @@
             </div>
             <div class="row">
                 {l s='Buyer financed amount' mod='scalexpertplugin'}
-                : {$financialSubscription.buyerFinancedAmount}
+                : {$financialSubscription.buyerFinancedAmountDisplay}
             </div>
             <div class="row">
                 {l s='Registration timestamp' mod='scalexpertplugin'}
-                : {$financialSubscription.registrationTimestamp}
+                : {$financialSubscription.registrationTimestamp|date_format:"d/m/Y H:i:s"}
             </div>
-            {if $acceptedStatus === $financialSubscription.consolidatedStatus}
+            {if "ACCEPTED" === $financialSubscription.consolidatedStatus}
+                <br/>
                 <div class="row">
                     <form action="" method="post" onsubmit="return confirm('{l s='Do you confirm sending a cancel request?' mod='scalexpertplugin'}');">
                         <div id="message" class="form-horizontal">
                             <input type="hidden" name="creditSubscriptionId" value="{$financialSubscription.creditSubscriptionId}">
-                            <input type="hidden" name="buyerFinancedAmount" value="{$financialSubscription.buyerFinancedAmount}">
+
+                            <label for="scalexpert_cancel_financial_subscription_amount">
+                                {l s='Cancellation amount' mod='scalexpertplugin'} ({l s='format : 1234.56' mod='scalexpertplugin'}) :
+                            </label>
+                            <input type="text" id="scalexpert_cancel_financial_subscription_amount" name="buyerFinancedAmount" value="{$financialSubscription.buyerFinancedAmount}" class="form-control">
+                            <br/>
+
                             <button type="submit" id="submitSubscriptionCancelRequest" class="btn btn-primary pull-right" name="submitSubscriptionCancelRequest">
                                 {l s='Cancel subscription' mod='scalexpertplugin'}
                             </button>

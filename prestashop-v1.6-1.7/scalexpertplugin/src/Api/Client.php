@@ -7,10 +7,10 @@
  * @copyright Scalexpert
  */
 
-namespace DATASOLUTION\Module\Scalexpert\Api;
+namespace ScalexpertPlugin\Api;
 
-use DATASOLUTION\Module\Scalexpert\Helper\Hash;
-use DATASOLUTION\Module\Scalexpert\Log\Logger;
+use ScalexpertPlugin\Helper\Hash;
+use ScalexpertPlugin\Log\Logger;
 
 /**
  * Construct the client used to make call

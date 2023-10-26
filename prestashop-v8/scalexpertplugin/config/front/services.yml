@@ -2,10 +2,6 @@ services:
   _defaults:
     public: true
 
-  # Handlers
-  scalexpert.handler.order_state:
-    class: ScalexpertPlugin\Handler\OrderStateHandler
-
   # Logs
   scalexpert.handler.logs:
     class: ScalexpertPlugin\Handler\LogsHandler
@@ -49,9 +45,3 @@ services:
     arguments:
       - '@scalexpert.api.client'
       - '@doctrine.orm.default_entity_manager'
-
-  scalexpert.service.update_orders_states:
-    class: ScalexpertPlugin\Service\UpdateOrdersStatesService
-    arguments:
-      - '@scalexpert.api.client'
-      - '@scalexpert.handler.order_state'

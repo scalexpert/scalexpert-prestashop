@@ -1,6 +1,6 @@
 <?php
 
-namespace DATASOLUTION\Module\Scalexpert\Helper;
+namespace ScalexpertPlugin\Helper;
 
 class Hash
 {

@@ -12,8 +12,8 @@ namespace ScalexpertPlugin\Helper\API;
 use GuzzleHttp\Exception\GuzzleException;
 use Monolog\Logger;
 use PrestaShop\PrestaShop\Core\ConfigurationInterface;
-use ScalexpertPlugin\Entity\CartInsurance;
-use ScalexpertPlugin\Entity\ProductCustomField;
+use ScalexpertPlugin\Entity\ScalexpertCartInsurance;
+use ScalexpertPlugin\Entity\ScalexpertProductCustomField;
 use ScalexpertPlugin\Form\Configuration\KeysConfigurationFormDataConfiguration;
 use ScalexpertPlugin\Formatter\BuyerFormatter;
 use ScalexpertPlugin\Handler\HashHandler;
@@ -351,7 +351,7 @@ class Client
             }
         }
 
-        $repository = $this->doctrineEntityManager->getRepository(ProductCustomField::class);
+        $repository = $this->doctrineEntityManager->getRepository(ScalexpertProductCustomField::class);
 
         if (!empty($repository)) {
             $productCustomFields = $repository->find($productID);
@@ -420,7 +420,7 @@ class Client
                 }
 
                 if (!empty($context) && !empty($context->cart)) {
-                    $cartInsuranceRepository = $this->doctrineEntityManager->getRepository(CartInsurance::class);
+                    $cartInsuranceRepository = $this->doctrineEntityManager->getRepository(ScalexpertCartInsurance::class);
 
                     $selectedInsuranceItem = $cartInsuranceRepository->findBy([
                         'idCart' => (int) $context->cart->id,
@@ -721,7 +721,7 @@ class Client
         $basketItems = [];
 
         if (!empty($orderProducts)) {
-            $repository = $this->doctrineEntityManager->getRepository(ProductCustomField::class);
+            $repository = $this->doctrineEntityManager->getRepository(ScalexpertProductCustomField::class);
 
             foreach ($orderProducts as $orderProduct) {
                 // Get category name
@@ -779,7 +779,7 @@ class Client
             'merchantBasketId' => (string) $order->id_cart,
             'merchantGlobalOrderId' => (string) $order->reference,
             'merchantBuyerId' => (string) $customer->id,
-            'financedAmount' => (float) \Tools::ps_round($order->getTotalProductsWithTaxes(), 2),
+            'financedAmount' => (float) \Tools::ps_round($order->total_paid, 2),
             'merchantUrls' => [
                 'confirmation' => $redirectURL,
             ],

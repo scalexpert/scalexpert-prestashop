@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace ScalexpertPlugin\Service;
 
-use ScalexpertPlugin\Entity\CartInsurance;
+use ScalexpertPlugin\Entity\ScalexpertCartInsurance;
 use ScalexpertPlugin\Helper\API\Client;
 
 class InsurancesSubscriptionsService
@@ -26,7 +26,7 @@ class InsurancesSubscriptionsService
     {
         $this->apiClient = $apiClient;
         $this->entityManager = $entityManager;
-        $this->cartInsuranceRepository = $this->entityManager->getRepository(CartInsurance::class);
+        $this->cartInsuranceRepository = $this->entityManager->getRepository(ScalexpertCartInsurance::class);
     }
 
     public function createOrderInsurancesSubscriptions($hookParams)

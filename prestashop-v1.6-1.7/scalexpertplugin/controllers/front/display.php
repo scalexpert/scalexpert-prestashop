@@ -7,10 +7,10 @@
  * @copyright Scalexpert
  */
 
-use DATASOLUTION\Module\Scalexpert\Api\Financing;
-use DATASOLUTION\Module\Scalexpert\Api\Insurance;
-use DATASOLUTION\Module\Scalexpert\Helper\FinancingEligibility;
-use DATASOLUTION\Module\Scalexpert\Helper\InsuranceEligibility;
+use ScalexpertPlugin\Api\Financing;
+use ScalexpertPlugin\Api\Insurance;
+use ScalexpertPlugin\Helper\FinancingEligibility;
+use ScalexpertPlugin\Helper\InsuranceEligibility;
 
 class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
 {

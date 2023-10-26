@@ -7,7 +7,7 @@
  * @copyright Scalexpert
  */
 
-namespace DATASOLUTION\Module\Scalexpert\Helper;
+namespace ScalexpertPlugin\Helper;
 
 use Configuration;
 use DbQuery;

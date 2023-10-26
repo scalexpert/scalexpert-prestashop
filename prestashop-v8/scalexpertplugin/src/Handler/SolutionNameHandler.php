@@ -95,16 +95,18 @@ class SolutionNameHandler
         $missingSolution = [];
         foreach ($solutionGrouped[$type] as $solutionGroup) {
             $found = false;
+
             foreach ($solutionGroup as $solutionCode) {
                 if (in_array($solutionCode, $existingSolution)) {
                     $found = true;
                 }
             }
+
             if (!$found) {
-                $missingSolution[] = $solutionGroup[0];
+                $missingSolution = array_merge($missingSolution, $solutionGroup);
             }
         }
 
-        return $missingSolution;
+        return array_unique($missingSolution);
     }
 }

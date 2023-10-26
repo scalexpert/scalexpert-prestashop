@@ -57,18 +57,6 @@
                 </div>
             </div>
             {{ form_end(keysConfigurationForm) }}
-
-            <div class="card">
-                <h3 class="card-header">
-                    <i class="material-icons">settings</i> {{ 'Cron task'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
-                </h3>
-                <div class="card-body">
-                    <div class="form-wrapper">
-                        <p>{{ 'You configure this cron task (every hour) on your server:'|trans({}, 'Modules.Scalexpertplugin.Admin') }}</p>
-                        <p>0 * * * * <a href="#">{{ maintenanceLink }}</a></p>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 {% endblock %}

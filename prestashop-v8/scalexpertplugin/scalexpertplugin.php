@@ -21,8 +21,8 @@ use ScalexpertPlugin\Controller\Admin\ConfigTabController;
 use ScalexpertPlugin\Controller\Admin\DebugTabController;
 use ScalexpertPlugin\Controller\Admin\DesignTabController;
 use ScalexpertPlugin\Controller\Admin\KeysTabController;
-use ScalexpertPlugin\Entity\CartInsurance;
-use ScalexpertPlugin\Entity\ProductCustomField;
+use ScalexpertPlugin\Entity\ScalexpertCartInsurance;
+use ScalexpertPlugin\Entity\ScalexpertProductCustomField;
 use ScalexpertPlugin\Form\Configuration\DebugConfigurationFormDataConfiguration;
 use ScalexpertPlugin\Form\Configuration\FinancingConfigurationFormDataConfiguration;
 use ScalexpertPlugin\Form\Configuration\InsuranceConfigurationFormDataConfiguration;
@@ -33,127 +33,7 @@ use ScalexpertPlugin\Service\CartInsuranceProductsService;
 
 class ScalexpertPlugin extends PaymentModule
 {
-    const ORDER_STATES = [
-        [
-            'configuration' => 'SCALEXPERT_ORDER_STATE_ACCEPTED',
-            'name' => 'Financing request accepted',
-            'color' => '#228B22',
-            'logable' => true,
-            'paid' => true,
-            'invoice' => false,
-            'shipped' => false,
-            'delivery' => false,
-            'pdf_delivery' => false,
-            'pdf_invoice' => false,
-            'send_email' => false,
-            'hidden' => false,
-            'unremovable' => false,
-            'template' => '',
-            'deleted' => false,
-        ],
-        [
-            'configuration' => 'SCALEXPERT_ORDER_STATE_INITIALIZED',
-            'name' => 'Financing request initialized',
-            'color' => '#ADFF2F',
-            'logable' => true,
-            'paid' => true,
-            'invoice' => false,
-            'shipped' => false,
-            'delivery' => false,
-            'pdf_delivery' => false,
-            'pdf_invoice' => false,
-            'send_email' => false,
-            'hidden' => false,
-            'unremovable' => false,
-            'template' => '',
-            'deleted' => false,
-        ],
-        [
-            'configuration' => 'SCALEXPERT_ORDER_STATE_REQUESTED',
-            'name' => 'Financing request requested',
-            'color' => '#66CDAA',
-            'logable' => true,
-            'paid' => true,
-            'invoice' => false,
-            'shipped' => false,
-            'delivery' => false,
-            'pdf_delivery' => false,
-            'pdf_invoice' => false,
-            'send_email' => false,
-            'hidden' => false,
-            'unremovable' => false,
-            'template' => '',
-            'deleted' => false,
-        ],
-        [
-            'configuration' => 'SCALEXPERT_ORDER_STATE_PRE_ACCEPTED',
-            'name' => 'Financing request pre accepted',
-            'color' => '#00FF7F',
-            'logable' => true,
-            'paid' => true,
-            'invoice' => false,
-            'shipped' => false,
-            'delivery' => false,
-            'pdf_delivery' => false,
-            'pdf_invoice' => false,
-            'send_email' => false,
-            'hidden' => false,
-            'unremovable' => false,
-            'template' => '',
-            'deleted' => false,
-        ],
-        [
-            'configuration' => 'SCALEXPERT_ORDER_STATE_REJECTED',
-            'name' => 'Financing request rejected',
-            'color' => '#8B0000',
-            'logable' => false,
-            'paid' => true,
-            'invoice' => false,
-            'shipped' => false,
-            'delivery' => false,
-            'pdf_delivery' => false,
-            'pdf_invoice' => false,
-            'send_email' => false,
-            'hidden' => false,
-            'unremovable' => false,
-            'template' => '',
-            'deleted' => false,
-        ],
-        [
-            'configuration' => 'SCALEXPERT_ORDER_STATE_ABORTED',
-            'name' => 'Financing request aborted',
-            'color' => '#FF0000',
-            'logable' => false,
-            'paid' => false,
-            'invoice' => false,
-            'shipped' => false,
-            'delivery' => false,
-            'pdf_delivery' => false,
-            'pdf_invoice' => false,
-            'send_email' => false,
-            'hidden' => false,
-            'unremovable' => false,
-            'template' => '',
-            'deleted' => false,
-        ],
-        [
-            'configuration' => 'SCALEXPERT_ORDER_STATE_CANCELLED',
-            'name' => 'Financing request canceled',
-            'color' => '#8B0000',
-            'logable' => false,
-            'paid' => true,
-            'invoice' => false,
-            'shipped' => false,
-            'delivery' => false,
-            'pdf_delivery' => false,
-            'pdf_invoice' => false,
-            'send_email' => false,
-            'hidden' => false,
-            'unremovable' => false,
-            'template' => '',
-            'deleted' => false,
-        ],
-    ];
+    const CONFIGURATION_ORDER_STATE_FINANCING = 'SCALEXPERT_AWAITING_FINANCING';
 
     public function __construct()
     {
@@ -206,7 +86,7 @@ class ScalexpertPlugin extends PaymentModule
         $installResult = parent::install()
             && $this->initDatabase()
             && $this->createInsuranceProductsCategory()
-            && $this->createFinancingOrderStates()
+            && $this->createFinancingOrderState()
             && $this->manuallyInstallTab()
             && $this->registerHook('paymentOptions')
             && $this->registerHook('displayPaymentReturn')
@@ -237,14 +117,14 @@ class ScalexpertPlugin extends PaymentModule
             && $this->deleteInsuranceProductsCategory()
             && $this->unInstallConfiVars()
             && $this->uninstallDatabase()
-            && $this->uninstallFinancingOrderStates();
+            && $this->uninstallFinancingOrderState();
     }
 
     public function initDatabase(): bool
     {
         try {
             Db::getInstance()->execute(
-                'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'product_custom_field` (
+                'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'scalexpert_product_custom_field` (
                 `id_product` INT(10) UNSIGNED NOT NULL,
                 `model` VARCHAR(255) NULL,
                 `characteristics` VARCHAR(255) NULL,
@@ -253,7 +133,15 @@ class ScalexpertPlugin extends PaymentModule
             );
 
             Db::getInstance()->execute(
-                'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'cart_insurance` (
+                'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'scalexpert_order_financing` (
+                `id_order` INT(10) UNSIGNED NOT NULL,
+                `id_subscription` VARCHAR(255) NULL,
+                PRIMARY KEY (`id_order`)
+                ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
+            );
+
+            Db::getInstance()->execute(
+                'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'scalexpert_cart_insurance` (
                 `id_cart_insurance` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
                 `id_product` INT(10) UNSIGNED NOT NULL,
                 `id_product_attribute` INT(10) UNSIGNED,
@@ -279,8 +167,9 @@ class ScalexpertPlugin extends PaymentModule
     public function uninstallDatabase(): bool
     {
         $result = true;
-        $sql[] = 'DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'product_custom_field';
-        $sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'cart_insurance`';
+        $sql[] = 'DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'scalexpert_product_custom_field';
+        $sql[] = 'DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'scalexpert_order_financing';
+        $sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'scalexpert_cart_insurance`';
 
         foreach ($sql as $query) {
             $result = $result && Db::getInstance()->execute($query);
@@ -332,66 +221,64 @@ class ScalexpertPlugin extends PaymentModule
         return !empty($creationResult);
     }
 
-    public function createFinancingOrderStates()
+    public function createFinancingOrderState()
     {
-        $createFinancingOrderStates = true;
         $languages = Language::getLanguages();
+        $idOrderState = Configuration::get(self::CONFIGURATION_ORDER_STATE_FINANCING);
 
-        if (!empty(self::ORDER_STATES)) {
-            foreach (self::ORDER_STATES as $orderStateToAdd) {
-                $idOrderState = Configuration::get($orderStateToAdd['configuration']);
+        if ($idOrderState) {
+            $orderState = new OrderState((int) $idOrderState);
+        } else {
+            $orderState = new OrderState();
+        }
 
-                if ($idOrderState) {
-                    $orderState = new OrderState((int) $idOrderState);
-                } else {
-                    $orderState = new OrderState();
-                }
+        $orderState->module_name = $this->name;
 
-                $orderState->module_name = $this->name;
+        $orderStateLabel =  [
+            'EN' => 'Awaiting financing',
+            'FR' => 'En attente de financement',
+        ];
 
-                $names = [];
-                foreach ($languages as $language) {
-                    $names[$language['id_lang']] = $orderStateToAdd['name'];
-                }
-
-                $orderState->name = $names;
-                $orderState->color = $orderStateToAdd['color'];
-                $orderState->logable = $orderStateToAdd['logable'];
-                $orderState->paid = $orderStateToAdd['paid'];
-                $orderState->invoice = $orderStateToAdd['invoice'];
-                $orderState->shipped = $orderStateToAdd['shipped'];
-                $orderState->delivery = $orderStateToAdd['delivery'];
-                $orderState->pdf_delivery = $orderStateToAdd['pdf_delivery'];
-                $orderState->pdf_invoice = $orderStateToAdd['pdf_invoice'];
-                $orderState->send_email = $orderStateToAdd['send_email'];
-                $orderState->hidden = $orderStateToAdd['hidden'];
-                $orderState->unremovable = $orderStateToAdd['unremovable'];
-                $orderState->template = $orderStateToAdd['template'];
-                $orderState->deleted = $orderStateToAdd['deleted'];
-
-                $orderStateAdd = (bool) $orderState->add();
-                $createFinancingOrderStates &= $orderStateAdd;
-
-                if ($orderStateAdd) {
-                    Configuration::updateValue($orderStateToAdd['configuration'], $orderState->id);
-                }
+        $names = [];
+        foreach ($languages as $language) {
+            if (isset($orderStateLabel[strtoupper($language['iso_code'])])) {
+                $names[$language['id_lang']] = $orderStateLabel[strtoupper($language['iso_code'])];
+            } else {
+                $names[$language['id_lang']] = $orderStateLabel['EN'];
             }
         }
 
-        return $createFinancingOrderStates;
+        $orderState->name = $names;
+        $orderState->color = '#34209E';
+        $orderState->logable = false;
+        $orderState->paid = false;
+        $orderState->invoice = false;
+        $orderState->shipped = false;
+        $orderState->delivery = false;
+        $orderState->pdf_delivery = false;
+        $orderState->pdf_invoice = false;
+        $orderState->send_email = false;
+        $orderState->hidden = false;
+        $orderState->unremovable = true;
+        $orderState->template = '';
+        $orderState->deleted = false;
+
+        $orderStateAdd = (bool) $orderState->add();
+
+        if ($orderStateAdd) {
+            Configuration::updateValue(self::CONFIGURATION_ORDER_STATE_FINANCING, $orderState->id);
+        }
+
+        return $orderStateAdd;
     }
 
-    public function uninstallFinancingOrderStates()
+    public function uninstallFinancingOrderState()
     {
-        if (!empty(self::ORDER_STATES)) {
-            foreach (self::ORDER_STATES as $orderStateToAdd) {
-                $idOrderState = Configuration::get($orderStateToAdd['configuration']);
+        $idOrderState = Configuration::get(self::CONFIGURATION_ORDER_STATE_FINANCING);
 
-                if ($idOrderState) {
-                    $orderState = new OrderState((int) $idOrderState);
-                    $orderState->delete();
-                }
-            }
+        if ($idOrderState) {
+            $orderState = new OrderState((int) $idOrderState);
+            $orderState->delete();
         }
 
         return true;
@@ -575,12 +462,7 @@ class ScalexpertPlugin extends PaymentModule
             DebugConfigurationFormDataConfiguration::CONFIGURATION_DEBUG,
             DesignCustomizeFormDataConfiguration::CONFIGURATION_DESIGN,
             CartInsuranceProductsService::CONFIGURATION_INSURANCE_PRODUCTS_CATEGORY,
-            self::ORDER_STATES[0]['configuration'],
-            self::ORDER_STATES[1]['configuration'],
-            self::ORDER_STATES[2]['configuration'],
-            self::ORDER_STATES[3]['configuration'],
-            self::ORDER_STATES[4]['configuration'],
-            self::ORDER_STATES[5]['configuration'],
+            self::CONFIGURATION_ORDER_STATE_FINANCING,
         ];
 
         foreach ($vars as $name) {
@@ -692,20 +574,21 @@ class ScalexpertPlugin extends PaymentModule
 
         foreach ($financialSubscriptions as &$financialSubscription) {
             if (isset($financialSubscription['consolidatedStatus'])) {
-                $orderStateHandler = $this->get('scalexpert.handler.order_state');
-                $orderStateId = $orderStateHandler->getIdOrderStateByApiStatus($financialSubscription['consolidatedStatus']);
-                $orderState = new OrderState($orderStateId, $this->context->language->id);
 
-                if (Validate::isLoadedObject($orderState)) {
-                    $order->setCurrentState((int) $orderState->id);
-                    $financialSubscription['consolidatedStatus'] = $this->getFinancialStateName($financialSubscription['consolidatedStatus']);
+                $financialSubscription['consolidatedStatusError'] = false;
+                if ('REJECTED' == $financialSubscription['consolidatedStatus']) {
+                    $financialSubscription['consolidatedStatusError'] = true;
                 }
+
+                $financialSubscription['consolidatedStatus'] = $this->getFinancialStateName(
+                    $financialSubscription['consolidatedStatus']
+                );
             }
 
             if (!empty($financialSubscription['buyerFinancedAmount'])) {
                 $financialSubscription['buyerFinancedAmount'] = Tools::displayPrice(
                     $financialSubscription['buyerFinancedAmount'],
-                    $order->id_currency
+                    (int) $order->id_currency
                 );
             }
         }
@@ -715,7 +598,9 @@ class ScalexpertPlugin extends PaymentModule
             'financialSubscriptions' => $financialSubscriptions,
         ]);
 
-        return $this->fetch('module:' . $this->name . '/views/templates/hook/order-confirmation-financing.tpl');
+        return $this->fetch(
+            'module:' . $this->name . '/views/templates/hook/order-confirmation-financing.tpl'
+        );
     }
 
     public function hookActionCartSave(array $params)
@@ -807,7 +692,7 @@ class ScalexpertPlugin extends PaymentModule
 
         $apiClient = $this->get('scalexpert.api.client');
         $entityManager = $this->get('doctrine.orm.entity_manager');
-        $cartInsuranceRepository = $entityManager->getRepository(CartInsurance::class);
+        $cartInsuranceRepository = $entityManager->getRepository(ScalexpertCartInsurance::class);
 
         $cartInsurances = $cartInsuranceRepository->findBy(['idCart' => $order->id_cart]);
 
@@ -904,7 +789,7 @@ class ScalexpertPlugin extends PaymentModule
                     $financialSubscription['buyerFinancedAmountFloat'] = $financialSubscription['buyerFinancedAmount'];
                     $financialSubscription['buyerFinancedAmount'] = Tools::displayPrice(
                         $financialSubscription['buyerFinancedAmount'],
-                        $order->id_currency
+                        (int) $order->id_currency
                     );
                 }
             }
@@ -924,7 +809,7 @@ class ScalexpertPlugin extends PaymentModule
         $productId = $params['id_product'];
 
         $entityManager = $this->get('doctrine.orm.entity_manager');
-        $repository = $entityManager->getRepository(ProductCustomField::class);
+        $repository = $entityManager->getRepository(ScalexpertProductCustomField::class);
 
         if (!empty($repository)) {
             $productCustomFields = $repository->find($productId);
@@ -950,7 +835,7 @@ class ScalexpertPlugin extends PaymentModule
         if (!empty($productId)) {
             $entityManager = $this->get('doctrine.orm.entity_manager');
 
-            $productCustomField = new ProductCustomField();
+            $productCustomField = new ScalexpertProductCustomField();
             $productCustomField->setIdProduct((int) $productId);
 
             $productModel = Tools::getValue('scalexpertplugin_model', '');
@@ -1056,7 +941,7 @@ class ScalexpertPlugin extends PaymentModule
         if (!empty($params['order']) && Validate::isLoadedObject($params['order'])) {
             $apiClient = $this->get('scalexpert.api.client');
             $entityManager = $this->get('doctrine.orm.entity_manager');
-            $cartInsuranceRepository = $entityManager->getRepository(CartInsurance::class);
+            $cartInsuranceRepository = $entityManager->getRepository(ScalexpertCartInsurance::class);
 
             $cartInsurances = $cartInsuranceRepository->findBy(['idCart' => $params['order']->id_cart]);
 

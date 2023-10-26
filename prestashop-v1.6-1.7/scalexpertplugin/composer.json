@@ -1,7 +1,9 @@
 {
-  "autoload": {
-    "psr-4": {"DATASOLUTION\\Module\\Scalexpert\\": "src/"}
-  },
-  "require": {
-  }
+    "autoload": {
+        "psr-4": {
+            "ScalexpertPlugin\\": "src/"
+        }
+    },
+    "require": {
+    }
 }

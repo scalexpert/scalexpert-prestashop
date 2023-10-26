@@ -1,4 +1,7 @@
 <?php
+
+use ScalexpertPlugin\Entity\ScalexpertOrderFinancing;
+
 /**
  * Copyright © Scalexpert.
  * This file is part of Scalexpert plugin for PrestaShop.
@@ -49,7 +52,7 @@ class ScalexpertpluginValidationModuleFrontController extends ModuleFrontControl
 
         $validateOrder = $this->module->validateOrder(
             (int) $cart->id,
-            (int) Configuration::get('SCALEXPERT_ORDER_STATE_INITIALIZED'),
+            (int) Configuration::get(ScalexpertPlugin::CONFIGURATION_ORDER_STATE_FINANCING),
             $total,
             $this->module->displayName,
             null,
@@ -67,12 +70,12 @@ class ScalexpertpluginValidationModuleFrontController extends ModuleFrontControl
             $financingSubscription = $apiClient->createFinancingSubscription($currentOrder, $solutionCode);
 
             if (!empty($financingSubscription['id'])) {
-                $payment = $currentOrder->getOrderPaymentCollection()->getLast();
-
-                if (!empty($payment)) {
-                    $payment->transaction_id = $financingSubscription['id'];
-                    $payment->update();
-                }
+                $entityManager = $this->get('doctrine.orm.entity_manager');
+                $orderFinancing = new ScalexpertOrderFinancing();
+                $orderFinancing->setIdOrder((int) $currentOrder->id);
+                $orderFinancing->setIdSubscription((string) $financingSubscription['id']);
+                $entityManager->persist($orderFinancing);
+                $entityManager->flush();
 
                 Tools::redirect($financingSubscription['redirect']['value']);
             }

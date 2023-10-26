@@ -7,21 +7,17 @@ namespace Composer\Autoload;
 class ComposerStaticInit1612e0c9b3247f50c571e7b1cf8a304d
 {
     public static $prefixLengthsPsr4 = array (
-        'D' => 
+        'S' => 
         array (
-            'DATASOLUTION\\Module\\Scalexpert\\' => 31,
+            'ScalexpertPlugin\\' => 17,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'DATASOLUTION\\Module\\Scalexpert\\' => 
+        'ScalexpertPlugin\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
         ),
-    );
-
-    public static $classMap = array (
-        'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
@@ -29,7 +25,6 @@ class ComposerStaticInit1612e0c9b3247f50c571e7b1cf8a304d
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInit1612e0c9b3247f50c571e7b1cf8a304d::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInit1612e0c9b3247f50c571e7b1cf8a304d::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit1612e0c9b3247f50c571e7b1cf8a304d::$classMap;
 
         }, null, ClassLoader::class);
     }
