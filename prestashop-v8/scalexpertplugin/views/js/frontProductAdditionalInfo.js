@@ -10,14 +10,14 @@ $(function () {
     let domDisplay = '';
     let productId = 0;
     let modalSelector = '.sep_financialSolution [data-modal="sep_openModal"]';
+    let xhr = '';
 
     $(document).ready(function () {
         domDisplay = $('#scalexpertplugin-displayProductAdditionalInfo');
         if (domDisplay.length && $('#product_page_product_id').length) {
             productId = parseInt($('#product_page_product_id').val());
             callAjax();
-        } else {
-            console.trace('not exist #scalexpertplugin-displayProductAdditionalInfo or #product_page_product_id');
+            eventPrestaShopUpdateProduct();
         }
     });
 
@@ -26,7 +26,8 @@ $(function () {
             !isNaN(productId)
         ) {
             let id_product = parseInt($('#product_page_product_id').val());
-            $.ajax({
+            abortAjax();
+            xhr = $.ajax({
                 method: "POST",
                 headers: {"cache-control": "no-cache"},
                 url: getFinancialInsertsOnProductAjaxURL,
@@ -41,6 +42,15 @@ $(function () {
                 });
         }
 
+    }
+
+    function abortAjax() {
+        if (typeof xhr !== 'undefined' &&
+            xhr != 'cancel_duplicate' &&
+            xhr.readyState < 4)
+        {
+            xhr.abort();
+        }
     }
 
     function clearResult() {
@@ -90,5 +100,14 @@ $(function () {
                 }
             });
         }
+    }
+
+    function eventPrestaShopUpdateProduct() {
+        prestashop.on('updatedProduct', (event) => {
+            domDisplay = $('#scalexpertplugin-displayProductAdditionalInfo');
+            if (domDisplay.length) {
+                callAjax();
+            }
+        });
     }
 });

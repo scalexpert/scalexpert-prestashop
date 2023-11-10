@@ -40,10 +40,12 @@
                 {/if}
             </span>
 
-            <img class="sep_insuranceSolution-logo"
-                 src="{$insuranceSolution.visualLogo|default:''}"
-                 alt="Logo {$insuranceSolution.visualTitle|default:''|strip_tags}"
-            >
+            {if !empty($insuranceSolution.visualLogo)}
+                <img class="sep_insuranceSolution-logo"
+                     src="{$insuranceSolution.visualLogo|default:''}"
+                     alt="Logo {$insuranceSolution.visualTitle|default:''|strip_tags}"
+                >
+            {/if}
         </div>
 
         {if !empty($insuranceSolution.insurances)}
@@ -117,22 +119,24 @@
         {if !empty($isCart)}
             *{$insuranceSolution.visualLegalText|default:''}
             {if !empty($insuranceSolution.visualInformationNoticeURL)}
-                (<a href="{$insuranceSolution.visualInformationNoticeURL|default:''}">{l s='Notice d\'Information' d='Modules.Scalexpertplugin.Shop'}</a>)
+                {l s='By subscribing to the insurance, I declare that I have been able to download and print the' d='Modules.Scalexpertplugin.Shop'}
+                <a target="_blank" href="{$insuranceSolution.visualInformationNoticeURL|default:''}">{l s='Information notice (IN)' d='Modules.Scalexpertplugin.Shop'}</a>
+                {l s='of the insurance contract.' d='Modules.Scalexpertplugin.Shop'}
             {/if}
         {else}
             <div class="sep_insuranceSolution-condition">
                 {$insuranceSolution.visualDescription|default:''}
             </div>
 
-            {if !empty($insuranceSolution.visualInformationNoticeURL) &&
+            {if !empty($insuranceSolution.visualInformationNoticeURL) ||
             !empty($insuranceSolution.visualProductTermsURL)}
                 <div class="sep_insuranceSolution-link">
-                    {if !empty($insuranceSolution.visualInformationNoticeURL)}
-                        <a href="{$insuranceSolution.visualInformationNoticeURL|default:''}">{l s='Fiche d\'information produit (IPID)' d='Modules.Scalexpertplugin.Shop'}</a>
+                    {if !empty($insuranceSolution.visualProductTermsURL)}
+                        <a href="{$insuranceSolution.visualProductTermsURL|default:''}">{l s='Fiche d\'information produit (IPID)' d='Modules.Scalexpertplugin.Shop'}</a>
                     {/if}
 
-                    {if !empty($insuranceSolution.visualProductTermsURL)}
-                        <a href="{$insuranceSolution.visualProductTermsURL|default:''}">{l s='Notice d\'information (NI)' d='Modules.Scalexpertplugin.Shop'}</a>
+                    {if !empty($insuranceSolution.visualInformationNoticeURL)}
+                        <a href="{$insuranceSolution.visualInformationNoticeURL|default:''}">{l s='Notice d\'information (NI)' d='Modules.Scalexpertplugin.Shop'}</a>
                     {/if}
                 </div>
             {/if}

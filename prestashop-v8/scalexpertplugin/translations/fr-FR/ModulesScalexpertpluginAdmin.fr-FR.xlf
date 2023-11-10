@@ -177,16 +177,6 @@
         <target>Afficher/Cacher la clé</target>
         <note>Line: </note>
       </trans-unit>
-      <trans-unit id="84c5e3e99a3639c800fa9dad2ebc206b">
-        <source>Cron task</source>
-        <target>Tâche cron</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="fc541e6ed27cb567905f7351bd12a3fd">
-        <source>You configure this cron task (every hour) on your server:</source>
-        <target>Vous devez configurer cette tâche cron (toutes les heures) sur votre serveur :</target>
-        <note>Line: </note>
-      </trans-unit>
       <trans-unit id="0db377921f4ce762c62526131097968f">
         <source>General</source>
         <target>Configuration Générale</target>
@@ -229,7 +219,7 @@
       </trans-unit>
       <trans-unit id="ec53a8c4f07baed5d8825072c89799be">
         <source>Status</source>
-        <target>États</target>
+        <target>Etat</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="b806a6afe42fc1b1a99b2539688f4830">
@@ -265,11 +255,6 @@
       <trans-unit id="e5435eaa28ed0f13bafcf25677ef18f3">
         <source>format : 1234.56</source>
         <target>format : 1234.56</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="9f82518d468b9fee614fcc92f76bb163">
-        <source>Shop</source>
-        <target>Gestion Boutique</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="bc90aa32f18d46d9050e9e6725b30e50">

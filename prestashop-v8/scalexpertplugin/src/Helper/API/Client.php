@@ -376,12 +376,12 @@ class Client
                 'solutionCode' => $solutionCode,
                 'sku' => $product->reference,
                 'merchantItemId' => (string) $product->id,
-                'brand' => $manufacturerName ?? '',
-                'model' => $model ?? '',
-                'title' => $product->name ?? '',
-                'description' => !empty($product->description) ? substr(strip_tags($product->description), 0, 255) : '',
-                'characteristics' => $characteristics ?? '',
-                'category' => $categoryName ?? '',
+                'brand' => $manufacturerName ?? 'NC',
+                'model' => $model ?? 'NC',
+                'title' => $product->name ?? 'NC',
+                'description' => !empty($product->description) ? substr(strip_tags($product->description), 0, 255) : 'NC',
+                'characteristics' => $characteristics ?? 'NC',
+                'category' => $categoryName ?? 'NC',
             ]
         );
 
@@ -548,7 +548,7 @@ class Client
             '/insurance/api/v1/subscriptions',
             [],
             [
-                'merchantBasketId' =>  'ps_' . $merchantBasketId,
+                'merchantBasketId' => $merchantBasketId,
             ]
         );
 
@@ -643,7 +643,7 @@ class Client
                 'solutionCode' => $cartInsurancesProduct->getSolutionCode(),
                 'quoteId' => $quoteData['quoteId'],
                 'insuranceId' => $cartInsurancesProduct->getIdInsurance(),
-                'merchantBasketId' => 'ps_' . (string) $cart->id,
+                'merchantBasketId' => (string) $cart->id,
                 'merchantBuyerId' => (string) $customer->id,
                 'producerQuoteExpirationDate' => preg_replace('/^(\d{4}-\d{2}-\d{2}).*$/', '$1', $quoteData['expirationDate']),
                 'producerQuoteInsurancePrice' => $quoteData['insurancePrice'],
@@ -656,25 +656,25 @@ class Client
                         'phoneNumber' => '',
                     ],
                     'address' => [
-                        'streetNumber' => 0,
+                         'streetNumber' => 0,
                         'streetNumberSuffix' => '',
-                        'streetName' => $address->address1 ?: '',
-                        'streetNameComplement' => $address->address2 ?: '',
-                        'zipCode' => $address->postcode ?: '',
-                        'cityName' => $address->city ?: '',
-                        'regionName' => \State::getNameById($address->id_state) ?: 'default',
-                        'countryCode' => \Country::getIsoById($address->id_country) ?: '',
+                        'streetName' => (string) $address->address1 ?: '',
+                        'streetNameComplement' => (string) $address->address2 ?: '',
+                        'zipCode' => (string) $address->postcode ?: 'NC',
+                        'cityName' => (string) $address->city ?: 'NC',
+                        'regionName' => (string) $address->id_state ?: 'NC',
+                        'countryCode' => \Country::getIsoById($address->id_country) ?: 'NC',
                     ]
                 ],
                 'insuredItem' => [
-                    'id' => $cartInsurancesProduct->getIdItem(),
-                    'label' => $product->name ?? '',
-                    'brandName' => $manufacturerName ?? '',
+                    'id' => (string) $cartInsurancesProduct->getIdItem() ?: 'NC',
+                    'label' => trim(strip_tags(substr($product->name, 0, 30))) ?: 'NC',
+                    'brandName' => $manufacturerName ?? 'NC',
                     'price' => $productPrice,
-                    'currencyCode' => $orderCurrency ?: '',
+                    'currencyCode' => $orderCurrency ?: 'NC',
                     'orderId' => (string) $order->reference,
-                    'category' => $categoryName ?? '',
-                    'sku' => $product->reference ?: '',
+                    'category' => !empty($categoryName) ? substr($categoryName, 0, 20) : 'NC',
+                    'sku' => (string) $product->reference ?: 'NC',
                     'insurancePrice' => $quoteData['insurancePrice'],
                 ]
             ]

@@ -52,9 +52,24 @@
         <target>Confirmer</target>
         <note>Line: </note>
       </trans-unit>
+      <trans-unit id="eaff1bdf24fcffe0e14e29a1bff51a12">
+        <source>Insurance</source>
+        <target>Assurance</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="24a23d787190f2c4812ff9ab11847a72">
+        <source>Status:</source>
+        <target>Etat : </target>
+        <note>Line: </note>
+      </trans-unit>
       <trans-unit id="ec53a8c4f07baed5d8825072c89799be">
         <source>Status</source>
         <target>Statut</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="8b36249c00d04fa8cf0ee475d1e21078">
+        <source>Waiting for payment</source>
+        <target>En attente de paiement</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="50f1d1e90602608bbb8cfcb177c16916">
@@ -82,9 +97,19 @@
         <target>Pas de garantie</target>
         <note>Line: </note>
       </trans-unit>
-      <trans-unit id="5e58834f8bcc3683c170f08fb5221b63">
-        <source>Notice d'Information</source>
-        <target>Notice d'Information</target>
+      <trans-unit id="62654a6330f74535b4b0019d9b24bd43">
+        <source>By subscribing to the insurance, I declare that I have been able to download and print the</source>
+        <target>En souscrivant à la garantie, je déclare avoir été en mesure de télécharger et d'imprimer la </target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="32d1f5ffe41b79b34f3833c59d5082af">
+        <source>Information notice (IN)</source>
+        <target>Notice d'information (NI)</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="da80a6660eeb66a3e36a166a2bb96228">
+        <source>of the insurance contract.</source>
+        <target>du contrat d'assurance.</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="aeabc949abf68329adb54bd1a8815f17">
@@ -102,11 +127,6 @@
         <target>Payer</target>
         <note>Line: </note>
       </trans-unit>
-      <trans-unit id="88526efe38fd18179a127024aba8c1d7">
-        <source>Your order on %s is complete.</source>
-        <target>Votre commande %s est validée.</target>
-        <note>Line: </note>
-      </trans-unit>
       <trans-unit id="6bc58f15227f5ca8e16849c68330e690">
         <source>Your informations payment:</source>
         <target>Vos informations de paiement :</target>
@@ -120,11 +140,6 @@
       <trans-unit id="5d4710f9a8250b13164a82c94d5b00d1">
         <source>Order reference</source>
         <target>Référence de commande</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="8b0b9351cde711eca6dd6aeb789aa47f">
-        <source>Financial reference</source>
-        <target>Référence du financement</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="44b8ba7ac764470a35259d75ec37ba4f">
