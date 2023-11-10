@@ -6,4 +6,5 @@
 * @copyright Scalexpert
 *}
 
+<div id="scalexpertplugin-displayProductButtons-insurance"></div>
 <div id="scalexpertplugin-displayProductButtons"></div>

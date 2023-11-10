@@ -386,7 +386,49 @@ class AdminScalexpertCustomizeController extends ModuleAdminController
             $this->_formInputs[] = [
                 'type' => 'html',
                 'name' => 'html_data',
-                'html_content' => '<h3>' . $this->l('Exclude product categories') . '</h3>',
+                'html_content' => '<h2>' . $this->l('Cart page') . '</h2>'
+                    . '<h3 class="modal-title">' . $this->l('Customize the block') . '</h3>',
+                'tab' => $tabName
+            ];
+            $this->_formInputs[] = [
+                'label' => $this->l('Title'),
+                'type' => 'text',
+                'required' => true,
+                // 'lang' => true,
+                'name' => 'customizeProduct[' . $solutionCode . '][title_cart]',
+                'tab' => $tabName
+            ];
+            $this->_formInputs[] = [
+                'label' => $this->l('Subtitle'),
+                'type' => 'text',
+                'required' => true,
+                // 'lang' => true,
+                'name' => 'customizeProduct[' . $solutionCode . '][subtitle_cart]',
+                'tab' => $tabName
+            ];
+            $this->_formInputs[] = [
+                'type' => 'switch',
+                'label' => $this->l('Display the logo'),
+                'name' => 'customizeProduct[' . $solutionCode . '][logo_cart]',
+                'class' => 't',
+                'is_bool' => true,
+                'values' => [
+                    [
+                        'value' => 1,
+                        'label' => $this->l('Enabled')
+                    ],
+                    [
+                        'value' => 0,
+                        'label' => $this->l('Disabled')
+                    ]
+                ],
+                'tab' => $tabName
+            ];
+
+            $this->_formInputs[] = [
+                'type' => 'html',
+                'name' => 'html_data',
+                'html_content' => '<h2>' . $this->l('Exclude product categories') . '</h2>',
                 'tab' => $tabName
             ];
             $this->_formInputs[] = [

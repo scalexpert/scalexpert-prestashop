@@ -29,8 +29,8 @@
 
             {$availableSolution.visualLegalText|default:''}
 
-            {if !empty($availableSolution.visualInformationNoticeURL) && !empty($availableSolution.visualProductTermsURL)}
-                <ul class="sep_contentModal-img">
+            {if !empty($availableSolution.visualInformationNoticeURL) || !empty($availableSolution.visualProductTermsURL)}
+                <ul>
                     {if !empty($availableSolution.visualInformationNoticeURL)}
                         <li>
                             <a href="{$availableSolution.visualInformationNoticeURL|default:''}">{l s='Notice' mod='scalexpertplugin'}</a><br>

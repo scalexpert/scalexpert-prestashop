@@ -17,14 +17,14 @@
                 <div class="modal-header">
                     <div class="h2 modal-header-title">
                         <img src="/modules/{$nameModule|default:''}/views/img/borrow.svg"
-                             alt="{l s='Emprunter' d='Modules.Scalexpertplugin.Shop'}"
+                             alt="{l s='Emprunter' mod='scalexpertplugin'}"
                         >
                         {$availableSolution.visualTitle|default:''|strip_tags}
                     </div>
                     <button type="button"
                             class="close"
                             data-dismiss="modal"
-                            aria-label="{l s='Close' d='Shop.Theme.Global'}">
+                            aria-label="{l s='Close' mod='scalexpertplugin'}">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>

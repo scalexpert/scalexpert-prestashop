@@ -9,8 +9,10 @@
 
 use ScalexpertPlugin\Api\Financing;
 use ScalexpertPlugin\Api\Insurance;
+use ScalexpertPlugin\Helper\AvailableSolutionsChecker;
 use ScalexpertPlugin\Helper\FinancingEligibility;
 use ScalexpertPlugin\Helper\InsuranceEligibility;
+use ScalexpertPlugin\Helper\InsuranceProcess;
 
 class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
 {
@@ -35,10 +37,31 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
 
     public function displayAjaxCart()
     {
-
         $content = $this->_getInsuranceForCart();
 
         $this->ajaxDie(\Tools::jsonEncode(array('hasError' => false, 'content' => $content)));
+    }
+
+    public function displayAjaxAddToCart()
+    {
+        $idCart = Tools::getValue('id_cart');
+        $insurance = Tools::getValue('insurance');
+//        $params['cart'] = $idCart ? new \Cart((int) $idCart) : \Context::getContext()->cart;
+        $params['cart'] = \Context::getContext()->cart;
+
+        $insuranceProductReference = sprintf('%s|%s',
+            Tools::getValue('id_product'),
+            Tools::getValue('id_product_attribute')
+        );
+
+        $_POST['insurances'] = [
+            $insuranceProductReference => $insurance
+        ];
+        $_POST['add'] = true;
+
+        $result = InsuranceProcess::handleCartSave($params);
+
+        $this->ajaxDie(\Tools::jsonEncode(array('hasError' => false, 'content' => $result)));
     }
 
     private function _getFinancialsForProduct()
@@ -49,7 +72,7 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $customizeProduct = FinancingEligibility::getEligibleSolutionByProduct($oProduct);
+        $customizeProduct = FinancingEligibility::getEligibleSolutionByProduct($idProduct);
         if (empty($customizeProduct)) {
             return;
         }
@@ -95,9 +118,23 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
         if (!Validate::isLoadedObject($oProduct)) {
             return;
         }
-        $idProductAttribute = (int)Tools::getValue('idProductAttribute');
 
-        $customizeProduct = InsuranceEligibility::getEligibleSolutionByProduct($oProduct);
+        $idProductAttribute = 0;
+        if (version_compare(_PS_VERSION_, '1.7', '>=')) {
+            $groups = Tools::getValue('idProductAttribute');
+
+            if (!empty($groups)) {
+                $idProductAttribute = (int) Product::getIdProductAttributeByIdAttributes(
+                    $idProduct,
+                    $groups,
+                    true
+                );
+            }
+        } else {
+            $idProductAttribute = (int)Tools::getValue('idProductAttribute');
+        }
+
+        $customizeProduct = InsuranceEligibility::getEligibleSolutionByProduct($idProduct);
         if (empty($customizeProduct)) {
             return;
         }
@@ -108,7 +145,6 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
         );
 
         foreach ($eligibleSolutions as $eligibleSolution) {
-
             if (isset($customizeProduct[$eligibleSolution['solutionCode']])) {
                 $this->context->smarty->assign(
                     $this->module->name . '_productButtons',
@@ -120,6 +156,9 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
                 $communicationKit = $eligibleSolution['communicationKit'];
                 if (!empty($customizeProduct[$eligibleSolution['solutionCode']]['title'])) {
                     $communicationKit['visualTitle'] = $customizeProduct[$eligibleSolution['solutionCode']]['title'];
+                }
+                if (!empty($customizeProduct[$eligibleSolution['solutionCode']]['subtitle'])) {
+                    $communicationKit['visualDescription'] = $customizeProduct[$eligibleSolution['solutionCode']]['subtitle'];
                 }
                 $communicationKit['displayLogo'] = $customizeProduct[$eligibleSolution['solutionCode']]['logo'];
 
@@ -135,9 +174,19 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
                     $oProduct->getPrice(true, $idProductAttribute, 2)
                 );
 
-                if(!empty($communicationKit)) {
+                if (empty($insurancesData)) {
+                    continue;
+                }
+
+                if(
+                    !empty($communicationKit)
+                    && is_array($insurancesData)
+                ) {
                     $insurancesData = array_merge($communicationKit, $insurancesData);
                 }
+
+                $insurancesData['id_product'] = $idProduct;
+                $insurancesData['id_product_attribute'] = $idProductAttribute;
 
                 $this->context->smarty->assign([
                     'insurancesData' => $insurancesData,
@@ -194,18 +243,18 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $customizeProduct = InsuranceEligibility::getEligibleSolutionByProduct($oProduct);
+        $customizeProduct = InsuranceEligibility::getEligibleSolutionByProduct($idProduct);
         if (empty($customizeProduct)) {
             return;
         }
 
         $content = '';
-        $eligibleSolutions = Insurance::getEligibleSolutionsFromBuyerBillingCountry(
+        /*$eligibleSolutions = Insurance::getEligibleSolutionsFromBuyerBillingCountry(
             $buyerCountry
-        );
+        );*/
+        $eligibleSolutions = AvailableSolutionsChecker::getAvailableInsuranceSolutions();
 
         foreach ($eligibleSolutions as $eligibleSolution) {
-
             if (isset($customizeProduct[$eligibleSolution['solutionCode']])) {
                 $this->context->smarty->assign(
                     $this->module->name . '_productButtons',
@@ -215,11 +264,10 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
                     ]
                 );
                 $communicationKit = $eligibleSolution['communicationKit'];
-                if (!empty($customizeProduct[$eligibleSolution['solutionCode']]['title'])) {
-                    $communicationKit['visualTitle'] = $customizeProduct[$eligibleSolution['solutionCode']]['title'];
+                if (!empty($customizeProduct[$eligibleSolution['solutionCode']]['title_cart'])) {
+                    $communicationKit['visualTitle'] = $customizeProduct[$eligibleSolution['solutionCode']]['title_cart'];
                 }
                 $communicationKit['displayLogo'] = $customizeProduct[$eligibleSolution['solutionCode']]['logo'];
-                $this->context->smarty->assign($communicationKit);
 
                 $itemData = Insurance::createItem($eligibleSolution['solutionCode'], $idProduct);
                 if (!$itemData) {
@@ -231,6 +279,22 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
                     $itemData['id'],
                     $oProduct->getPrice(true, $idProductAttribute, 2)
                 );
+
+                if (empty($insurancesData)) {
+                    continue;
+                }
+
+                if(
+                    !empty($communicationKit)
+                    && is_array($insurancesData)
+                ) {
+                    $insurancesData = array_merge($communicationKit, $insurancesData);
+                }
+
+                $insurancesData['id_product'] = $idProduct;
+                $insurancesData['id_product_attribute'] = $idProductAttribute;
+                $insurancesData['relatedProduct'] = $eligibleSolution['relatedProduct'];
+
                 $this->context->smarty->assign([
                     'insurancesData' => $insurancesData,
                 ]);

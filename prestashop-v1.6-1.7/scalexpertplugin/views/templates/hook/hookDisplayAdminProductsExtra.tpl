@@ -6,22 +6,29 @@
         </div>
 
         <hr/>
-        <div class="form-group">
-            <label class="control-label col-lg-2" for="scalexpertplugin_model">
-                {l s='Model' mod='scalexpertplugin'}
-            </label>
-            <div class="col-lg-7">
-                <input type="text" name="scalexpertplugin_model" id="scalexpertplugin_model" value="">
+        {foreach $languages as $lang}
+            <div class="form-group">
+                <label class="control-label col-lg-2" for="scalexpertplugin_model_{$lang.id_lang}">
+                    {l s='Model' mod='scalexpertplugin'} {$lang.iso_code|upper}
+                </label>
+                <div class="col-lg-7">
+                    <input type="text" name="scalexpertplugin_model[{$lang.id_lang}]"
+                           id="scalexpertplugin_model_{$lang.id_lang}" value="{if !empty($scalexpertplugin_model_values[$lang.id_lang])}{$scalexpertplugin_model_values[$lang.id_lang]}{/if}">
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label col-lg-2" for="scalexpertplugin_model">
-                {l s='Model' mod='scalexpertplugin'}
-            </label>
-            <div class="col-lg-7">
-                <input type="text" name="scalexpertplugin_model" id="scalexpertplugin_model" value="">
+        {/foreach}
+
+        {foreach $languages as $lang}
+            <div class="form-group">
+                <label class="control-label col-lg-2" for="scalexpertplugin_characteristics_{$lang.id_lang}">
+                    {l s='Characteristics' mod='scalexpertplugin'} {$lang.iso_code|upper}
+                </label>
+                <div class="col-lg-7">
+                    <input type="text" name="scalexpertplugin_characteristics[{$lang.id_lang}]"
+                           id="scalexpertplugin_characteristics_{$lang.id_lang}" value="{if !empty($scalexpertplugin_characteristics_values[$lang.id_lang])}{$scalexpertplugin_characteristics_values[$lang.id_lang]}{/if}">
+                </div>
             </div>
-        </div>
+        {/foreach}
 
 
     </div>

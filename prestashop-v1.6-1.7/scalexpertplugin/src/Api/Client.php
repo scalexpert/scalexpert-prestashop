@@ -22,6 +22,10 @@ class Client
     protected $appKey;
     protected $appBearer;
 
+    public $logger;
+
+    protected static $_instance = null;
+
     /**
      * @var string
      */
@@ -32,15 +36,33 @@ class Client
         $this->appEnvironnement = (!is_null($appEnv) ? $appEnv : $this->_getEnvironnement());
         $this->appIdentifier = (!is_null($appIdentifier) ? $appIdentifier : $this->_getApiIdentifier());
         $this->appKey = (!is_null($appKey) ? $appKey : $this->_getApiKey());
+
+        $this->logger = new Logger();
     }
 
     public function getBearer($scope = null)
     {
+        if (!empty($this->appBearer)) {
+            return [
+                'hasError' => false,
+            ];
+        }
+
         $apiUrl = $this->_getApiUrl() . 'auth-server/api/v1/oauth2/token';
         $postFields['grant_type'] = 'client_credentials';
         if ($scope) {
             $postFields['scope'] = $scope . ':rw';
+        } else {
+            $postFields['scope'] = 'e-financing:rw insurance:rw';
         }
+
+        $uniqId = uniqid('', true);
+        $this->logger->logInfo("[".$uniqId."] API CALL : ".json_encode([
+                'api_url' => $apiUrl,
+                'type' => 'POST',
+                'params' => $postFields
+            ])
+        );
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $apiUrl);
@@ -64,6 +86,13 @@ class Client
         }
 
         if (null !== $errorMessage) {
+            $this->logger->logError("[".$uniqId."] API RESPONSE ERROR: ".json_encode([
+                    'http_code' => $httpcode,
+                    'error_message' => $errorMessage,
+                    'response_data' => $data
+                ])
+            );
+
             return [
                 'hasError' => true,
                 'error' => $errorMessage
@@ -73,6 +102,12 @@ class Client
         $this->appBearer = $data['access_token'];
         curl_close($ch);
 
+        $this->logger->logInfo("[".$uniqId."] API RESPONSE : ".json_encode([
+                'http_code' => $httpcode,
+                'response_data' => $data
+            ])
+        );
+
         return [
             'hasError' => false,
         ];
@@ -80,7 +115,7 @@ class Client
 
     private function _getApiUrl()
     {
-        if (strtoupper($this->appEnvironnement) == 'PRODUCTION') {
+        if ('PRODUCTION' === strtoupper($this->appEnvironnement)) {
             $apiURL = 'https://api.scalexpert.societegenerale.com/baas/prod/';
         } else {
             $apiURL = 'https://api.scalexpert.uatc.societegenerale.com/baas/uatc';
@@ -104,12 +139,19 @@ class Client
         return \Configuration::get('SCALEXPERT_ENVIRONMENT');
     }
 
+    public static function getInstance()
+    {
+        if (null !== self::$_instance) {
+            return self::$_instance;
+        }
+
+        return self::$_instance = new Client();
+    }
+
     public static function get($scope, $apiUrl)
     {
-        $logger = new Logger();
-
-        $client = new Client();
-        $client->getBearer($scope);
+        $client = self::getInstance();
+        $client->getBearer();
 
         if (!$client->appBearer) {
             return [
@@ -119,31 +161,48 @@ class Client
         }
 
         $url = $client->_getApiUrl() . $apiUrl;
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Authorization: Bearer ' . $client->appBearer,
             'Cache-control: no-cache',
         ]);
-        $logger->logInfo('[REQUEST] ' . $url);
+        $uniqId = uniqid('', true);
+        $client->logger->logInfo('['.$uniqId.'][REQUEST] ' . $url);
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         $content = curl_exec($ch);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $logger->logInfo('[RESPONSE] ' . $content);
+//        $client->logger->logInfo('['.$uniqId.'][RESPONSE] ' . $content);
 
         $errorMessage = null;
         if (200 !== $httpcode) {
             $errorMessage = 'Error ' . $httpcode;
         }
+
+        $data = json_decode($content, true);
+
         if (null !== $errorMessage) {
+            $client->logger->logError('['.$uniqId.']API RESPONSE ERROR: '.json_encode([
+                    'http_code' => $httpcode,
+                    'error_message' => $errorMessage,
+                    'response_data' => $data
+                ])
+            );
+
             return [
                 'hasError' => true,
                 'error' => $errorMessage
             ];
         }
 
-        $data = json_decode($content, true);
+        $client->logger->logInfo("[".$uniqId."]API RESPONSE : ".json_encode([
+                'http_code' => $httpcode,
+                'response_data' => $data
+            ])
+        );
+
         return [
             'hasError' => false,
             'data' => $data
@@ -152,10 +211,9 @@ class Client
 
     public static function post($scope, $apiUrl, $data = [])
     {
-        $logger = new Logger();
+        $client = self::getInstance();
+        $client->getBearer();
 
-        $client = new Client();
-        $client->getBearer($scope);
         if (!$client->appBearer) {
             return [
                 'hasError' => true,
@@ -164,6 +222,7 @@ class Client
         }
 
         $url = $client->_getApiUrl() . $apiUrl;
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -173,30 +232,50 @@ class Client
             'Cache-control: no-cache',
         ]);
         curl_setopt($ch, CURLOPT_POST, true);
-        $logger->logInfo('[REQUEST] ' . $url);
+        $uniqId = uniqid('', true);
+        $client->logger->logInfo('['.$uniqId.'][REQUEST] ' . $url);
 
         $jsonData = json_encode($data);
-        $logger->logInfo('[PAYLOAD] ' . $jsonData);
+        $client->logger->logInfo('['.$uniqId.'][PAYLOAD] ' . $jsonData);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         $content = curl_exec($ch);
-        $logger->logInfo('[RESPONSE] ' . $content);
+//        $client->logger->logInfo('['.$uniqId.'][RESPONSE] ' . $content);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
         $errorMessage = null;
-        if (200 !== $httpcode && 201 !== $httpcode) {
+        if (!in_array($httpcode, [
+            200,
+            201,
+            204
+        ], true)) {
             $errorMessage = json_decode($content, true);
             $errorMessage = $errorMessage['errorMessage'] ?? $errorMessage;
         }
+
+        $data = json_decode($content, true);
+
         if (null !== $errorMessage) {
+            $client->logger->logError("[".$uniqId."]API RESPONSE ERROR: ".json_encode([
+                    'http_code' => $httpcode,
+                    'error_message' => $errorMessage,
+                    'response_data' => $data
+                ])
+            );
+
             return [
                 'hasError' => true,
                 'error' => $errorMessage
             ];
         }
 
-        $data = json_decode($content, true);
+        $client->logger->logInfo("[".$uniqId."]API RESPONSE : ".json_encode([
+                'http_code' => $httpcode,
+                'response_data' => $data
+            ])
+        );
+
         return [
             'hasError' => false,
             'data' => $data

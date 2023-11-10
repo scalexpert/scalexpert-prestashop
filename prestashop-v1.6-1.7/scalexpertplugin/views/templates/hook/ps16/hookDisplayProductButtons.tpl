@@ -8,6 +8,10 @@
 
 <script>
     var scalexpertpluginFrontUrl = '{$scalexpertpluginFrontUrl|default:''}';
+    var scalexpertpluginCartId = {$scalexpertpluginCartId|default:0|intval};
     var scalexpertpluginProductId = {$scalexpertpluginProductId|default:0|intval};
+    var scalexpertpluginAddToCartUrl = '{$scalexpertpluginAddToCartUrl|default:''}';
 </script>
+
+<div id="scalexpertplugin-displayProductButtons-insurance"></div>
 <div id="scalexpertplugin-displayProductButtons"></div>

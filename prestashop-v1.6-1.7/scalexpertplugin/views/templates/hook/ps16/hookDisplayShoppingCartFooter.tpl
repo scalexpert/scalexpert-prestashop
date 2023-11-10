@@ -8,6 +8,18 @@
 
 <script>
     var scalexpertpluginFrontUrl = '{$scalexpertpluginFrontUrl|default:''}';
-    var scalexpertpluginProductId = {$scalexpertpluginProductId|default:0|intval};
 </script>
-<div id="scalexpertplugin-displayProductButtons"></div>
+<div id="scalexpertplugin-displayShoppingCartFooter"></div>
+
+<template id="scalexpertpluginTemplateShoppingCartFooter">
+    <form method="post">
+        <div class="scalexpertplugin-content"></div>
+        <div class="text-center">
+            <button class="button btn btn-default button-medium" type="submit" name="confirm">
+                <span>
+                    {l s='Confirmer' mod='scalexpertplugin'}
+                </span>
+            </button>
+        </div>
+    </form>
+</template>

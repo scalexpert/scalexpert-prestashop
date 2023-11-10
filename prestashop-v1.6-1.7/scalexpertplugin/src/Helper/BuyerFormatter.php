@@ -44,6 +44,23 @@ class BuyerFormatter
         ];
     }
 
+    public static function normalizeInsuranceContact(
+        \Address $address,
+        \Customer $customer
+    ): array
+    {
+        return [
+            "lastName" => $address->lastname,
+            "firstName" => $address->firstname,
+            "email" => $customer->email,
+            "mobilePhoneNumber" => self::formatPhone(
+                !empty($address->phone_mobile) ? $address->phone_mobile : $address->phone,
+                $address->id_country
+            ),
+            "phoneNumber" => '',
+        ];
+    }
+
     public static function normalizeAddress(
         \Address $address,
         string $locationType
@@ -54,6 +71,24 @@ class BuyerFormatter
         return [
             "locationType" => $locationType,
 //            "streetNumber" => 0,
+            "streetNumberSuffix" => '',
+            "streetName" => (string)$address->address1,
+            "streetNameComplement" => (string)$address->address2,
+            "zipCode" => (string)$address->postcode ?: 'NC',
+            "cityName" => (string)$address->city ?: 'NC',
+            "regionName" => (string)$address->id_state ?: 'NC',
+            "countryCode" => (string)$countryCode ?: 'NC',
+        ];
+    }
+
+    public static function normalizeInsuranceAddress(
+        \Address $address
+    ): array
+    {
+        $countryCode = \Country::getIsoById($address->id_country);
+
+        return [
+            "streetNumber" => 0,
             "streetNumberSuffix" => '',
             "streetName" => (string)$address->address1,
             "streetNameComplement" => (string)$address->address2,
