@@ -1,6 +1,6 @@
 <?php
 
-use ScalexpertPlugin\Helper\FinancingOrder;
+use ScalexpertPlugin\Model\FinancingOrder;
 
 /**
  * Copyright © Scalexpert.

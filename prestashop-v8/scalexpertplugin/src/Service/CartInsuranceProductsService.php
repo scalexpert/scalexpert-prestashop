@@ -142,7 +142,7 @@ class CartInsuranceProductsService
                             continue;
                         }
 
-                        $cartInsuranceToUpdate = $this->cartInsuranceRepository->findBy([
+                        $cartInsuranceToUpdate = $this->cartInsuranceRepository->findOneBy([
                             'idCart' => (int) $cart->id,
                             'idProduct' => $idProduct,
                             'idProductAttribute' => $idProductAttribute,
@@ -151,7 +151,7 @@ class CartInsuranceProductsService
                         if (empty($cartInsuranceToUpdate)) {
                             $cartInsurance = new ScalexpertCartInsurance();
                         } else {
-                            $cartInsurance = reset($cartInsuranceToUpdate);
+                            $cartInsurance = $cartInsuranceToUpdate;
                         }
 
                         $cartInsurance->setIdProduct((int) $idProduct);
@@ -324,10 +324,21 @@ class CartInsuranceProductsService
     public function createOrGetInsuranceProduct($cartInsurance): ?int
     {
         $insuranceProductReference =  sprintf('%s|%s', $cartInsurance->getIdItem(), $cartInsurance->getIdInsurance());
+        $insuranceCategoryId = (int) $this->configuration->get(self::CONFIGURATION_INSURANCE_PRODUCTS_CATEGORY);
         $insuranceProductId = \Product::getIdByReference($insuranceProductReference);
 
         if (!empty($insuranceProductId)) {
-            return (int) $insuranceProductId;
+            $existingInsuranceProduct = new \Product((int) $insuranceProductId);
+
+            if (\Validate::isLoadedObject($existingInsuranceProduct)) {
+                if ($existingInsuranceProduct->id_category_default != $insuranceCategoryId) {
+                    $existingInsuranceProduct->id_category_default = $insuranceCategoryId;
+                    $existingInsuranceProduct->addToCategories($insuranceCategoryId);
+                    $existingInsuranceProduct->save();
+                }
+
+                return (int) $insuranceProductId;
+            }
         }
 
         $productPrice = \Product::getPriceStatic($cartInsurance->getIdProduct(), true, $cartInsurance->getIdProductAttribute(), 2);
@@ -357,10 +368,9 @@ class CartInsuranceProductsService
             $insuranceProduct->delivery_out_stock = true;
             $insuranceProduct->price = $currentInsurance['price'];
 
-            $insuranceCategoryId = $this->configuration->get(self::CONFIGURATION_INSURANCE_PRODUCTS_CATEGORY);
-
             if (!empty($insuranceCategoryId)) {
                 $insuranceProduct->id_category_default = $insuranceCategoryId;
+                $insuranceProduct->addToCategories($insuranceCategoryId);
             }
 
             $languages = \Language::getLanguages();

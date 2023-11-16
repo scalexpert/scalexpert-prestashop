@@ -39,7 +39,7 @@ class ScalexpertPlugin extends PaymentModule
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.0';
+        $this->version = '1.1.0';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 
@@ -700,13 +700,10 @@ class ScalexpertPlugin extends PaymentModule
 
         if (!empty($cartInsurances)) {
             foreach ($cartInsurances as $cartInsurance) {
-                $insuredProduct = new Product($cartInsurance->getIdProduct(), false, $this->context->language);
-                $insuranceProduct = new Product($cartInsurance->getIdInsuranceProduct(), false, $this->context->language);
+                $insuredProduct = new Product($cartInsurance->getIdProduct(), false, $this->context->language->id);
+                $insuranceProduct = new Product($cartInsurance->getIdInsuranceProduct(), false, $this->context->language->id);
                 $subscriptions = $cartInsurance->getSubscriptions();
-
-                $insuranceSubscriptionsByProduct[$cartInsurance->getIdProduct()]['productName'] = $insuredProduct->name;
-                $insuranceSubscriptionsByProduct[$cartInsurance->getIdProduct()]['insuranceName'] = $insuranceProduct->name;
-                $insuranceSubscriptionsByProduct[$cartInsurance->getIdProduct()]['subscriptions'] = [];
+                $subscriptionsToAdd = [];
 
                 if (!empty($subscriptions)) {
                     foreach ($subscriptions as $subscriptionId) {
@@ -716,7 +713,7 @@ class ScalexpertPlugin extends PaymentModule
                             continue;
                         }
 
-                        $insuranceSubscriptionsByProduct[$cartInsurance->getIdProduct()]['subscriptions'][] = [
+                        $subscriptionsToAdd[] = [
                             'subscriptionId' => $subscriptionId ?? '',
                             'consolidatedStatus' => $apiSubscription['consolidatedStatus'] ?? '',
                             'duration' => $apiSubscription['duration'] ?? '',
@@ -727,13 +724,18 @@ class ScalexpertPlugin extends PaymentModule
                         ];
                     }
                 }
+
+                $insuranceSubscriptionsByProduct[] = [
+                    'productName' => $insuredProduct->name,
+                    'insuranceName' => $insuranceProduct->name,
+                    'subscriptions' => $subscriptionsToAdd,
+                ];
             }
         }
 
         $templateData['insuranceSubscriptionsByProduct'] = $insuranceSubscriptionsByProduct;
 
         if (Tools::getIsset('scalexpert_cancel_financial_subscription')) {
-
             $financialSubscriptionId = Tools::getValue('scalexpert_cancel_financial_subscription_id');
             $financialSubscriptionAmount = (float)Tools::getValue('scalexpert_cancel_financial_subscription_amount');
 
@@ -949,15 +951,12 @@ class ScalexpertPlugin extends PaymentModule
 
             if (!empty($cartInsurances)) {
                 foreach ($cartInsurances as $cartInsurance) {
-                    $insuredProduct = new Product($cartInsurance->getIdProduct(), false, $this->context->language);
-                    $insuranceProduct = new Product($cartInsurance->getIdInsuranceProduct(), false, $this->context->language);
+                    $insuredProduct = new Product($cartInsurance->getIdProduct(), false, $this->context->language->id);
+                    $insuranceProduct = new Product($cartInsurance->getIdInsuranceProduct(), false, $this->context->language->id);
                     $subscriptions = $cartInsurance->getSubscriptions();
+                    $subscriptionsToAdd = [];
 
                     if (!empty($subscriptions)) {
-                        $insuranceSubscriptionsByProduct[$cartInsurance->getIdProduct()]['productName'] = $insuredProduct->name;
-                        $insuranceSubscriptionsByProduct[$cartInsurance->getIdProduct()]['insuranceName'] = $insuranceProduct->name;
-                        $insuranceSubscriptionsByProduct[$cartInsurance->getIdProduct()]['subscriptions'] = [];
-
                         foreach ($subscriptions as $subscriptionId) {
                             $apiSubscription = $apiClient->getInsuranceSubscriptionBySubscriptionId($subscriptionId);
 
@@ -965,13 +964,19 @@ class ScalexpertPlugin extends PaymentModule
                                 continue;
                             }
 
-                            $insuranceSubscriptionsByProduct[$cartInsurance->getIdProduct()]['subscriptions'][] = [
+                            $subscriptionsToAdd[] = [
                                 'subscriptionId' => $subscriptionId ?? '',
                                 'consolidatedStatus' => $apiSubscription['consolidatedStatus'] ?? '',
                                 'producerQuoteInsurancePrice' => $apiSubscription['producerQuoteInsurancePrice'] ?? '',
                             ];
                         }
                     }
+
+                    $insuranceSubscriptionsByProduct[] = [
+                        'productName' => $insuredProduct->name,
+                        'insuranceName' => $insuranceProduct->name,
+                        'subscriptions' => $subscriptionsToAdd,
+                    ];
                 }
             }
 

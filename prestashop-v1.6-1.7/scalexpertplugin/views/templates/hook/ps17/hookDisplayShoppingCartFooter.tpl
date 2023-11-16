@@ -6,4 +6,15 @@
 * @copyright Scalexpert
 *}
 
-<div id="scalexpertplugin-displayProductButtons"></div>
+<div id="scalexpertplugin-displayShoppingCartFooter"></div>
+
+<template id="scalexpertpluginTemplateShoppingCartFooter">
+    <form method="post">
+        <div class="scalexpertplugin-content"></div>
+        <div class="text-xs-center">
+            <button class="btn btn-primary" type="submit" name="confirm">
+                {l s='Confirmer' mod='scalexpertplugin'}
+            </button>
+        </div>
+    </form>
+</template>

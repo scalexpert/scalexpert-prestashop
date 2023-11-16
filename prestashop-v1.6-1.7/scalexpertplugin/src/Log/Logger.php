@@ -28,7 +28,6 @@ class Logger
         $this->logger->setFilename(_PS_MODULE_DIR_.'scalexpertplugin/log/'.date('Ymd').'.log');
 
         $this->activeLog = (int)Configuration::get('SCALEXPERT_DEBUG_MODE');
-
     }
 
     /**

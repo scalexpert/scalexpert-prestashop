@@ -8,7 +8,6 @@
 
         <div class="card-body">
             {% for insuranceSubscriptionsByProductElement in insuranceSubscriptionsByProduct %}
-
                 <p><b>{{ insuranceSubscriptionsByProductElement.insuranceName }}</b></p>
 
                 {% if insuranceSubscriptionsByProductElement.subscriptions|length %}
@@ -22,10 +21,12 @@
                                 {{ 'Insurance price'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
                                 : {{ insuranceSubscription.producerQuoteInsurancePrice }}
                             </div>
-                            <div class="row">
-                                {{ 'Insurance duration'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
-                                : {{ insuranceSubscription.duration }}
-                            </div>
+                            {% if insuranceSubscription.duration is defined and insuranceSubscription.duration is not empty %}
+                                <div class="row">
+                                    {{ 'Insurance duration'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
+                                    : {{ insuranceSubscription.duration }}
+                                </div>
+                            {% endif %}
                             <div class="row">
                                 {{ 'Status'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
                                 : {{ insuranceSubscription.consolidatedStatus }}

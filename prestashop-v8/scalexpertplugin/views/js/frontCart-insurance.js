@@ -9,19 +9,20 @@
 $(function () {
     let domDisplay = '';
     let modalSelector = '.sep_insuranceSolution [data-modal="sep_openModal"]';
+    let xhr = '';
 
     $(document).ready(function () {
         domDisplay = $('#scalexpertplugin-displayShoppingCartFooter');
         if (domDisplay.length) {
             callAjax();
-        } else {
-            console.trace('not exist #scalexpertplugin-displayShoppingCartFooter');
+            eventPrestaShopUpdateCart();
         }
     });
 
     function callAjax() {
         if (typeof getInsuranceInsertsAjaxURL !== 'undefined') {
-            $.ajax({
+            abortAjax();
+            xhr = $.ajax({
                 method: "POST",
                 headers: {"cache-control": "no-cache"},
                 url: getInsuranceInsertsAjaxURL,
@@ -35,6 +36,15 @@ $(function () {
                 });
         }
 
+    }
+
+    function abortAjax() {
+        if (typeof xhr !== 'undefined' &&
+            xhr != 'cancel_duplicate' &&
+            xhr.readyState < 4)
+        {
+            xhr.abort();
+        }
     }
 
     function clearResult() {
@@ -83,5 +93,14 @@ $(function () {
                 }
             });
         }
+    }
+
+    function eventPrestaShopUpdateCart() {
+        prestashop.on('updateCart', (event) => {
+            domDisplay = $('#scalexpertplugin-displayShoppingCartFooter');
+            if (domDisplay.length) {
+                callAjax();
+            }
+        });
     }
 });

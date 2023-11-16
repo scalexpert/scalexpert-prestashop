@@ -35,7 +35,7 @@ $(function () {
                     type: 'financial'
                 },
                 beforeSend: clearResult()
-            }).done(function (jsonData) {
+            }).success(function (jsonData) {
                 successAjax(jsonData);
             });
         }

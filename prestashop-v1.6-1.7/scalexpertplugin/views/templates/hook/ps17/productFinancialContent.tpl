@@ -18,7 +18,7 @@
                 {if !empty($availableSolution.visualInformationIcon)}
                     <img class="sep_main_productsButtons-i"
                          src="{$availableSolution.visualInformationIcon|default:''}"
-                         alt="{l s='more information' d='Modules.Scalexpertplugin.Shop'}"
+                         alt="{l s='more information' mod='scalexpertplugin'}"
                          width="16"
                          height="16"
                     >

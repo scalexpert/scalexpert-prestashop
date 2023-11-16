@@ -1,0 +1,95 @@
+/**
+ * Copyright © Scalexpert.
+ * This file is part of Scalexpert plugin for PrestaShop.
+ *
+ * @author    Société Générale
+ * @copyright Scalexpert
+ */
+
+.sep_insuranceSolution-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: inherit;
+    text-decoration: none;
+    margin-bottom: 12px;
+}
+
+.sep_insuranceSolution-top-title {
+    display: flex;
+    align-items: center;
+    font-weight: 700;
+    color: #000;
+    font-size: 19px;
+}
+
+.sep_insuranceSolution-top-title-illus {
+    margin-right: 8px;
+}
+
+.sep_insuranceSolution-i {
+    margin-left: 4px;
+    cursor: pointer;
+}
+
+.sep_insuranceSolution-logo {
+    margin-left: 8px;
+}
+
+.sep_insuranceSolution-choices {
+}
+
+.sep_insuranceSolution-choices-item-content .custom-radio {
+    float: left;
+}
+.sep_insuranceSolution-choices-item-content .custom-radio span {
+    top: 0;
+}
+
+.sep_insuranceSolution-condition {
+    color: #808080;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #E6E6E6;
+}
+
+.sep_insuranceSolution-link a {
+    color: #545454;
+    font-weight: 600;
+    font-size: 12px;
+    text-decoration: underline;
+    display: block;
+}
+
+/* Special display */
+#scalexpertplugin-displayShoppingCartFooter form {
+    margin-bottom: 16px;
+}
+.sep_insuranceSolution[data-type="cart"] {
+    margin-bottom: 16px;
+}
+.sep_insuranceSolution[data-type="cart"] .sep_insuranceSolution-choices-item {
+    padding: 16px;
+    background: none #fff;
+    border: 1px solid #d6d4d4;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.12);
+    margin-bottom: 16px;
+}
+
+.sep_insuranceSolution[data-type="cart"] .sep_insuranceSolution-choices-item-content {
+    display: block;
+}
+
+.sep_insuranceSolution[data-type="cart"] label {
+    cursor: pointer;
+    justify-content: space-between;
+    margin-bottom: 0;
+    display: block;
+}
+
+.sep_insuranceSolution[data-type="cart"] .sep_insuranceSolution-choices-item-price {
+    color: #29873D;
+    font-weight: 600;
+    float: right;
+}

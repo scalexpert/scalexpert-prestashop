@@ -20,8 +20,9 @@ class Eligibility
         return [];
     }
 
-    public static function getEligibleSolutionByProduct($oProduct)
+    public static function getEligibleSolutionByProduct($idProduct)
     {
+        $oProduct = new \Product($idProduct);
         if (!Validate::isLoadedObject($oProduct)) {
             return [];
         }
@@ -62,6 +63,12 @@ class Eligibility
     {
         if (!Validate::isLoadedObject($oCart)) {
             return [];
+        }
+
+        foreach ($oCart->getProducts() as $product) {
+            if ($product['id_category_default'] == (int)Configuration::get('SCALEXPERT_INSURANCE_CATEGORY')) {
+                return [];
+            }
         }
 
         $financingSolutions = static::getConfigSolutions();

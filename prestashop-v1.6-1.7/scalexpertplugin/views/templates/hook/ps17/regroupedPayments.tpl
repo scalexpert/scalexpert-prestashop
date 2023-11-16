@@ -27,7 +27,7 @@
                         {if !empty($availableSolution.visualInformationIcon)}
                             <img class="sep_financialSolution-i"
                                  src="{$availableSolution.visualInformationIcon|default:''}"
-                                 alt="{l s='Information' d='Modules.Scalexpertplugin.Shop'}"
+                                 alt="{l s='Information' mod='scalexpertplugin'}"
                                  width="16"
                                  height="16"
                                  data-modal="sep_openModal"
@@ -41,7 +41,7 @@
                                 value="{$availableSolution.solutionCode|default:''}"
                                 disabled
                         >
-                            {l s='Payer' d='Modules.Scalexpertplugin.Shop'}
+                            {l s='Payer' mod='scalexpertplugin'}
                         </button>
                         {include file="module:scalexpertplugin/views/templates/hook/ps17/ProductFinancialsContentModal.tpl" md5Id=$md5Id|default:'' nameModule=$scalexpertplugin_global.nameModule|default:''}
                     </li>

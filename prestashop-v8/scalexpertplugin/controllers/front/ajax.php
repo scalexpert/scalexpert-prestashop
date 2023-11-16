@@ -69,6 +69,15 @@ class ScalexpertpluginAjaxModuleFrontController extends ModuleFrontController
         $productID = Tools::getValue('id_product', null);
         $productIDAttribute = Tools::getValue('id_product_attribute', null);
 
+        $combinationGroupsData = Tools::getValue('combination_groups');
+        if (!empty($combinationGroupsData)) {
+            $productIDAttribute = (int) Product::getIdProductAttributeByIdAttributes(
+                $productID,
+                $combinationGroupsData,
+                true
+            );
+        }
+
         if (!empty($productID)) {
             $pageContext = 'product';
         } else {
@@ -98,7 +107,7 @@ class ScalexpertpluginAjaxModuleFrontController extends ModuleFrontController
                     }
 
                     if (isset($insuranceSolutionData['designConfiguration'][$pageContext . '_title'])) {
-                        $insuranceSolutionData['visualTitle'] = $insuranceSolutionData['designConfiguration'][$pageContext . '_position'];
+                        $insuranceSolutionData['visualTitle'] = $insuranceSolutionData['designConfiguration'][$pageContext . '_title'];
                     }
                 }
 
