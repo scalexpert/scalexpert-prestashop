@@ -118,7 +118,7 @@ class Client
         if ('PRODUCTION' === strtoupper($this->appEnvironnement)) {
             $apiURL = 'https://api.scalexpert.societegenerale.com/baas/prod/';
         } else {
-            $apiURL = 'https://api.scalexpert.uatc.societegenerale.com/baas/uatc';
+            $apiURL = 'https://api.scalexpert.uatc.societegenerale.com/baas/uatc/';
         }
 
         return $apiURL;
