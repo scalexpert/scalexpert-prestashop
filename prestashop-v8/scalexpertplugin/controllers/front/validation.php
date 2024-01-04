@@ -50,11 +50,18 @@ class ScalexpertpluginValidationModuleFrontController extends ModuleFrontControl
         $currency = $this->context->currency;
         $total = (float) $cart->getOrderTotal();
 
+        $solutionCode = Tools::getValue('solutionCode');
+        $solutionName = $this->module->displayName;
+        $solutionNameHandler = $this->get('scalexpert.handler.solution_name');
+        if ($solutionNameHandler) {
+            $solutionName = $solutionNameHandler->getSolutionName($solutionCode);
+        }
+
         $validateOrder = $this->module->validateOrder(
             (int) $cart->id,
             (int) Configuration::get(ScalexpertPlugin::CONFIGURATION_ORDER_STATE_FINANCING),
             $total,
-            $this->module->displayName,
+            $solutionName,
             null,
             [],
             (int) $currency->id,
@@ -64,7 +71,6 @@ class ScalexpertpluginValidationModuleFrontController extends ModuleFrontControl
 
         $apiClient = $this->get('scalexpert.api.client');
         $currentOrder = new Order($this->module->currentOrder);
-        $solutionCode = Tools::getValue('solutionCode');
 
         if ($validateOrder && Validate::isLoadedObject($currentOrder)) {
             $financingSubscription = $apiClient->createFinancingSubscription($currentOrder, $solutionCode);

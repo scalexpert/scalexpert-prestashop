@@ -39,6 +39,11 @@
 .sep_contentModal {
     max-width: 774px;
 }
+
+.sep_contentModal h3 {
+    color: #010035;
+}
+
 .sep_contentModal ol {
     list-style: decimal inside;
 }

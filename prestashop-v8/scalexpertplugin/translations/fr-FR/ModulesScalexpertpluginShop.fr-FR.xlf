@@ -32,9 +32,49 @@
         <target>demande de financement annulée totalement</target>
         <note>Line: </note>
       </trans-unit>
+      <trans-unit id="5b319303b12e2f820b03f9aaee1d3fe1">
+        <source>Financing request aborted</source>
+        <target>demande de financement avortée</target>
+        <note>Line: </note>
+      </trans-unit>
       <trans-unit id="a877429e952875622312c53f373d7f9f">
         <source>A technical error occurred during process, please retry.</source>
         <target>oups ! un incident technique semble est survenu veuillez réitérer votre demande</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="d063f1575c083cd73af189484512f143">
+        <source>Insurance subscription activated</source>
+        <target>souscription d'assurance activée</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="53c30a1009358b172d172ff3a4ed3611">
+        <source>Insurance subscription request in progress</source>
+        <target>souscription d'assurance en cours</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="476c5370e3dab77c0fb47c656ab4d413">
+        <source>Insurance subscription subscribed</source>
+        <target>souscription d'assurance souscrite</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="87c1cf1e35f7ca9fe3c3853901272a15">
+        <source>Insurance subscription rejected</source>
+        <target>souscription d'assurance rejetée</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="ed7b27e2454af239828031ce1649c658">
+        <source>Insurance subscription cancelled</source>
+        <target>souscription d'assurance annulée</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="a752ecf23f63a8d50a442ac42a927746">
+        <source>Insurance subscription terminated</source>
+        <target>souscription d'assurance terminée</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="4db1efc6e3e2ba5cde06a38498b04be9">
+        <source>Insurance subscription aborted</source>
+        <target>souscription d'assurance avortée</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="e2b7dec8fa4b498156dfee6e4c84b156">
@@ -45,6 +85,41 @@
       <trans-unit id="62073b9fecf7d295bd64bbe448cafb5e">
         <source>An error occurred during financing subscription.</source>
         <target>Un erreur s'est produite pendant la création du financement.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="022273b9111b908c53ffa49427a45f81">
+        <source>Your orders is paid</source>
+        <target>Votre commande est payée</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="955c3f43fde8567155003e7ecce0683b">
+        <source>Your financing request has been accepted. A confirmation mail has been sent to you.</source>
+        <target>Votre de demande de financement a été acceptée. un email de confirmation vous été envoyé.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="aa7d0ffd47bba01a6552d0bfad0134c2">
+        <source>Your orders are awaiting financing</source>
+        <target>Votre commande est en attente de financement</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="22bcfeaa71e0943bd2666644dd0850ea">
+        <source>Your financing request has been sent to the lending organization and is being studied. You will soon receive an email informing you of the decision regarding this request.</source>
+        <target>Votre demande de financement a été transmise à l'organisme prêteur et est à l'étude. Vous recevrez prochainement un email vous informant de la décision concernant cette demande.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="067d916870e82a37f761ebdeca2c3aa1">
+        <source>Your orders is canceled</source>
+        <target>Votre commande est annulée</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="a731d3683f1389f720f902c2c822bd94">
+        <source>We're sorry, your financing request was not accepted or a technical error occurred. We invite you to try again or place a new order by choosing another payment method.</source>
+        <target>Nous sommes désolés, votre demande de financement n'a pas été acceptée ou une erreur technique est survenue. Nous vous invitons à réessayer ou à réaliser une nouvelle commande en choisissant un autre mode de paiement.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="66b914a3d0878daed70f10d165196200">
+        <source>An error occured. Please contact the merchant to have more informations</source>
+        <target>Une erreur s'est produite. Veuillez contacter le marchant pour plus d'informations</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="303a74098e356909ffcf68b9bd4ca1b0">
@@ -62,11 +137,6 @@
         <target>Etat : </target>
         <note>Line: </note>
       </trans-unit>
-      <trans-unit id="ec53a8c4f07baed5d8825072c89799be">
-        <source>Status</source>
-        <target>Statut</target>
-        <note>Line: </note>
-      </trans-unit>
       <trans-unit id="8b36249c00d04fa8cf0ee475d1e21078">
         <source>Waiting for payment</source>
         <target>En attente de paiement</target>
@@ -79,12 +149,12 @@
       </trans-unit>
       <trans-unit id="24efa7ee4511563b16144f39706d594f">
         <source>Notice</source>
-        <target>Notice</target>
+        <target>Information</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="6f1bf85c9ebb3c7fa26251e1e335e032">
         <source>Terms</source>
-        <target>Terms</target>
+        <target>Termes</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="a82be0f551b8708bc08eb33cd9ded0cf">

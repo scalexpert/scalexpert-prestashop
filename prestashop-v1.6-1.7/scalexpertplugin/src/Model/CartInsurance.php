@@ -135,7 +135,7 @@ class CartInsurance
         $query = (new DbQuery())->select('*')
             ->from(self::TABLE)
             ->where('id_cart = '.(int)$idCart)
-            ->where('id_item = '.(int)$idItem)
+            ->where('id_item = "'.$idItem.'"')
             ->where('id_insurance = '.(int)$idInsurance)
         ;
 

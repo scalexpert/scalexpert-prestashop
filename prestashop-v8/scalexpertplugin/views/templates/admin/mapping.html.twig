@@ -1,0 +1,43 @@
+
+{% extends '@!PrestaShop/Admin/layout.html.twig' %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col">
+            {{ form_start(mappingConfigurationForm) }}
+            <div class="card">
+                <h3 class="card-header">
+                    <i class="material-icons">settings</i> {{ 'Mapping'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
+                </h3>
+                <div class="card-body">
+                    <div class="form-wrapper">
+                        {{ form_widget(mappingConfigurationForm) }}
+                    </div>
+                    {% if infoURL is defined and infoURL is not null %}
+                    <div>
+                        <p>
+                            {{ 'For more information regarding e-financing status, please clic on the following link'|trans({}, 'Modules.Scalexpertplugin.Admin') }}<br>
+                            <a href="{{ infoURL }}" target="_blank">{{ infoURL }}</a>
+                        </p>
+                    </div>
+                    {% endif %}
+                    {% if maintenanceURL is defined and maintenanceURL is not null %}
+                        <div>
+                            <b>{{ 'Cron task'|trans({}, 'Modules.Scalexpertplugin.Admin') }}</b><br>
+                            {{ 'You configure this cron task (every hour) on your server:'|trans({}, 'Modules.Scalexpertplugin.Admin') }}<br>
+                            0 * * * * <a href="#" target="_blank">{{ maintenanceURL }}</a>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-primary float-right" id="save-button">
+                            {{ 'Save'|trans({}, 'Admin.Actions') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {{ form_end(mappingConfigurationForm) }}
+        </div>
+    </div>
+{% endblock %}

@@ -27,6 +27,12 @@ services:
       - '@doctrine.orm.default_entity_manager'
       - '@scalexpert.handler.hash'
 
+  # Commands
+  scalexpert.command.update_orders_states:
+    class: ScalexpertPlugin\Command\UpdateOrdersStatesCommand
+    tags:
+      - { name: 'console.command', command: 'scalexpertplugin:updateOrdersStates' }
+
   # Helpers
   scalexpert.conf.config_checker:
     class: ScalexpertPlugin\Helper\ConfigChecker
@@ -46,6 +52,19 @@ services:
     arguments:
       - '@scalexpert.api.client'
       - '@doctrine.orm.default_entity_manager'
+
+  scalexpert.service.update_orders_states:
+    class: ScalexpertPlugin\Service\UpdateOrdersStatesService
+    public: true
+    arguments:
+      - '@scalexpert.api.client'
+      - '@scalexpert.service.order_updater'
+
+  scalexpert.service.order_updater:
+    class: ScalexpertPlugin\Service\OrderUpdaterService
+    arguments:
+      - '@prestashop.adapter.legacy.configuration'
+      - '@prestashop.adapter.legacy.context'
 
   # Keys configuration form
   scalexpert.form.type.keys_configuration_form:
@@ -211,3 +230,29 @@ services:
       - '@scalexpert.form.design_customize_form_data_provider'
       - 'ScalexpertPlugin\Form\Customize\DesignCustomizeFormType'
       - 'designCustomize'
+
+  # Mapping configuration form
+  scalexpert.form.type.mapping_configuration_form:
+    class: 'ScalexpertPlugin\Form\Configuration\MappingConfigurationFormType'
+    parent: 'form.type.translatable.aware'
+    public: true
+    tags:
+      - { name: form.type }
+
+  scalexpert.form.mapping_configuration_data_configuration:
+    class: ScalexpertPlugin\Form\Configuration\MappingConfigurationFormDataConfiguration
+    arguments: [ '@prestashop.adapter.legacy.configuration' ]
+
+  scalexpert.form.mapping_configuration_form_data_provider:
+    class: 'ScalexpertPlugin\Form\Configuration\MappingConfigurationFormDataProvider'
+    arguments:
+      - '@scalexpert.form.mapping_configuration_data_configuration'
+
+  scalexpert.form.mapping_configuration_form_data_handler:
+    class: 'PrestaShop\PrestaShop\Core\Form\Handler'
+    arguments:
+      - '@form.factory'
+      - '@prestashop.core.hook.dispatcher'
+      - '@scalexpert.form.mapping_configuration_form_data_provider'
+      - 'ScalexpertPlugin\Form\Configuration\MappingConfigurationFormType'
+      - 'mappingConfiguration'

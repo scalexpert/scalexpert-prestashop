@@ -21,12 +21,14 @@ use ScalexpertPlugin\Controller\Admin\ConfigTabController;
 use ScalexpertPlugin\Controller\Admin\DebugTabController;
 use ScalexpertPlugin\Controller\Admin\DesignTabController;
 use ScalexpertPlugin\Controller\Admin\KeysTabController;
+use ScalexpertPlugin\Controller\Admin\MappingTabController;
 use ScalexpertPlugin\Entity\ScalexpertCartInsurance;
 use ScalexpertPlugin\Entity\ScalexpertProductCustomField;
 use ScalexpertPlugin\Form\Configuration\DebugConfigurationFormDataConfiguration;
 use ScalexpertPlugin\Form\Configuration\FinancingConfigurationFormDataConfiguration;
 use ScalexpertPlugin\Form\Configuration\InsuranceConfigurationFormDataConfiguration;
 use ScalexpertPlugin\Form\Configuration\KeysConfigurationFormDataConfiguration;
+use ScalexpertPlugin\Form\Configuration\MappingConfigurationFormDataConfiguration;
 use ScalexpertPlugin\Form\Configuration\RegroupPaymentsConfigurationFormDataConfiguration;
 use ScalexpertPlugin\Form\Customize\DesignCustomizeFormDataConfiguration;
 use ScalexpertPlugin\Service\CartInsuranceProductsService;
@@ -39,7 +41,7 @@ class ScalexpertPlugin extends PaymentModule
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.1.0';
+        $this->version = '1.2.0';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 
@@ -87,6 +89,7 @@ class ScalexpertPlugin extends PaymentModule
             && $this->initDatabase()
             && $this->createInsuranceProductsCategory()
             && $this->createFinancingOrderState()
+            && $this->generateDefaultMapping()
             && $this->manuallyInstallTab()
             && $this->registerHook('paymentOptions')
             && $this->registerHook('displayPaymentReturn')
@@ -361,6 +364,14 @@ class ScalexpertPlugin extends PaymentModule
             'parent' => 'AdminScalexpertPluginParentConfig',
         ];
 
+        // Order state mapping
+        $data[] = [
+            'className' => MappingTabController::TAB_CLASS_NAME,
+            'routeName' => 'scalexpert_controller_tabs_admin_mapping',
+            'name' => $this->getTabsTranslation(MappingTabController::TAB_CLASS_NAME),
+            'parent' => 'AdminScalexpertPluginParentConfig',
+        ];
+
         foreach ($data as $tabData) {
             $tabId = (int)Tab::getIdFromClassName($tabData['className']);
 
@@ -423,6 +434,11 @@ class ScalexpertPlugin extends PaymentModule
                 'FR' => 'Paramétrer les clés',
                 'DE' => 'Configure Keys',
             ],
+            MappingTabController::TAB_CLASS_NAME => [
+                'EN' => 'Order state mapping',
+                'FR' => 'Association des états de commande',
+                'DE' => 'Order state mapping',
+            ],
         ];
 
         if (!isset($data[$tabClassName])) {
@@ -462,7 +478,7 @@ class ScalexpertPlugin extends PaymentModule
             DebugConfigurationFormDataConfiguration::CONFIGURATION_DEBUG,
             DesignCustomizeFormDataConfiguration::CONFIGURATION_DESIGN,
             CartInsuranceProductsService::CONFIGURATION_INSURANCE_PRODUCTS_CATEGORY,
-            self::CONFIGURATION_ORDER_STATE_FINANCING,
+            MappingConfigurationFormDataConfiguration::CONFIGURATION_MAPPING,
         ];
 
         foreach ($vars as $name) {
@@ -559,7 +575,7 @@ class ScalexpertPlugin extends PaymentModule
             return;
         }
 
-        $order = (isset($params['objOrder'])) ? $params['objOrder'] : $params['order'];;
+        $order = (isset($params['objOrder'])) ? $params['objOrder'] : $params['order'];
 
         if (!Validate::isLoadedObject($order)) {
             return;
@@ -715,7 +731,8 @@ class ScalexpertPlugin extends PaymentModule
 
                         $subscriptionsToAdd[] = [
                             'subscriptionId' => $subscriptionId ?? '',
-                            'consolidatedStatus' => $apiSubscription['consolidatedStatus'] ?? '',
+                            'consolidatedStatus' => $apiSubscription['consolidatedStatus'] ?
+                                $this->getInsuranceStateName($apiSubscription['consolidatedStatus']) : '',
                             'duration' => $apiSubscription['duration'] ?? '',
                             'producerQuoteInsurancePrice' => $this->context->getCurrentLocale()->formatPrice(
                                     $apiSubscription['producerQuoteInsurancePrice'],
@@ -793,6 +810,9 @@ class ScalexpertPlugin extends PaymentModule
                         $financialSubscription['buyerFinancedAmount'],
                         (int) $order->id_currency
                     );
+                    $financialSubscription['consolidatedStatus'] = $this->getFinancialStateName(
+                        $financialSubscription['consolidatedStatus']
+                    );
                 }
             }
 
@@ -858,6 +878,44 @@ class ScalexpertPlugin extends PaymentModule
 
     public function hookDisplayShoppingCartFooter(array $params): string
     {
+        // Delete expired insurance product
+        $cart = $params['cart'];
+        if (Validate::isLoadedObject($cart)) {
+            $apiClient = $this->get('scalexpert.api.client');
+            $entityManager = $this->get('doctrine.orm.entity_manager');
+            $cartInsuranceRepository = $entityManager->getRepository(ScalexpertCartInsurance::class);
+            $cartInsurances = $cartInsuranceRepository->findBy([
+                'idCart' => $cart->id
+            ]);
+
+            foreach ($cartInsurances as $cartInsurance) {
+                /** @var ScalexpertCartInsurance $cartInsurance */
+                $product = new \Product($cartInsurance->getIdProduct());
+                $insurances = $apiClient->getInsurancesByItemId(
+                    $cartInsurance->getSolutionCode(),
+                    $product->getPrice(),
+                    $cartInsurance->getIdItem()
+                );
+
+                if (!empty($insurances)) {
+                    foreach ($insurances as $insurance) {
+                        if (
+                            !empty($insurance['id'])
+                            && $insurance['id'] === $cartInsurance->getIdInsurance()
+                        ) {
+                            $currentInsurance = $insurance;
+                        }
+                    }
+                }
+
+                if (!empty($currentInsurance)) {
+                    $insuranceProduct = new \Product($cartInsurance->getIdInsuranceProduct());
+                    $insuranceProduct->price = \Tools::ps_round((float)$currentInsurance['price'], 5);
+                    $insuranceProduct->save();
+                }
+            }
+        }
+
         if (!empty(Tools::getValue('insurances'))) {
             $cartInsuranceProductsService = $this->get('scalexpert.service.cart_insurance_products');
             $cartInsuranceProductsService->handleInsuranceProductsFormSubmit($params['cart']);
@@ -1009,11 +1067,89 @@ class ScalexpertPlugin extends PaymentModule
             case 'CANCELLED':
                 $status = $this->trans('Financing request cancelled', [], 'Modules.Scalexpertplugin.Shop');
                 break;
+            case 'ABORTED':
+                $status = $this->trans('Financing request aborted', [], 'Modules.Scalexpertplugin.Shop');
+                break;
             default:
                 $status = $this->trans('A technical error occurred during process, please retry.', [], 'Modules.Scalexpertplugin.Shop');
                 break;
         }
 
         return $status;
+    }
+
+    public function getInsuranceStateName($idOrderState)
+    {
+        switch ($idOrderState) {
+            case 'ACTIVATED':
+                $status = $this->trans('Insurance subscription activated', [], 'Modules.Scalexpertplugin.Shop');
+                break;
+            case 'INITIALIZED':
+                $status = $this->trans('Insurance subscription request in progress', [], 'Modules.Scalexpertplugin.Shop');
+                break;
+            case 'SUBSCRIBED':
+                $status = $this->trans('Insurance subscription subscribed', [], 'Modules.Scalexpertplugin.Shop');
+                break;
+            case 'REJECTED':
+                $status = $this->trans('Insurance subscription rejected', [], 'Modules.Scalexpertplugin.Shop');
+                break;
+            case 'CANCELLED':
+                $status = $this->trans('Insurance subscription cancelled', [], 'Modules.Scalexpertplugin.Shop');
+                break;
+            case 'TERMINATED':
+                $status = $this->trans('Insurance subscription terminated', [], 'Modules.Scalexpertplugin.Shop');
+                break;
+            case 'ABORTED':
+                $status = $this->trans('Insurance subscription aborted', [], 'Modules.Scalexpertplugin.Shop');
+                break;
+            default:
+                $status = $this->trans('A technical error occurred during process, please retry.', [], 'Modules.Scalexpertplugin.Shop');
+                break;
+        }
+
+        return $status;
+    }
+
+    private function generateDefaultMapping()
+    {
+        $mapping = [];
+        foreach (MappingConfigurationFormDataConfiguration::FINANCING_STATES as $state) {
+            if (in_array($state, MappingConfigurationFormDataConfiguration::EXCLUDED_FINANCING_STATES)) {
+                continue;
+            }
+
+            $idOrderState = 0;
+            if (in_array(
+                $state,
+                [
+                    'INITIALIZED',
+                    'PRE_ACCEPTED'
+                ]
+            )) {
+                $idOrderState = Configuration::get(self::CONFIGURATION_ORDER_STATE_FINANCING);
+            }
+            if ('ACCEPTED' === $state) {
+                $idOrderState = Configuration::get('PS_OS_PAYMENT');
+            }
+            if ('REJECTED' === $state) {
+                $idOrderState = Configuration::get('PS_OS_ERROR');
+            }
+            if (in_array(
+                $state,
+                [
+                    'ABORTED',
+                    'CANCELLED'
+                ]
+            )) {
+                $idOrderState = Configuration::get('PS_OS_CANCELED');
+            }
+
+            $mapping[$state] = $idOrderState;
+        }
+
+        return Configuration::updateValue(
+            MappingConfigurationFormDataConfiguration::CONFIGURATION_MAPPING,
+            json_encode($mapping)
+        );
     }
 }

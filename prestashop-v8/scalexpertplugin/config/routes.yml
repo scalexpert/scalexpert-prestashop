@@ -37,3 +37,11 @@ scalexpert_controller_tabs_admin_design:
         _controller: 'ScalexpertPlugin\Controller\Admin\DesignTabController::indexAction'
         _legacy_controller: 'AdminScalexpertPluginDesignTab'
         _legacy_link: 'AdminScalexpertPluginDesignTab'
+
+scalexpert_controller_tabs_admin_mapping:
+    path: /scalexpert-configure/mapping
+    methods: [GET, POST]
+    defaults:
+        _controller: 'ScalexpertPlugin\Controller\Admin\MappingTabController::indexAction'
+        _legacy_controller: 'AdminScalexpertPluginMappingTab'
+        _legacy_link: 'AdminScalexpertPluginMappingTab'

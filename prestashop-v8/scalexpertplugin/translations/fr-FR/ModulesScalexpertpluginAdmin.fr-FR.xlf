@@ -62,6 +62,41 @@
         <target>Cette option n'est pas disponible dans votre contrat</target>
         <note>Line: </note>
       </trans-unit>
+      <trans-unit id="8cd423d9cdf6353b930eac380c30ddbe">
+        <source>No status</source>
+        <target>Pas de statut</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="a3ba0479cc3dd6daa25ab18508013cd7">
+        <source>Credit subscription is initialized (INITIALIZED)</source>
+        <target>Demande de financement initiée (INITIALIZED)</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="6074ade93e704db355f83e14528e680d">
+        <source>Credit subscription is completed, awaiting a final decision from the financial institution (PRE_ACCEPTED)</source>
+        <target>Demande de financement transmise à l’organisme prêteur et en attente de décision (PRE_ACCEPTED)</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="c4f485c0dc368fd3021a472d97c2db05">
+        <source>Credit subscription is accepted (ACCEPTED)</source>
+        <target>Demande de financement acceptée (ACCEPTED)</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="ece5a5e921b34cd112c0be2494b60188">
+        <source>Credit subscription is refused (REJECTED)</source>
+        <target>Demande de financement refusée (REJECTED)</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="f087c5db6f34240109dd3405009fdb01">
+        <source>Credit subscription is aborted by the customer or due to technical issue (ABORTED)</source>
+        <target>Demande de financement abandonnée par le client ou suite à un incident technique (ABORTED)</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="40277210f32bc79352fabd7f10d079f7">
+        <source>Credit subscription is cancelled (CANCELLED)</source>
+        <target>Demande de financement annulée (CANCELLED)</target>
+        <note>Line: </note>
+      </trans-unit>
       <trans-unit id="ec3028a12402ab7f43962a6f3a667b6e">
         <source>Debug mode</source>
         <target>Mode débug</target>
@@ -150,6 +185,26 @@
       <trans-unit id="a603905470e2a5b8c13e96b579ef0dba">
         <source>Debug</source>
         <target>Mode Débug</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="0014f8b96d996135614c21355a053994">
+        <source>Mapping</source>
+        <target>Mappage</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="8439802bd95ced20bab837005a5166c1">
+        <source>For more information regarding e-financing status, please clic on the following link</source>
+        <target>Pour plus d’information sur les statuts de financement, veuillez consulter la page suivante</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="84c5e3e99a3639c800fa9dad2ebc206b">
+        <source>Cron task</source>
+        <target>Tâche cron</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="fc541e6ed27cb567905f7351bd12a3fd">
+        <source>You configure this cron task (every hour) on your server:</source>
+        <target>Veuillez configurer cette tâche cron (toutes les heures) sur votre serveur :</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="abcf13ff25f3619b9f6836891a5400f8">

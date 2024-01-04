@@ -1,13 +1,4 @@
 <?php
-/**
- * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
- *
- * @author    Société Générale
- * @copyright Scalexpert
- */
-
-declare(strict_types=1);
 
 namespace ScalexpertPlugin\Service;
 
@@ -17,12 +8,18 @@ class UpdateOrdersStatesService
 {
     private $apiClient;
 
-    private $orderStateHandler;
+    /**
+     * @var OrderUpdaterService
+     */
+    private $orderUpdaterService;
 
-    public function __construct(Client $apiClient, $orderStateHandler)
+    public function __construct(
+        Client $apiClient,
+        OrderUpdaterService $orderUpdaterService,
+    )
     {
         $this->apiClient = $apiClient;
-        $this->orderStateHandler = $orderStateHandler;
+        $this->orderUpdaterService = $orderUpdaterService;
     }
 
     public function updateOrdersStates()
@@ -34,10 +31,10 @@ class UpdateOrdersStatesService
                 if (!empty($financingSubscription['merchantGlobalOrderId'])
                     && !empty($financingSubscription['consolidatedStatus'])
                 ) {
-                   $this->updateOrderState(
-                       $financingSubscription['merchantGlobalOrderId'],
-                       $financingSubscription['consolidatedStatus']
-                   );
+                    $this->updateOrderState(
+                        $financingSubscription['merchantGlobalOrderId'],
+                        $financingSubscription['consolidatedStatus']
+                    );
                 }
             }
         }
@@ -49,14 +46,9 @@ class UpdateOrdersStatesService
 
         if (count($ordersCollection) > 0) {
             foreach ($ordersCollection as $order) {
-                if (\Validate::isLoadedObject($order)) {
-                    $orderStateId = $this->orderStateHandler->getIdOrderStateByApiStatus($consolidatedStatus);
-
-                    if (!empty($orderStateId) && $orderStateId != $order->current_state) {
-                        $order->setCurrentState($orderStateId);
-                    }
-                }
+                $this->orderUpdaterService->updateOrderStateBasedOnFinancingStatus($order, $consolidatedStatus);
             }
         }
     }
 }
+

@@ -226,10 +226,17 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
             }
         }
 
-        //todo : ignore insurance product already in cart.
-
         $content = '';
+        $idCategoryInsurance = Configuration::get(InsuranceProcess::INSURANCE_CATEGORY_CONFIG_NAME);
         foreach ($products as $product) {
+            // Skip insurance products
+            if (
+                !empty($product['id_category_default'])
+                && $idCategoryInsurance === $product['id_category_default']
+            ) {
+                continue;
+            }
+
             $content .= $this->_getInsuranceForProductInCart($buyerCountry, $product['id_product'], $product['id_product_attribute']);
         }
 

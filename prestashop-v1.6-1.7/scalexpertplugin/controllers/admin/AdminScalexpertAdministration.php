@@ -14,6 +14,7 @@ use ScalexpertPlugin\Helper\Hash;
 
 class AdminScalexpertAdministrationController extends ModuleAdminController
 {
+
     /**
      * @var ScalexpertPlugin
      */
@@ -58,6 +59,11 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
             }
             Configuration::updateValue('SCALEXPERT_GROUP_FINANCING_SOLUTIONS', (int)Tools::getValue('groupFinancingSolutions'));
 
+            // Tab Order State Mapping
+            if ($orderStateMapping = Tools::getValue('orderStateMapping')) {
+                Configuration::updateValue('SCALEXPERT_ORDER_STATE_MAPPING', json_encode($orderStateMapping));
+            }
+
             $this->confirmations[] = $this->_conf[4];
         }
 
@@ -81,6 +87,7 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
         $this->_addTabEnable();
         $this->_addTabDebug();
         $this->_addTabAdmin();
+        $this->_addTabOrderStateMapping();
 
         $this->fields_form = [
             'tabs' => $this->_formTabs,
@@ -410,6 +417,75 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
         ];
     }
 
+    private function _addTabOrderStateMapping()
+    {
+        $tabName = 'tabOrderStateMapping';
+        $this->_formTabs[$tabName] = $this->l('Order state mapping');
+
+        if (!$this->_keysExist()) {
+            $this->_setDefaultInput($tabName);
+            return;
+        }
+
+        // Set values
+        $orderStateMapping = json_decode(Configuration::get('SCALEXPERT_ORDER_STATE_MAPPING'), true);
+        if (!empty($orderStateMapping)) {
+            foreach ($orderStateMapping as $key => $value) {
+                $this->fields_value['orderStateMapping[' . $key . ']'] = $value;
+            }
+        }
+
+        $orderStates = \OrderState::getOrderStates(Context::getContext()->language->id);
+        $orderStatesChoices[] = [
+            'name' => $this->l('No status'),
+            'id_state' => 0
+        ];
+        if (!empty($orderStates)) {
+            foreach ($orderStates as $orderState) {
+                $orderStatesChoices[] = [
+                    'name' => $orderState['name'],
+                    'id_state' => $orderState['id_order_state']
+                ];
+            }
+        }
+
+        foreach (Financing::$financingStates as $state) {
+            if (in_array($state, Financing::$excludedFinancingStates)) {
+                continue;
+            }
+
+            $this->_formInputs[] = [
+                'label' => $this->getLabelByStatus($state),
+                'type' => 'select',
+                'name' => 'orderStateMapping[' . $state . ']',
+                'options' => [
+                    'query' => $orderStatesChoices,
+                    'id' => 'id_state',
+                    'name' => 'name',
+                ],
+                'tab' => $tabName
+            ];
+        }
+
+        $infoUrl = 'https://docs.scalexpert.societegenerale.com/apidocs/3mLlrPx3sPtekcQvEEUg/for-discovery/credit/e-financing-status-life-cycle';
+        $this->_formInputs[] = [
+            'type' => 'html',
+            'name' => 'html_data',
+            'html_content' => $this->l('For more information regarding e-financing status, please clic on the following link') .
+                '<br><a href="' . $infoUrl . '">' . $infoUrl . '</a>',
+            'tab' => $tabName
+        ];
+
+        $this->_formInputs[] = [
+            'type' => 'html',
+            'name' => 'html_data',
+            'html_content' => '<b>' . $this->l('Cron task') . '</b><br>' .
+                $this->l('You configure this cron task (every hour) on your server : ') .
+                '<br>0 * * * * <a href="#">' . $this->context->link->getModuleLink($this->module->name, 'maintenance', [], true) . '</a>',
+            'tab' => $tabName
+        ];
+    }
+
     private function _keysExist()
     {
         if ((Configuration::get('SCALEXPERT_API_TEST_IDENTIFIER') && Configuration::get('SCALEXPERT_API_TEST_KEY'))
@@ -432,5 +508,34 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
         ];
 
         die(Tools::jsonEncode($return));
+    }
+
+    private function getLabelByStatus($status)
+    {
+        switch ($status) {
+            case 'INITIALIZED':
+                $status = $this->l('Credit subscription is initialized (INITIALIZED)');
+                break;
+            case 'PRE_ACCEPTED':
+                $status = $this->l('Credit subscription is completed, awaiting a final decision from the financial institution (PRE_ACCEPTED)');
+                break;
+            case 'ACCEPTED':
+                $status = $this->l('Credit subscription is accepted (ACCEPTED)');
+                break;
+            case 'REJECTED':
+                $status = $this->l('Credit subscription is refused (REJECTED)');
+                break;
+            case 'ABORTED':
+                $status = $this->l('Credit subscription is aborted by the customer or due to technical issue (ABORTED)');
+                break;
+            case 'CANCELLED':
+                $status = $this->l('Credit subscription is cancelled (CANCELLED)');
+                break;
+            default:
+                $status = '';
+                break;
+        }
+
+        return $status;
     }
 }
