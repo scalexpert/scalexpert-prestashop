@@ -59,7 +59,7 @@ class ScalexpertPluginValidationModuleFrontController extends ModuleFrontControl
             $this->context->cart->id,
             $payment_status,
             $this->context->cart->getOrderTotal(),
-            $module_name,
+            $this->module->getSolutionDisplayName($solutionCode),
             $message,
             array(),
             $currency_id,

@@ -291,6 +291,9 @@ class AdminScalexpertCustomizeController extends ModuleAdminController
     private function _addTabsCustomizeInsurancesDesign()
     {
         $insuranceSolutions = json_decode(Configuration::get('SCALEXPERT_INSURANCE_SOLUTIONS'), true);
+        if (null === $insuranceSolutions) {
+            return '';
+        }
         foreach ($insuranceSolutions as $solutionCode => $value) {
             $this->fields_value = $this->_prepareSolutionArray($this->fields_value, $solutionCode);
             $solutionEnabled = ($value ? true : false);
@@ -396,14 +399,6 @@ class AdminScalexpertCustomizeController extends ModuleAdminController
                 'required' => true,
                 // 'lang' => true,
                 'name' => 'customizeProduct[' . $solutionCode . '][title_cart]',
-                'tab' => $tabName
-            ];
-            $this->_formInputs[] = [
-                'label' => $this->l('Subtitle'),
-                'type' => 'text',
-                'required' => true,
-                // 'lang' => true,
-                'name' => 'customizeProduct[' . $solutionCode . '][subtitle_cart]',
                 'tab' => $tabName
             ];
             $this->_formInputs[] = [

@@ -83,7 +83,6 @@ class DesignTabController extends FrameworkBundleAdminController
                     $solution['cartFields'] = [
                         sprintf('%s:%s', $solutionCode, 'cart_display'),
                         sprintf('%s:%s', $solutionCode, 'cart_title'),
-                        sprintf('%s:%s', $solutionCode, 'cart_subtitle'),
                         sprintf('%s:%s', $solutionCode, 'cart_position'),
                         sprintf('%s:%s', $solutionCode, 'cart_display_logo'),
                     ];

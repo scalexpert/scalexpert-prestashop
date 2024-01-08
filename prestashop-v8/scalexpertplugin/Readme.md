@@ -1,3 +1,3 @@
-# # Scalexpert plugins for Prestashop 8
+# Scalexpert plugins for Prestashop 8
 
-Version : 1.1.0
+Version : 1.2.0

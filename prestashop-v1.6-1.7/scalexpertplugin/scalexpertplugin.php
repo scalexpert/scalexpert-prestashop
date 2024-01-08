@@ -52,14 +52,13 @@ class ScalexpertPlugin extends PaymentModule
             'template' => '',
             'deleted' => false,
         ],
-
     ];
 
     public function __construct()
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.1.0';
+        $this->version = '1.2.0';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 
@@ -90,6 +89,7 @@ class ScalexpertPlugin extends PaymentModule
             $this->installDatabase() &&
             $this->installCategoryInsurance() &&
             $this->createFinancingOrderStates() &&
+            $this->generateDefaultMapping() &&
             $this->registerHook('displayBackOfficeHeader') &&
             $this->registerHook('header') &&
             $this->registerHook('displayProductButtons') &&
@@ -321,10 +321,8 @@ class ScalexpertPlugin extends PaymentModule
             'SCALEXPERT_GROUP_FINANCING_SOLUTIONS',
             'SCALEXPERT_CUSTOMIZE_PRODUCT',
             'SCALEXPERT_ORDER_STATE_ACCEPTED',
-            'SCALEXPERT_ORDER_STATE_ACCEPTED',
-            'SCALEXPERT_ORDER_STATE_ACCEPTED',
-            self::ORDER_STATES[0]['configuration'],
             InsuranceProcess::INSURANCE_CATEGORY_CONFIG_NAME,
+            'SCALEXPERT_ORDER_STATE_MAPPING',
         ];
 
         foreach ($vars as $name) {
@@ -455,6 +453,49 @@ class ScalexpertPlugin extends PaymentModule
 
     public function hookDisplayShoppingCartFooter($params)
     {
+        // Delete expired insurance product
+        $cart = $params['cart'];
+        if (Validate::isLoadedObject($cart)) {
+            $cartInsurances = CartInsurance::getInsuranceByIdCart($cart->id);
+            foreach ($cartInsurances as $cartInsurance) {
+                $product = new \Product($cartInsurance['id_product']);
+                $insurances = Insurance::searchInsurances(
+                    $cartInsurance['solution_code'],
+                    $cartInsurance['id_item'],
+                    $product->getPrice()
+                );
+
+                if (!empty($insurances['insurances'])) {
+                    foreach ($insurances['insurances'] as $insurance) {
+                        if (
+                            !empty($insurance['id'])
+                            && $insurance['id'] == $cartInsurance['id_insurance']
+                        ) {
+                            $currentInsurance = $insurance;
+                        }
+                    }
+                }
+
+                if (!empty($currentInsurance)) {
+                    $insuranceProduct = new \Product($cartInsurance['id_insurance_product']);
+                    if (version_compare(_PS_VERSION_, '1.7', '>=')) {
+                        $insuranceProduct->price = (float)$currentInsurance['price'];
+                    } else {
+                        // Update price by removing taxe
+                        $address = \Address::initialize(null);
+                        $id_tax_rules = (int)\Product::getIdTaxRulesGroupByIdProduct($insuranceProduct->id, \Context::getContext());
+                        $tax_manager = \TaxManagerFactory::getManager($address, $id_tax_rules);
+                        $tax_calculator = $tax_manager->getTaxCalculator();
+
+                        $newPrice = $tax_calculator->removeTaxes((float)$currentInsurance['price']);
+                        $insuranceProduct->price = Tools::ps_round((float)$newPrice, 5);
+                    }
+
+                    $insuranceProduct->save();
+                }
+            }
+        }
+
         if (!empty(Tools::getValue('insurances'))) {
             InsuranceProcess::handleCartSave($params);
 
@@ -659,7 +700,7 @@ class ScalexpertPlugin extends PaymentModule
         }
 
         if (version_compare(_PS_VERSION_, '1.7', '>=')) {
-            $order = $params['order'];
+            $order = $params['order'] ?? $params['objOrder'];
         } else {
             $order = $params['objOrder'];
         }
@@ -687,7 +728,7 @@ class ScalexpertPlugin extends PaymentModule
         }
 
         if (version_compare(_PS_VERSION_, '1.7', '>=')) {
-            $order = $params['order'];
+            $order = $params['order'] ?? $params['objOrder'];
             $total = Tools::displayPrice($order->total_paid, $this->context->currency);
         } else {
             $order = $params['objOrder'];
@@ -705,12 +746,16 @@ class ScalexpertPlugin extends PaymentModule
             $status = $this->getFinancialStateName($subscriptionInfo['consolidatedStatus']);
         }
 
+        try {
+            $this->updateOrderStateBasedOnFinancingStatus($order, $subscriptionInfo['consolidatedStatus']);
+        } catch (\Exception $e) {}
+
         $this->smarty->assign(array(
             'id_order' => $order->id,
             'reference' => $order->reference,
             'id_subscription' => $idSubscription,
             'subscription_status' => $status,
-            'subscription_status_error' => ('REJECTED' == $subscriptionInfo[0]['consolidatedStatus']),
+            'subscription_status_error' => ('REJECTED' == $subscriptionInfo['consolidatedStatus']),
             'params' => $params,
             'total' => $total,
             'shop_name' => $this->context->shop->name,
@@ -790,6 +835,14 @@ class ScalexpertPlugin extends PaymentModule
             return  '';
         }
 
+        if (empty($params['id_order'])) {
+            return '';
+        }
+        $order = new Order($params['id_order']);
+        if (!Validate::isLoadedObject($order)) {
+            return '';
+        }
+
         if (Tools::isSubmit('submitSubscriptionCancelRequest')) {
             $response = Financing::cancelFinancingSubscription(
                 Tools::getValue('creditSubscriptionId'),
@@ -804,12 +857,25 @@ class ScalexpertPlugin extends PaymentModule
             }
         }
 
-        $financialSubscriptions = $this->getOrderSubscriptions($params);
+        $financialSubscriptions = $this->getOrderSubscriptions($order);
         if (!empty($financialSubscriptions)) {
             foreach ($financialSubscriptions as &$element) {
+                // Display warning message if order sate is paid but financing subscription has not been accepted
+                $orderSate = $order->getCurrentOrderState();
+                if (
+                    null !== $orderSate
+                    && $orderSate->paid
+                    && !in_array($element['consolidatedStatus'], Financing::$finalFinancingStates, true)
+                ) {
+                    $this->context->controller->warnings[] = $this->l(
+                        'Order is paid but financing subscription is not in a finished state.'
+                    );
+                }
+
                 $element['buyerFinancedAmountDisplay'] = Tools::displayPrice(
                     $element['buyerFinancedAmount']
                 );
+                $element['consolidatedStatus'] = $this->getFinancialStateName($element['consolidatedStatus']);
             }
 
             $this->context->smarty->assign([
@@ -817,16 +883,11 @@ class ScalexpertPlugin extends PaymentModule
             ]);
         }
 
-        if (!empty($params['id_order'])) {
-            $order = new Order($params['id_order']);
-            if (Validate::isLoadedObject($order)) {
-                $insuranceSubscriptionsByProduct = $this->getOrderInsurances($order);
-                if (!empty($insuranceSubscriptionsByProduct)) {
-                    $this->context->smarty->assign([
-                        'insuranceSubscriptionsByProduct' => $insuranceSubscriptionsByProduct,
-                    ]);
-                }
-            }
+        $insuranceSubscriptionsByProduct = $this->getOrderInsurances($order);
+        if (!empty($insuranceSubscriptionsByProduct)) {
+            $this->context->smarty->assign([
+                'insuranceSubscriptionsByProduct' => $insuranceSubscriptionsByProduct,
+            ]);
         }
 
         return $this->display(__FILE__, 'views/templates/admin/ps16/order-side.tpl');
@@ -834,16 +895,45 @@ class ScalexpertPlugin extends PaymentModule
 
     public function hookDisplayAdminOrderSide(array $params)
     {
-        $financialSubscriptions = $this->getOrderSubscriptions($params);
+        if (empty($params['id_order'])) {
+            return '';
+        }
+        $order = new Order($params['id_order']);
+        if (!Validate::isLoadedObject($order)) {
+            return '';
+        }
+
+        $financialSubscriptions = $this->getOrderSubscriptions($order);
         if (!empty($financialSubscriptions)) {
             foreach ($financialSubscriptions as &$element) {
+                // Display warning message if order sate is paid but financing subscription has not been accepted
+                $orderSate = $order->getCurrentOrderState();
+                if (
+                    null !== $orderSate
+                    && $orderSate->paid
+                    && !in_array($element['consolidatedStatus'], Financing::$finalFinancingStates, true)
+                ) {
+                    $this->get('session')->getFlashBag()->add(
+                        'warning',
+                        $this->l('Order is paid but financing subscription is not in a finished state.')
+                    );
+                }
+
                 $element['buyerFinancedAmountDisplay'] = Tools::displayPrice(
                     $element['buyerFinancedAmount']
                 );
+                $element['consolidatedStatus'] = $this->getFinancialStateName($element['consolidatedStatus']);
             }
 
             $this->context->smarty->assign([
                 'financialSubscriptions' => $financialSubscriptions,
+            ]);
+        }
+
+        $insuranceSubscriptionsByProduct = $this->getOrderInsurances($order);
+        if (!empty($insuranceSubscriptionsByProduct)) {
+            $this->context->smarty->assign([
+                'insuranceSubscriptionsByProduct' => $insuranceSubscriptionsByProduct,
             ]);
         }
 
@@ -867,20 +957,6 @@ class ScalexpertPlugin extends PaymentModule
             );
         }
 
-        if (!empty($params['id_order'])) {
-            $order = new Order($params['id_order']);
-            if (Validate::isLoadedObject($order)) {
-                $insuranceSubscriptionsByProduct = $this->getOrderInsurances($order);
-                if (!empty($insuranceSubscriptionsByProduct)) {
-                    $this->context->smarty->assign([
-                        'insuranceSubscriptionsByProduct' => $insuranceSubscriptionsByProduct,
-                    ]);
-                }
-            }
-        }
-
-
-
         return $this->display(__FILE__, 'views/templates/admin/ps17/order-side.tpl');
     }
 
@@ -890,19 +966,9 @@ class ScalexpertPlugin extends PaymentModule
         return;
     }
 
-    private function getOrderSubscriptions(array $params)
+    private function getOrderSubscriptions($order)
     {
-        if (empty($params['id_order'])) {
-            return [];
-        }
-
-        $order = new Order($params['id_order']);
-        if (!Validate::isLoadedObject($order)) {
-            return [];
-        }
-
         return Financing::getFinancingSubscriptionsByOrderReference($order->reference);
-
     }
 
     private function getOrderInsurances($order)
@@ -933,7 +999,8 @@ class ScalexpertPlugin extends PaymentModule
 
                         $subscriptionsToAdd[] = [
                             'subscriptionId' => $subscriptionId ?? '',
-                            'consolidatedStatus' => $apiSubscription['consolidatedStatus'] ?? '',
+                            'consolidatedStatus' => $apiSubscription['consolidatedStatus'] ?
+                                $this->getInsuranceStateName($apiSubscription['consolidatedStatus']) : '',
                             'duration' => $apiSubscription['duration'] ?? '',
                             'producerQuoteInsurancePrice' => Tools::displayPrice(
                                 $apiSubscription['producerQuoteInsurancePrice'],
@@ -1100,11 +1167,109 @@ class ScalexpertPlugin extends PaymentModule
             case 'CANCELLED':
                 $status = $this->l('Financing request cancelled');
                 break;
+            case 'ABORTED':
+                $status = $this->l('Financing request aborted');
+                break;
             default:
                 $status = $this->l('A technical error occurred during process, please retry.');
                 break;
         }
 
         return $status;
+    }
+
+    public function getInsuranceStateName($idOrderState)
+    {
+        switch ($idOrderState) {
+            case 'ACTIVATED':
+                $status = $this->l('Insurance subscription activated');
+                break;
+            case 'INITIALIZED':
+                $status = $this->l('Insurance subscription request in progress');
+                break;
+            case 'SUBSCRIBED':
+                $status = $this->l('Insurance subscription subscribed');
+                break;
+            case 'REJECTED':
+                $status = $this->l('Insurance subscription rejected');
+                break;
+            case 'CANCELLED':
+                $status = $this->l('Insurance subscription cancelled');
+                break;
+            case 'TERMINATED':
+                $status = $this->l('Insurance subscription terminated');
+                break;
+            case 'ABORTED':
+                $status = $this->l('Insurance subscription aborted');
+                break;
+            default:
+                $status = $this->l('A technical error occurred during process, please retry.');
+                break;
+        }
+
+        return $status;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function updateOrderStateBasedOnFinancingStatus($order, $status = '')
+    {
+        $orderStateMapping = json_decode(Configuration::get('SCALEXPERT_ORDER_STATE_MAPPING'), true);
+        if (
+            !Validate::isLoadedObject($order)
+            || empty($status)
+            || empty($orderStateMapping)
+        ) {
+            throw new \Exception('Invalid parameter data.');
+        }
+
+        $newOrderStateId = (!empty($orderStateMapping[$status])) ? $orderStateMapping[$status] : null;
+        if (
+            $newOrderStateId
+            && (int)$newOrderStateId !== (int)$order->current_state
+        ) {
+            $order->setCurrentState($newOrderStateId);
+        }
+    }
+
+    private function generateDefaultMapping()
+    {
+        $mapping = [];
+        foreach (Financing::$financingStates as $state) {
+            if (in_array($state, Financing::$excludedFinancingStates)) {
+                continue;
+            }
+
+            $idOrderState = 0;
+            if (in_array(
+                $state,
+                [
+                    'INITIALIZED',
+                    'PRE_ACCEPTED'
+                ]
+            )) {
+                $idOrderState = Configuration::get(self::ORDER_STATES[0]['configuration']);
+            }
+            if ('ACCEPTED' === $state) {
+                $idOrderState = Configuration::get('PS_OS_PAYMENT');
+            }
+            if ('REJECTED' === $state) {
+                $idOrderState = Configuration::get('PS_OS_ERROR');
+            }
+            if (in_array(
+                $state,
+                [
+                    'ABORTED',
+                    'CANCELLED'
+                ]
+            )) {
+                $idOrderState = Configuration::get('PS_OS_CANCELED');
+            }
+
+            $mapping[$state] = $idOrderState;
+        }
+
+        return Configuration::updateValue('SCALEXPERT_ORDER_STATE_MAPPING', json_encode($mapping));
     }
 }

@@ -45,3 +45,19 @@ services:
     arguments:
       - '@scalexpert.api.client'
       - '@doctrine.orm.default_entity_manager'
+
+  scalexpert.service.update_orders_states:
+    class: ScalexpertPlugin\Service\UpdateOrdersStatesService
+    arguments:
+      - '@scalexpert.api.client'
+      - '@scalexpert.service.order_updater'
+
+  scalexpert.service.order_updater:
+    class: ScalexpertPlugin\Service\OrderUpdaterService
+    arguments:
+      - '@prestashop.adapter.legacy.configuration'
+      - '@prestashop.adapter.legacy.context'
+
+  # Handlers
+  scalexpert.handler.solution_name:
+    class: ScalexpertPlugin\Handler\SolutionNameHandler

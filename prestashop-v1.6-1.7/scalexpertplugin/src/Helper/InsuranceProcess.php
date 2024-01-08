@@ -187,16 +187,6 @@ class InsuranceProcess
     ) {
         $insuranceProductReference = sprintf('%s|%s', substr($idItem, 0, 18), $idInsurance);
 
-        $query = new DbQuery();
-        $query->select('p.id_product');
-        $query->from('product', 'p');
-        $query->where('p.reference = \''.pSQL($insuranceProductReference).'\'');
-        $insuranceProductId = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
-
-        if ($insuranceProductId) {
-            return (int)$insuranceProductId;
-        }
-
         $productPrice = \Product::getPriceStatic($idProduct, true, $idProductAttribute, 2);
         $insurances = Insurance::searchInsurances($solutionCode, $idItem, $productPrice);
 
@@ -209,6 +199,16 @@ class InsuranceProcess
                     $currentInsurance = $insurance;
                 }
             }
+        }
+
+        $query = new DbQuery();
+        $query->select('p.id_product');
+        $query->from('product', 'p');
+        $query->where('p.reference = \''.pSQL($insuranceProductReference).'\'');
+        $insuranceProductId = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
+
+        if ($insuranceProductId) {
+            return (int)$insuranceProductId;
         }
 
         if (!empty($currentInsurance)) {
@@ -249,6 +249,18 @@ class InsuranceProcess
             $insuranceProduct->link_rewrite = $insuranceProductLink;
 
             if ($insuranceProduct->save()) {
+                if (!version_compare(_PS_VERSION_, '1.7', '>=')) {
+                    // Update price by removing taxe
+                    $address = \Address::initialize(null);
+                    $id_tax_rules = (int)\Product::getIdTaxRulesGroupByIdProduct($insuranceProduct->id, \Context::getContext());
+                    $tax_manager = \TaxManagerFactory::getManager($address, $id_tax_rules);
+                    $tax_calculator = $tax_manager->getTaxCalculator();
+
+                    $newPrice = $tax_calculator->removeTaxes($insuranceProduct->price);
+                    $insuranceProduct->price = Tools::ps_round((float)$newPrice, 5);
+                    $insuranceProduct->update();
+                }
+
                 \StockAvailable::setQuantity((int) $insuranceProduct->id, 0, 999999999);
 
                 if (!empty($insuranceCategoryId)) {

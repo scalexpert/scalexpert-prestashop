@@ -1,4 +1,8 @@
 <?php
+
+use ScalexpertPlugin\Api\Financing;
+use ScalexpertPlugin\Model\FinancingOrder;
+
 /**
  * Copyright © Scalexpert.
  * This file is part of Scalexpert plugin for PrestaShop.
@@ -8,6 +12,31 @@
  */
 class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontController
 {
+    public $id_order;
+    public $reference;
+    public $id_module;
+
+    /** For PrestaShop 1.6 **/
+    public $display_column_left = false;
+    public $display_column_right = false;
+
+    public function init()
+    {
+        parent::init();
+    }
+
+    public function initContent()
+    {
+        parent::initContent();
+
+        if (version_compare(_PS_VERSION_, '1.7', '>=')) {
+            $this->setTemplate('module:scalexpertplugin/views/templates/front/ps17/orderConfirmation.tpl');
+        } else {
+            $this->setTemplate('ps16/orderConfirmation.tpl');
+            $this->context->controller->addCSS(_PS_MODULE_DIR_ . 'scalexpertplugin/views/css/ps16/frontOrderConfirmation.css');
+        }
+    }
+
     public function postProcess()
     {
         $order_ref = Tools::getValue('order_ref');
@@ -44,21 +73,129 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
             $this->handleError($this->module->l('No customer found.'));
         }
 
+        $this->id_order = $order->id;
+        $this->reference = $order->reference;
+        $this->id_module = $this->module->id;
+
         if ($secure_key === $customer->secure_key) {
 
             sleep(2);
 
             /**
-             * The order has been placed so we redirect the customer on the confirmation page.
+             * The order has been placed, so we redirect the customer on the confirmation page.
              */
-            $module_id = $this->module->id;
-            Tools::redirect('index.php?controller=order-confirmation&id_cart=' . $order->id_cart . '&id_module=' . $module_id . '&id_order=' . $order->id . '&key=' . $secure_key);
+            $idSubscription = FinancingOrder::get($this->id_order);
+            $subscriptionInfo = Financing::getSubscriptionInfo($idSubscription);
+
+            $status = $this->module->l('Unknown state');
+            $title = '';
+            $subtitle = '';
+            if (isset($subscriptionInfo['consolidatedStatus'])) {
+
+                // Change order state.
+                $this->updateOrderState($orders, $subscriptionInfo['consolidatedStatus']);
+
+                $status = $this->module->getFinancialStateName($subscriptionInfo['consolidatedStatus']);
+
+                switch ($subscriptionInfo['consolidatedStatus']) {
+                    case 'ACCEPTED':
+                        $title = $this->module->l('Your orders is paid');
+                        $subtitle = $this->module->l('Your financing request has been accepted. A confirmation mail has been sent to you.');
+                        break;
+                    case 'PRE_ACCEPTED':
+                    case 'INITIALIZED':
+                    case 'REQUESTED':
+                        $title = $this->module->l('Your orders are awaiting financing');
+                        $subtitle = $this->module->l('Your financing request has been sent to the lending organization and is being studied. You will soon receive an email informing you of the decision regarding this request.');
+                        break;
+                    case 'REJECTED':
+                    case 'CANCELLED':
+                    case 'ABORTED':
+                        $title = $this->module->l('Your orders is canceled');
+                        $subtitle = $this->module->l('We\'re sorry, your financing request was not accepted or a technical error occurred. We invite you to try again or place a new order by choosing another payment method.');
+                        break;
+                }
+            }
+        }
+
+        if (version_compare(_PS_VERSION_, '1.7', '>=')) {
+            $orderPresenter = new PrestaShop\PrestaShop\Adapter\Order\OrderPresenter();
+            $presentedOrder = $orderPresenter->present($order);
         } else {
-            $this->handleError($this->module->l('An error occured. Please contact the merchant to have more informations'));
+            $presentedOrder = $order;
+        }
+
+        $this->context->smarty->assign(array(
+            'id_order' => $this->id_order,
+            'order' => $presentedOrder,
+            'reference' => $this->reference,
+            'total' => Tools::displayPrice($order->total_paid),
+            'subscription_status' => $subscriptionInfo['consolidatedStatus'] ?? '',
+            'subscription_status_formatted' => $status ?? '',
+            'subscription_status_title' => $title ?? '',
+            'subscription_status_subtitle' => $subtitle ?? '',
+            'is_guest' => $this->context->customer->is_guest,
+        ));
+
+        if ($this->context->customer->is_guest) {
+            $this->context->smarty->assign(array(
+                'id_order_formatted' => sprintf('#%06d', $this->id_order),
+                'email' => $this->context->customer->email
+            ));
+            /* If guest we clear the cookie for security reason */
+            $this->context->customer->mylogout();
         }
     }
 
-    protected function handleError(string $message = ''): void
+    /**
+     * Execute the hook displayPaymentReturn
+     */
+    public function displayPaymentReturn()
+    {
+        if (Validate::isUnsignedId($this->id_order) && Validate::isUnsignedId($this->id_module))
+        {
+            $params = array();
+            $order = new Order($this->id_order);
+            $currency = new Currency($order->id_currency);
+
+            if (Validate::isLoadedObject($order))
+            {
+                $params['total_to_pay'] = $order->getOrdersTotalPaid();
+                $params['currency'] = $currency->sign;
+                $params['objOrder'] = $order;
+                $params['currencyObj'] = $currency;
+
+                return Hook::exec('displayPaymentReturn', $params, $this->id_module);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Execute the hook displayOrderConfirmation
+     */
+    public function displayOrderConfirmation()
+    {
+        if (Validate::isUnsignedId($this->id_order))
+        {
+            $params = array();
+            $order = new Order($this->id_order);
+            $currency = new Currency($order->id_currency);
+
+            if (Validate::isLoadedObject($order))
+            {
+                $params['total_to_pay'] = $order->getOrdersTotalPaid();
+                $params['currency'] = $currency->sign;
+                $params['objOrder'] = $order;
+                $params['currencyObj'] = $currency;
+
+                return Hook::exec('displayOrderConfirmation', $params);
+            }
+        }
+        return false;
+    }
+
+    protected function handleError(string $message = '')
     {
         if (
             version_compare(_PS_VERSION_, '1.7', '>=')
@@ -126,5 +263,18 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
         }
 
         return $this->context->customer;
+    }
+
+    protected function updateOrderState($orderCollection, $consolidatedStatus)
+    {
+        foreach ($orderCollection as $order) {
+            if (!Validate::isLoadedObject($order)) {
+                continue;
+            }
+
+            try {
+                $this->module->updateOrderStateBasedOnFinancingStatus($order, $consolidatedStatus);
+            } catch (\Exception $e) {}
+        }
     }
 }

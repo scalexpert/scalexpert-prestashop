@@ -1,13 +1,4 @@
 <?php
-/**
- * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
- *
- * @author    Société Générale
- * @copyright Scalexpert
- */
-
-declare(strict_types=1);
 
 namespace ScalexpertPlugin\Command;
 
@@ -30,7 +21,7 @@ class UpdateOrdersStatesCommand extends Command
     protected function configure(): void
     {
         $this->setName('scalexpertplugin:updateOrdersStates')
-             ->setDescription('Update orders states');
+            ->setDescription('Update orders states');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -41,4 +32,5 @@ class UpdateOrdersStatesCommand extends Command
 
         return self::STATUS_OK;
     }
+
 }

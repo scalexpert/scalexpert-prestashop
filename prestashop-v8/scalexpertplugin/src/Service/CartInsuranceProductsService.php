@@ -366,7 +366,7 @@ class CartInsuranceProductsService
             $insuranceProduct->visibility = 'none';
             $insuranceProduct->available_for_order = true;
             $insuranceProduct->delivery_out_stock = true;
-            $insuranceProduct->price = $currentInsurance['price'];
+            $insuranceProduct->price = \Tools::ps_round($currentInsurance['price'], 5);
 
             if (!empty($insuranceCategoryId)) {
                 $insuranceProduct->id_category_default = $insuranceCategoryId;

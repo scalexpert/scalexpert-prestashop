@@ -16,6 +16,24 @@ class Financing extends Entity
     public static $scope = 'e-financing';
     public static $financindAmounts = [500, 1000];
     public static $buyerBillingCountry = ['FR', 'DE'];
+    public static $financingStates = [
+        'INITIALIZED',
+        'REQUESTED',
+        'PRE_ACCEPTED',
+        'ACCEPTED',
+        'REJECTED',
+        'ABORTED',
+        'CANCELLED'
+    ];
+    public static $finalFinancingStates = [
+        'ACCEPTED',
+        'REJECTED',
+        'ABORTED',
+        'CANCELLED'
+    ];
+    public static $excludedFinancingStates = [
+        'REQUESTED'
+    ];
 
     public static function getEligibleSolutionsForFront($financedAmount, $buyerBillingCountry)
     {

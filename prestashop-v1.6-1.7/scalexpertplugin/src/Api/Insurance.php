@@ -243,6 +243,7 @@ class Insurance extends Entity
             'solutionCode' => $cartInsurancesProduct['solution_code'],
             'quoteId' => $quoteData['quoteId'],
             'insuranceId' => $cartInsurancesProduct['id_insurance'],
+            'merchantGlobalOrderId' => (string)$order->reference,
             'merchantBasketId' => (string) $cart->id,
             'merchantBuyerId' => (string) $customer->id,
             'producerQuoteExpirationDate' => preg_replace('/^(\d{4}-\d{2}-\d{2}).*$/', '$1', $quoteData['expirationDate']),

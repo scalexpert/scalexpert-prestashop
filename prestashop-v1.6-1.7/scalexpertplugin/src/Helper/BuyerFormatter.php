@@ -57,7 +57,10 @@ class BuyerFormatter
                 !empty($address->phone_mobile) ? $address->phone_mobile : $address->phone,
                 $address->id_country
             ),
-            "phoneNumber" => '',
+            "phoneNumber" => self::formatPhone(
+                !empty($address->phone_mobile) ? $address->phone_mobile : $address->phone,
+                $address->id_country
+            ),
         ];
     }
 

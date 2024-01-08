@@ -92,10 +92,6 @@ class DesignCustomizeFormType extends TranslatorAwareType
                                 'label' => $this->trans('Title', 'Modules.Scalexpertplugin.Admin'),
                                 'required' => false,
                             ])
-                            ->add($solution['solutionCode'] . ':cart_subtitle', TextType::class, [
-                                'label' => $this->trans('Sub-title', 'Modules.Scalexpertplugin.Admin'),
-                                'required' => false,
-                            ])
                             ->add($solution['solutionCode'] . ':cart_display_logo', SwitchType::class, [
                                 'label' => $this->trans('Display logo', 'Modules.Scalexpertplugin.Admin'),
                                 'choices' => [

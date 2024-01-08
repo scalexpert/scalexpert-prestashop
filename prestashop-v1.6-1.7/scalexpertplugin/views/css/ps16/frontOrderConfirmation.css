@@ -1,0 +1,16 @@
+/**
+ * Copyright © Scalexpert.
+ * This file is part of Scalexpert plugin for PrestaShop.
+ *
+ * @author    Société Générale
+ * @copyright Scalexpert
+ */
+
+.module-scalexpertplugin-confirmation .order-confirmation .link-button,
+.module-scalexpertplugin-confirmation .order-confirmation.box a {
+    text-decoration: none;
+}
+
+.module-scalexpertplugin-confirmation .order-confirmation .button-reorder {
+    margin: 15px 0;
+}
