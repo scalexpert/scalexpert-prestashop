@@ -178,7 +178,7 @@ class Financing extends Entity
                     'contact' => BuyerFormatter::normalizeContact($shippingAddress, $customer),
                     'contactAddress' => BuyerFormatter::normalizeAddress($shippingAddress, 'MAIN_ADDRESS'),
                     "deliveryMethod" => $carrier->name ?: '',
-                    "birthName" => '',
+                    "birthName" => !empty($customer->lastname) ? $customer->lastname : '',
                     "birthDate" => (!empty($customer->birthday) && '0000-00-00' !== $customer->birthday) ?
                         $customer->birthday : '1970-01-01',
                     "birthCityName" => '',

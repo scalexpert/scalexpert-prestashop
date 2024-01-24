@@ -104,7 +104,7 @@ class Client
 
         $this->logger->logInfo("[".$uniqId."] API RESPONSE : ".json_encode([
                 'http_code' => $httpcode,
-                'response_data' => $data
+                'response_data' => []
             ])
         );
 
