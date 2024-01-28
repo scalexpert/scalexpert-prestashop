@@ -41,7 +41,7 @@ class ScalexpertPlugin extends PaymentModule
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.2.0';
+        $this->version = '1.2.2';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 
@@ -89,9 +89,11 @@ class ScalexpertPlugin extends PaymentModule
             && $this->initDatabase()
             && $this->createInsuranceProductsCategory()
             && $this->createFinancingOrderState()
+            && $this->createMeta()
             && $this->generateDefaultMapping()
             && $this->manuallyInstallTab()
             && $this->registerHook('paymentOptions')
+            && $this->registerHook('displayAdminOrderTop')
             && $this->registerHook('displayPaymentReturn')
             && $this->registerHook('actionFrontControllerSetMedia')
             && $this->registerHook('displayAdminProductsExtra')
@@ -273,6 +275,38 @@ class ScalexpertPlugin extends PaymentModule
         }
 
         return $orderStateAdd;
+    }
+
+    public function createMeta()
+    {
+        $page = 'module-' . $this->name . '-confirmation';
+        $meta = Meta::getMetaByPage($page, Context::getContext()->language->id);
+        if (!empty($meta)) {
+            return true;
+        }
+
+        $langTitle = [
+            'en' => 'Order confirmation',
+            'fr' => 'Confirmation de commande',
+        ];
+        $langUrl = [
+            'en' => 'order-confirmation',
+            'fr' => 'confirmation-de-commande',
+        ];
+        $langs = \Language::getLanguages();
+        $titles = [];
+        $url_rewrites = [];
+        foreach ($langs as $lang) {
+            $titles[$lang['id_lang']] = $langTitle[strtolower($lang['iso_code'])];
+            $url_rewrites[$lang['id_lang']] = $langUrl[strtolower($lang['iso_code'])];
+        }
+
+        $meta = new Meta();
+        $meta->page = $page;
+        $meta->title = $titles;
+        $meta->url_rewrite = $url_rewrites;
+
+        return $meta->save();
     }
 
     public function uninstallFinancingOrderState()
@@ -928,6 +962,54 @@ class ScalexpertPlugin extends PaymentModule
         return $this->fetch('module:' . $this->name . '/views/templates/hook/shopping-cart-footer.tpl');
     }
 
+    public function hookDisplayAdminOrderTop($params)
+    {
+        if (empty($params['id_order'])) {
+            return '';
+        }
+
+        $order = new Order($params['id_order']);
+        if (!Validate::isLoadedObject($order)) {
+            return '';
+        }
+
+        $warning = '';
+        $apiClient = $this->get('scalexpert.api.client');
+        $financialSubscriptions = $apiClient->getFinancingSubscriptionsByOrderReference($order->reference);
+        if (!empty($financialSubscriptions)) {
+            foreach ($financialSubscriptions as &$financialSubscription) {
+                // Display warning message if order sate is paid but financing subscription has not been accepted
+                $orderSate = $order->getCurrentOrderState();
+                if (
+                    null !== $orderSate
+                    && $orderSate->paid
+                    && !in_array(
+                        $financialSubscription['consolidatedStatus'],
+                        MappingConfigurationFormDataConfiguration::FINAL_FINANCING_STATES,
+                        true
+                    )
+                ) {
+                    $warning .= '<div class="alert alert-warning d-print-none" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true"><i class="material-icons">close</i></span>
+      </button>
+              <div class="alert-text">
+                      <p>';
+                    $warning .= $this->trans(
+                        'Order is paid but financing subscription is not in a finished state.',
+                        []
+                        , 'Modules.Scalexpertplugin.Admin'
+                    );
+                    $warning .= '</p>
+                  </div>
+          </div>';
+                }
+            }
+        }
+
+        return $warning;
+    }
+
     public function hookDisplayHeader($params)
     {
         if (!$this->active) {
@@ -1088,7 +1170,7 @@ class ScalexpertPlugin extends PaymentModule
                 $status = $this->trans('Insurance subscription request in progress', [], 'Modules.Scalexpertplugin.Shop');
                 break;
             case 'SUBSCRIBED':
-                $status = $this->trans('Insurance subscription subscribed', [], 'Modules.Scalexpertplugin.Shop');
+                $status = $this->trans('Insurance subscribed', [], 'Modules.Scalexpertplugin.Shop');
                 break;
             case 'REJECTED':
                 $status = $this->trans('Insurance subscription rejected', [], 'Modules.Scalexpertplugin.Shop');

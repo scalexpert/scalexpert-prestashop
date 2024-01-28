@@ -52,9 +52,9 @@
         <target>souscription d'assurance en cours</target>
         <note>Line: </note>
       </trans-unit>
-      <trans-unit id="476c5370e3dab77c0fb47c656ab4d413">
-        <source>Insurance subscription subscribed</source>
-        <target>souscription d'assurance souscrite</target>
+      <trans-unit id="8bb7a03a39f47899624ffebe2da5ff1c">
+        <source>Insurance subscribed</source>
+        <target>Assurance souscrite</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="87c1cf1e35f7ca9fe3c3853901272a15">

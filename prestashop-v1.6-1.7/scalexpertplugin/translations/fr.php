@@ -7,6 +7,7 @@ $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_1276098435ed7310ec53829
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_92d4773a9f32fc3333cb8238471cf763'] = 'Veuillez autoriser l\'extension cURL sur votre serveur pour installer ce module';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_afeeca91f5628333240726a255defce9'] = 'Payez votre achat en plusieurs fois';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_f70d47154e3f51cb0e94b3b01ed8e87c'] = 'Statut inconnu';
+$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_637a6ff995a0c4b7881a481c7bc7194a'] = 'La commande a été réglée mais le financement n\'est pas dans un statut final.';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_789682facccaf61639000017713a3b49'] = 'Votre demande d\'annulation a été envoyée avec succès.';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_56594c139baca0ad5415f83fde4ea98f'] = 'Paiement en 3X (option sans frais)';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_586895b243aa1e4c22b60e7e8b94af6f'] = 'Paiement en 3X (option avec frais)';
@@ -25,7 +26,7 @@ $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_5b319303b12e2f820b03f9a
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_a877429e952875622312c53f373d7f9f'] = 'oups ! un incident technique semble est survenu veuillez réitérer votre demande';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_d063f1575c083cd73af189484512f143'] = 'souscription d\'assurance activée';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_53c30a1009358b172d172ff3a4ed3611'] = 'souscription d\'assurance en cours';
-$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_476c5370e3dab77c0fb47c656ab4d413'] = 'souscription d\'assurance souscrite';
+$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_8bb7a03a39f47899624ffebe2da5ff1c'] = 'Assurance souscrite';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_87c1cf1e35f7ca9fe3c3853901272a15'] = 'souscription d\'assurance rejetée';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_ed7b27e2454af239828031ce1649c658'] = 'souscription d\'assurance annulée';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_a752ecf23f63a8d50a442ac42a927746'] = 'souscription d\'assurance terminée';
@@ -180,7 +181,6 @@ $_MODULE['<{scalexpertplugin}prestashop>confirmation_22bcfeaa71e0943bd2666644dd0
 $_MODULE['<{scalexpertplugin}prestashop>confirmation_067d916870e82a37f761ebdeca2c3aa1'] = 'Votre commande est annulée';
 $_MODULE['<{scalexpertplugin}prestashop>confirmation_085f774daa0906d08879c22eefdaee4d'] = 'Nous sommes désolés, votre demande de financement n\'a pas été acceptée ou une erreur technique est survenue. Nous vous invitons à réessayer ou à réaliser une nouvelle commande en choisissant un autre mode de paiement.';
 $_MODULE['<{scalexpertplugin}prestashop>confirmation_66b914a3d0878daed70f10d165196200'] = 'Une erreur s\'est produite. Veuillez contacter le marchant pour plus d\'informations';
-
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_539c003b193ec217b1082db3555e21e8'] = 'Paramètres manquants';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_21549681a2b72a67fd74d62b24bdb0c4'] = 'Aucune commande pour cette référence';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_03aecdcf8bb36ffa88d4410f4df4a8c6'] = 'Client non trouvé';

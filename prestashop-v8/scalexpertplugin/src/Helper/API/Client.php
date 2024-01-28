@@ -792,7 +792,7 @@ class Client
                     'deliveryAddress' => BuyerFormatter::normalizeAddress($shippingAddress, 'DELIVERY_ADDRESS'),
                     'contact' => BuyerFormatter::normalizeContact($shippingAddress, $customer),
                     'contactAddress' => BuyerFormatter::normalizeAddress($shippingAddress, 'MAIN_ADDRESS'),
-                    'birthName' => '',
+                    'birthName' => !empty($customer->lastname) ? $customer->lastname : '',
                     'birthDate' => (!empty($customer->birthday) && '0000-00-00' !== $customer->birthday) ? $customer->birthday : '',
                     'birthCityName' => '',
                     // 'birthCountryName' => '',

@@ -182,6 +182,11 @@
         <target>Annulation réalisée avec succès.</target>
         <note>Line: </note>
       </trans-unit>
+      <trans-unit id="637a6ff995a0c4b7881a481c7bc7194a">
+        <source>Order is paid but financing subscription is not in a finished state.</source>
+        <target>La commande a été réglée mais le financement n'est pas dans un statut final.</target>
+        <note>Line: </note>
+      </trans-unit>
       <trans-unit id="a603905470e2a5b8c13e96b579ef0dba">
         <source>Debug</source>
         <target>Mode Débug</target>

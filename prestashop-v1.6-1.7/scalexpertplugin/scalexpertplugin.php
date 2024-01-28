@@ -58,7 +58,7 @@ class ScalexpertPlugin extends PaymentModule
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.2.1';
+        $this->version = '1.2.2';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 
@@ -89,6 +89,7 @@ class ScalexpertPlugin extends PaymentModule
             $this->installDatabase() &&
             $this->installCategoryInsurance() &&
             $this->createFinancingOrderStates() &&
+            $this->createMeta() &&
             $this->generateDefaultMapping() &&
             $this->registerHook('displayBackOfficeHeader') &&
             $this->registerHook('header') &&
@@ -98,6 +99,7 @@ class ScalexpertPlugin extends PaymentModule
             $this->registerHook('displayAdminProductsExtra') &&
             $this->registerHook('actionCartSave') &&
             $this->registerHook('actionProductSave') &&
+            $this->registerHook('displayAdminOrderTop') &&
             $this->registerHook('displayAdminOrder') &&
             $this->registerHook('displayAdminOrderSide') &&
             $this->registerHook('actionOrderStatusPostUpdate') &&
@@ -262,6 +264,38 @@ class ScalexpertPlugin extends PaymentModule
         }
 
         return $createFinancingOrderStates;
+    }
+
+    public function createMeta()
+    {
+        $page = 'module-' . $this->name . '-confirmation';
+        $meta = Meta::getMetaByPage($page, Context::getContext()->language->id);
+        if (!empty($meta)) {
+            return true;
+        }
+
+        $langTitle = [
+            'en' => 'Order confirmation',
+            'fr' => 'Confirmation de commande',
+        ];
+        $langUrl = [
+            'en' => 'order-confirmation',
+            'fr' => 'confirmation-de-commande',
+        ];
+        $langs = \Language::getLanguages();
+        $titles = [];
+        $url_rewrites = [];
+        foreach ($langs as $lang) {
+            $titles[$lang['id_lang']] = $langTitle[strtolower($lang['iso_code'])];
+            $url_rewrites[$lang['id_lang']] = $langUrl[strtolower($lang['iso_code'])];
+        }
+
+        $meta = new Meta();
+        $meta->page = $page;
+        $meta->title = $titles;
+        $meta->url_rewrite = $url_rewrites;
+
+        return $meta->save();
     }
 
     public function uninstall()
@@ -829,6 +863,44 @@ class ScalexpertPlugin extends PaymentModule
         InsuranceProcess::handleCartSave($params);
     }
 
+    public function hookDisplayAdminOrderTop($params)
+    {
+        if (empty($params['id_order'])) {
+            return '';
+        }
+        $order = new Order($params['id_order']);
+        if (!Validate::isLoadedObject($order)) {
+            return '';
+        }
+
+        $warning = '';
+        $financialSubscriptions = $this->getOrderSubscriptions($order);
+        if (!empty($financialSubscriptions)) {
+            foreach ($financialSubscriptions as &$element) {
+                // Display warning message if order sate is paid but financing subscription has not been accepted
+                $orderSate = $order->getCurrentOrderState();
+                if (
+                    null !== $orderSate
+                    && $orderSate->paid
+                    && !in_array($element['consolidatedStatus'], Financing::$finalFinancingStates, true)
+                ) {
+                    $warning .= '<div class="alert alert-warning d-print-none" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true"><i class="material-icons">close</i></span>
+      </button>
+              <div class="alert-text">
+                      <p>';
+                    $warning .= $this->l('Order is paid but financing subscription is not in a finished state.');
+                    $warning .= '</p>
+                  </div>
+          </div>';
+                }
+            }
+        }
+
+        return $warning;
+    }
+
     public function hookDisplayAdminOrder(array $params)
     {
         if (version_compare(_PS_VERSION_, '1.7.7.0', '>=')) {
@@ -865,7 +937,11 @@ class ScalexpertPlugin extends PaymentModule
                 if (
                     null !== $orderSate
                     && $orderSate->paid
-                    && !in_array($element['consolidatedStatus'], Financing::$finalFinancingStates, true)
+                    && !in_array(
+                        $element['consolidatedStatus'],
+                        Financing::$finalFinancingStates,
+                        true
+                    )
                 ) {
                     $this->context->controller->warnings[] = $this->l(
                         'Order is paid but financing subscription is not in a finished state.'
@@ -906,19 +982,6 @@ class ScalexpertPlugin extends PaymentModule
         $financialSubscriptions = $this->getOrderSubscriptions($order);
         if (!empty($financialSubscriptions)) {
             foreach ($financialSubscriptions as &$element) {
-                // Display warning message if order sate is paid but financing subscription has not been accepted
-                $orderSate = $order->getCurrentOrderState();
-                if (
-                    null !== $orderSate
-                    && $orderSate->paid
-                    && !in_array($element['consolidatedStatus'], Financing::$finalFinancingStates, true)
-                ) {
-                    $this->get('session')->getFlashBag()->add(
-                        'warning',
-                        $this->l('Order is paid but financing subscription is not in a finished state.')
-                    );
-                }
-
                 $element['buyerFinancedAmountDisplay'] = Tools::displayPrice(
                     $element['buyerFinancedAmount']
                 );
@@ -1188,7 +1251,7 @@ class ScalexpertPlugin extends PaymentModule
                 $status = $this->l('Insurance subscription request in progress');
                 break;
             case 'SUBSCRIBED':
-                $status = $this->l('Insurance subscription subscribed');
+                $status = $this->l('Insurance subscribed');
                 break;
             case 'REJECTED':
                 $status = $this->l('Insurance subscription rejected');

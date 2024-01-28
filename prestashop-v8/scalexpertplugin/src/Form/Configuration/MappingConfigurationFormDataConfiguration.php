@@ -27,6 +27,7 @@ final class MappingConfigurationFormDataConfiguration implements DataConfigurati
         'CANCELLED'
     ];
     const FINAL_FINANCING_STATES = [
+        'ACCEPTED',
         'REJECTED',
         'ABORTED',
         'CANCELLED'
