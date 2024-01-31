@@ -62,7 +62,7 @@
                         </div>
                         <div class="row">
                             {l s='Consolidated status' mod='scalexpertplugin'}
-                            : {$financialSubscription.consolidatedStatus}
+                            : {$financialSubscription.consolidatedStatusDisplay}
                         </div>
                         <div class="row">
                             {l s='Buyer financed amount' mod='scalexpertplugin'}
