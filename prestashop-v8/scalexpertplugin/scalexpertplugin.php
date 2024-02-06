@@ -41,7 +41,7 @@ class ScalexpertPlugin extends PaymentModule
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.2.2';
+        $this->version = '1.2.3';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 
@@ -844,10 +844,11 @@ class ScalexpertPlugin extends PaymentModule
                         $financialSubscription['buyerFinancedAmount'],
                         (int) $order->id_currency
                     );
-                    $financialSubscription['consolidatedStatus'] = $this->getFinancialStateName(
-                        $financialSubscription['consolidatedStatus']
-                    );
                 }
+
+                $financialSubscription['consolidatedStatusDisplay'] = $this->getFinancialStateName(
+                    $financialSubscription['consolidatedStatus']
+                );
             }
 
             $templateData['financialSubscriptions'] = $financialSubscriptions;

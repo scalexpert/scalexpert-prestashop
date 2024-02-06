@@ -58,7 +58,7 @@ class ScalexpertPlugin extends PaymentModule
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.2.2';
+        $this->version = '1.2.3';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 
@@ -951,7 +951,7 @@ class ScalexpertPlugin extends PaymentModule
                 $element['buyerFinancedAmountDisplay'] = Tools::displayPrice(
                     $element['buyerFinancedAmount']
                 );
-                $element['consolidatedStatus'] = $this->getFinancialStateName($element['consolidatedStatus']);
+                $element['consolidatedStatusDisplay'] = $this->getFinancialStateName($element['consolidatedStatus']);
             }
 
             $this->context->smarty->assign([
@@ -985,7 +985,7 @@ class ScalexpertPlugin extends PaymentModule
                 $element['buyerFinancedAmountDisplay'] = Tools::displayPrice(
                     $element['buyerFinancedAmount']
                 );
-                $element['consolidatedStatus'] = $this->getFinancialStateName($element['consolidatedStatus']);
+                $element['consolidatedStatusDisplay'] = $this->getFinancialStateName($element['consolidatedStatus']);
             }
 
             $this->context->smarty->assign([

@@ -62,7 +62,7 @@
                     </div>
                     <div class="row">
                         {{ 'Consolidated status'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
-                        : {{ financialSubscription.consolidatedStatus }}
+                        : {{ financialSubscription.consolidatedStatusDisplay }}
                     </div>
                     <div class="row">
                         {{ 'Buyer financed amount'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
@@ -93,7 +93,7 @@
                                 <br/>
 
                                 <button class="btn btn-danger" type="submit"
-                                        name="scalexpert_cancel_financial_subscription">Cancel
+                                        name="scalexpert_cancel_financial_subscription">{{ 'Annuler le financement'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
                                 </button>
                             </form>
                         </div>
