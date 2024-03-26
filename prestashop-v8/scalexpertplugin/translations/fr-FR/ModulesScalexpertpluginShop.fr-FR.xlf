@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="a877429e952875622312c53f373d7f9f">
         <source>A technical error occurred during process, please retry.</source>
-        <target>oups ! un incident technique semble est survenu veuillez réitérer votre demande</target>
+        <target>oups ! un incident technique est survenu, veuillez réitérer votre demande</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="d063f1575c083cd73af189484512f143">
@@ -80,6 +80,11 @@
       <trans-unit id="e2b7dec8fa4b498156dfee6e4c84b156">
         <source>This payment method is not available.</source>
         <target>Cette méthode de paiement n'est pas disponible.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="495302df11cf5704383417c300d38962">
+        <source>Please provide a valid phone number to select this payment method</source>
+        <target>Veuillez renseigner un numéro de téléphone mobile ou fixe valide pour sélectionner ce moyen de paiement</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="62073b9fecf7d295bd64bbe448cafb5e">
@@ -147,14 +152,14 @@
         <target>Emprunter</target>
         <note>Line: </note>
       </trans-unit>
-      <trans-unit id="24efa7ee4511563b16144f39706d594f">
-        <source>Notice</source>
-        <target>Information</target>
+      <trans-unit id="aeabc949abf68329adb54bd1a8815f17">
+        <source>Fiche d'information produit (IPID)</source>
+        <target>Fiche d'information produit (IPID)</target>
         <note>Line: </note>
       </trans-unit>
-      <trans-unit id="6f1bf85c9ebb3c7fa26251e1e335e032">
-        <source>Terms</source>
-        <target>Termes</target>
+      <trans-unit id="0240be2dfe18ab35005c46f7e5fb42ee">
+        <source>Notice d'information (NI)</source>
+        <target>Notice d'information (NI)</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="a82be0f551b8708bc08eb33cd9ded0cf">
@@ -180,16 +185,6 @@
       <trans-unit id="da80a6660eeb66a3e36a166a2bb96228">
         <source>of the insurance contract.</source>
         <target>du contrat d'assurance.</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="aeabc949abf68329adb54bd1a8815f17">
-        <source>Fiche d'information produit (IPID)</source>
-        <target>Fiche d'information produit (IPID)</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="0240be2dfe18ab35005c46f7e5fb42ee">
-        <source>Notice d'information (NI)</source>
-        <target>Notice d'information (NI)</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="a447e52f554a310b7ad09a83ce9051ff">

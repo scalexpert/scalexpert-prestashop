@@ -211,7 +211,7 @@ services:
     public: true
     tags:
       - { name: form.type }
-    arguments: [ '@scalexpert.api.client' ]
+    arguments: [ '@scalexpert.api.client', '@prestashop.adapter.legacy.context' ]
 
   scalexpert.form.design_customize_data_configuration:
     class: ScalexpertPlugin\Form\Customize\DesignCustomizeFormDataConfiguration

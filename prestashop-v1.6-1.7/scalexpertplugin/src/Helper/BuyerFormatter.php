@@ -1,4 +1,13 @@
 <?php
+/**
+ * Copyright © Scalexpert.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
+ *
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
+ * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ */
+
 
 namespace ScalexpertPlugin\Helper;
 
@@ -13,7 +22,7 @@ class BuyerFormatter
             "lastName" => $customer->lastname,
             "firstName" => $customer->firstname,
             "email" => $customer->email,
-            "phoneNumber" => self::formatPhone(
+            "phoneNumber" => static::formatPhone(
                 !empty($address->phone) ? $address->phone : $address->phone_mobile,
                 $address->id_country
             ),
@@ -25,22 +34,18 @@ class BuyerFormatter
         \Customer $customer
     ): array
     {
-        $genderName = self::formatGender($customer->id_gender);
+        $genderName = static::formatGender($customer->id_gender);
 
         return [
             "lastName" => $address->lastname,
             "firstName" => $address->firstname,
             "commonTitle" => $genderName,
             "email" => $customer->email,
-            "mobilePhoneNumber" => self::formatPhone(
+            "mobilePhoneNumber" => static::formatPhone(
                 !empty($address->phone_mobile) ? $address->phone_mobile : $address->phone,
                 $address->id_country
             ),
             "professionalTitle" => '',
-            /*"phoneNumber" => self::formatPhone(
-                $address->phone,
-                $address->id_country
-            ),*/
         ];
     }
 
@@ -53,11 +58,11 @@ class BuyerFormatter
             "lastName" => $address->lastname,
             "firstName" => $address->firstname,
             "email" => $customer->email,
-            "mobilePhoneNumber" => self::formatPhone(
+            "mobilePhoneNumber" => static::formatPhone(
                 !empty($address->phone_mobile) ? $address->phone_mobile : $address->phone,
                 $address->id_country
             ),
-            "phoneNumber" => self::formatPhone(
+            "phoneNumber" => static::formatPhone(
                 !empty($address->phone_mobile) ? $address->phone_mobile : $address->phone,
                 $address->id_country
             ),

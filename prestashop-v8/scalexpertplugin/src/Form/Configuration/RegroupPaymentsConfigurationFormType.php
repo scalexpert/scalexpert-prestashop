@@ -1,10 +1,11 @@
 <?php
 /**
  * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
  *
- * @author    Société Générale
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
  * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
 declare(strict_types=1);
@@ -18,11 +19,6 @@ use Symfony\Component\Translation\TranslatorInterface;
 
 class RegroupPaymentsConfigurationFormType extends TranslatorAwareType
 {
-    public function __construct(TranslatorInterface $translator, array $locales)
-    {
-        parent::__construct($translator, $locales);
-    }
-
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder->add(RegroupPaymentsConfigurationFormDataConfiguration::CONFIGURATION_REGROUP_PAYMENTS, SwitchType::class, [

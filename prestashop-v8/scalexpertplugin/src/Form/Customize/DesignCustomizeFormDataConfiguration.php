@@ -1,4 +1,12 @@
 <?php
+/**
+ * Copyright © Scalexpert.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
+ *
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
+ * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ */
 
 declare(strict_types=1);
 
@@ -10,6 +18,7 @@ use PrestaShop\PrestaShop\Core\ConfigurationInterface;
 final class DesignCustomizeFormDataConfiguration implements DataConfigurationInterface
 {
     const CONFIGURATION_DESIGN = 'SCALEXPERT_DESIGN';
+    const ID_DELIMITER = '_';
 
     private $configuration;
 
@@ -31,7 +40,7 @@ final class DesignCustomizeFormDataConfiguration implements DataConfigurationInt
 
                 foreach ($configuration as $solutionCode => $solutionConfiguration) {
                     foreach ($solutionConfiguration as $configurationName => $configurationValue) {
-                        $dataConfiguration[sprintf('%s:%s', $solutionCode, $configurationName)] = $configurationValue;
+                        $dataConfiguration[sprintf('%s' . self::ID_DELIMITER . '%s', $solutionCode, $configurationName)] = $configurationValue;
                     }
                 }
 
@@ -64,7 +73,7 @@ final class DesignCustomizeFormDataConfiguration implements DataConfigurationInt
         $formattedConfiguration = [];
 
         foreach ($configuration as $configurationName => $configurationValue) {
-            $explodedName = explode(':', $configurationName);
+            $explodedName = explode(self::ID_DELIMITER, $configurationName);
             $formattedConfiguration[$explodedName[0]][$explodedName[1]] = $configurationValue;
         }
 

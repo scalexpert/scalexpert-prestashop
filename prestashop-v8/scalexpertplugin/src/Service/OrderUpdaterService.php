@@ -1,10 +1,11 @@
 <?php
 /**
  * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
  *
- * @author    Société Générale
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
  * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
 declare(strict_types=1);
@@ -13,11 +14,7 @@ namespace ScalexpertPlugin\Service;
 
 use PrestaShop\PrestaShop\Adapter\LegacyContext;
 use PrestaShop\PrestaShop\Core\ConfigurationInterface;
-use ScalexpertPlugin\Form\Configuration\FinancingConfigurationFormDataConfiguration;
-use ScalexpertPlugin\Form\Configuration\InsuranceConfigurationFormDataConfiguration;
 use ScalexpertPlugin\Form\Configuration\MappingConfigurationFormDataConfiguration;
-use ScalexpertPlugin\Form\Customize\DesignCustomizeFormDataConfiguration;
-use ScalexpertPlugin\Helper\API\Client;
 
 class OrderUpdaterService
 {
@@ -34,7 +31,10 @@ class OrderUpdaterService
         $this->legacyContext = $context->getContext();
     }
 
-    public function updateOrderStateBasedOnFinancingStatus($order, $status = '')
+    /**
+     * @throws \PrestaShopModuleException
+     */
+    public function updateOrderStateBasedOnFinancingStatus($order, $status = ''): void
     {
         $orderStateMapping = json_decode(
             $this->configuration->get(MappingConfigurationFormDataConfiguration::CONFIGURATION_MAPPING),
@@ -45,7 +45,7 @@ class OrderUpdaterService
             || empty($status)
             || empty($orderStateMapping)
         ) {
-            throw new \Exception('Invalid parameter data.');
+            throw new \PrestaShopModuleException('Invalid parameter data.');
         }
 
         $newOrderStateId = (!empty($orderStateMapping[$status])) ? $orderStateMapping[$status] : null;

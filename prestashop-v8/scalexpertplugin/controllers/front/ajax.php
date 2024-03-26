@@ -1,10 +1,11 @@
 <?php
 /**
  * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
  *
- * @author    Société Générale
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
  * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
 use ScalexpertPlugin\Form\Configuration\FinancingConfigurationFormDataConfiguration;
@@ -22,39 +23,50 @@ class ScalexpertpluginAjaxModuleFrontController extends ModuleFrontController
             $availableFinancialSolutions = $availableSolutionsService->getAvailableFinancialSolutions($productID);
 
             if (!empty($availableFinancialSolutions)) {
+                $sortedSolutions = [];
                 foreach ($availableFinancialSolutions as $availableFinancialSolution) {
                     $financialSolutionData = $availableFinancialSolution;
 
                     if (!empty($financialSolutionData['designConfiguration'])) {
-                        if (isset($financialSolutionData['designConfiguration']['product_display']) && !$financialSolutionData['designConfiguration']['product_display']) {
+                        if (isset($financialSolutionData['designConfiguration']['productDisplay']) && !$financialSolutionData['designConfiguration']['productDisplay']) {
                             continue;
                         }
 
-                        if (isset($financialSolutionData['designConfiguration']['product_display_logo'])) {
-                            $financialSolutionData['displayLogo'] = $financialSolutionData['designConfiguration']['product_display_logo'];
+                        if (isset($financialSolutionData['designConfiguration']['productDisplayLogo'])) {
+                            $financialSolutionData['displayLogo'] = $financialSolutionData['designConfiguration']['productDisplayLogo'];
                         }
 
-                        if (isset($financialSolutionData['designConfiguration']['product_position'])) {
-                            $financialSolutionData['position'] = $financialSolutionData['designConfiguration']['product_position'];
+                        if (isset($financialSolutionData['designConfiguration']['productPosition'])) {
+                            $financialSolutionData['position'] = $financialSolutionData['designConfiguration']['productPosition'];
                         }
 
-                        if (isset($financialSolutionData['designConfiguration']['product_title'])) {
-                            $financialSolutionData['visualTitle'] = $financialSolutionData['designConfiguration']['product_title'];
+                        if (isset($financialSolutionData['designConfiguration']['productTitle'])) {
+                            $financialSolutionData['visualTitle'] = $financialSolutionData['designConfiguration']['productTitle'];
+                        }
+
+                        if (isset($financialSolutionData['designConfiguration']['position'])) {
+                            $financialSolutionData['position'] = $financialSolutionData['designConfiguration']['position'];
                         }
                     }
 
-                    $this->context->smarty->assign(['financialSolution' => $financialSolutionData]);
+                    $sortedSolutions[] = $financialSolutionData;
+                }
+
+                $this->module->sortSolutionsByPosition($sortedSolutions);
+
+                foreach ($sortedSolutions as $sortedSolution) {
+                    $this->context->smarty->assign(['financialSolution' => $sortedSolution]);
                     $formattedInsert = $this->context->smarty->fetch(
                         'module:' . $this->module->name . '/views/templates/hook/financial-insert.tpl'
                     );
 
-                    if (empty($financialSolutionData['product_position'])) {
-                        $financialSolutionData['product_position'] = 'displayProductAdditionalInfo';
+                    if (empty($sortedSolution['productPosition'])) {
+                        $sortedSolution['productPosition'] = 'displayProductAdditionalInfo';
                     }
 
                     $financialInserts[] = [
                         'formattedInsert' => $formattedInsert,
-                        'position' => $financialSolutionData['product_position'],
+                        'hook' => $sortedSolution['productPosition'],
                     ];
                 }
             }
@@ -102,8 +114,8 @@ class ScalexpertpluginAjaxModuleFrontController extends ModuleFrontController
                         $insuranceSolutionData['displayLogo'] = $insuranceSolutionData['designConfiguration'][$pageContext . '_display_logo'];
                     }
 
-                    if (isset($financialSolutionData['designConfiguration'][$pageContext . '_position'])) {
-                        $insuranceSolutionData['position'] = $financialSolutionData['designConfiguration'][$pageContext . '_position'];
+                    if (isset($insuranceSolutionData['designConfiguration'][$pageContext . '_position'])) {
+                        $insuranceSolutionData['position'] = $insuranceSolutionData['designConfiguration'][$pageContext . '_position'];
                     }
 
                     if (isset($insuranceSolutionData['designConfiguration'][$pageContext . '_title'])) {
@@ -132,6 +144,6 @@ class ScalexpertpluginAjaxModuleFrontController extends ModuleFrontController
             }
         }
 
-        $this->ajaxDie(json_encode(['insuranceInserts' => $insuranceInserts]));
+        $this->ajaxRender(json_encode(['insuranceInserts' => $insuranceInserts]));
     }
 }

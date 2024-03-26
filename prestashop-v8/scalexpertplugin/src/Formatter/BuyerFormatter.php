@@ -1,10 +1,11 @@
 <?php
 /**
  * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
  *
- * @author    Société Générale
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
  * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
 declare(strict_types=1);
@@ -26,12 +27,11 @@ class BuyerFormatter
             'firstName' => $address->firstname,
             'commonTitle' => $genderName,
             'email' => $customer->email,
-            'mobilePhoneNumber' => self::formatPhone(
+            'mobilePhoneNumber' => static::formatPhone(
                 !empty($address->phone_mobile) ? $address->phone_mobile : $address->phone,
                 $address->id_country
             ),
             'professionalTitle' => '',
-            // 'phoneNumber' => self::formatPhone($address->phone, $address->id_country),
         ];
     }
 
@@ -41,7 +41,6 @@ class BuyerFormatter
 
         return [
             'locationType' => $locationType,
-            // 'streetNumber' => 0,
             'streetNumberSuffix' => '',
             'streetName' => (string) $address->address1,
             'streetNameComplement' => (string) $address->address2,

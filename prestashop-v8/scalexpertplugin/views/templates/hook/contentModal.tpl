@@ -42,12 +42,12 @@
 
                     {if !empty($financialSolution.visualInformationNoticeURL) && !empty($financialSolution.visualProductTermsURL)}
                         <div class="sep_contentModal-listlink">
-                            {if !empty($financialSolution.visualInformationNoticeURL)}
-                                <a href="{$financialSolution.visualInformationNoticeURL|default:''}">{l s='Notice' d='Modules.Scalexpertplugin.Shop'}</a>
+                            {if !empty($financialSolution.visualProductTermsURL)}
+                                <a href="{$financialSolution.visualProductTermsURL|default:''}">{l s='Fiche d\'information produit (IPID)' d='Modules.Scalexpertplugin.Shop'}</a>
                             {/if}
 
-                            {if !empty($financialSolution.visualProductTermsURL)}
-                                <a href="{$financialSolution.visualProductTermsURL|default:''}">{l s='Terms' d='Modules.Scalexpertplugin.Shop'}</a>
+                            {if !empty($financialSolution.visualInformationNoticeURL)}
+                                <a href="{$financialSolution.visualInformationNoticeURL|default:''}">{l s='Notice d\'information (NI)' d='Modules.Scalexpertplugin.Shop'}</a>
                             {/if}
                         </div>
                     {/if}

@@ -1,11 +1,13 @@
 <?php
 /**
  * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
  *
- * @author    Société Générale
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
  * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
+
 
 use ScalexpertPlugin\Api\Client;
 use ScalexpertPlugin\Api\Financing;
@@ -123,20 +125,8 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
         }
 
         // Set values
-        $financingSolutions = json_decode(Configuration::get('SCALEXPERT_FINANCING_SOLUTIONS'), true);
-        if (!empty($financingSolutions)) {
-            foreach ($financingSolutions as $key => $value) {
-                $this->fields_value['financingSolutions[' . $key . ']'] = $value;
-            }
-        }
-
-        $insuranceSolutions = json_decode(Configuration::get('SCALEXPERT_INSURANCE_SOLUTIONS'), true);
-        if (!empty($insuranceSolutions)) {
-            foreach ($insuranceSolutions as $key => $value) {
-                $this->fields_value['insuranceSolutions[' . $key . ']'] = $value;
-            }
-        }
-
+        $this->_setConfigValueToFieldsValue('SCALEXPERT_FINANCING_SOLUTIONS', 'financingSolutions');
+        $this->_setConfigValueToFieldsValue('SCALEXPERT_INSURANCE_SOLUTIONS', 'insuranceSolutions');
         $this->fields_value['groupFinancingSolutions'] = Configuration::get('SCALEXPERT_GROUP_FINANCING_SOLUTIONS');
 
         // Set Form Inputs
@@ -164,9 +154,11 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
                 $existingSolution[] = $financingSolution['solutionCode'];
                 $this->_formInputs[] = [
                     'type' => 'switch',
-                    'label' => '<img src="'.__PS_BASE_URI__.'modules/'.$this->module->name.'/views/img/flags/'.strtolower($financingSolution['marketCode']).'.jpg" /> '.
-                        $this->module->getSolutionDisplayName($financingSolution['solutionCode']),
-                    'name' => 'financingSolutions['.$financingSolution['solutionCode'].']',
+                    'label' => $this->getImgForSolutionCode(
+                        $financingSolution['marketCode'],
+                        $financingSolution['solutionCode']
+                    ),
+                    'name' => 'financingSolutions[' . $financingSolution['solutionCode'] . ']',
                     'class' => 't',
                     'is_bool' => true,
                     'values' => [
@@ -186,32 +178,7 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
 
         }
 
-        $type = $this->module::TYPES[0];
-        $missingSolution = $this->module->getMissingSolution($existingSolution, $type);
-        foreach ($missingSolution as $missingSolutionCode) {
-
-            $this->_formInputs[] = [
-                'type' => 'switch',
-                'label' => '<img src="'.__PS_BASE_URI__.'modules/'.$this->module->name.'/views/img/flags/'.strtolower($this->module->getSolutionFlag($missingSolutionCode)).'.jpg" /> ' .
-                    $this->module->getSolutionDisplayName($missingSolutionCode),
-                'name' => 'DISABLE_'.$missingSolutionCode,
-                'class' => 't',
-                'disabled' => true,
-                'is_bool' => true,
-                'values' => [
-                    [
-                        'value' => 1,
-                        'label' => $this->l('Enabled')
-                    ],
-                    [
-                        'value' => 0,
-                        'label' => $this->l('Disabled')
-                    ]
-                ],
-                'desc' => $this->l('This option is not available in your contract.').'<br/>'.'<a href="'.$this->module->getNewContractUrlByLang($type, $this->context->language->iso_code).'" target="_blank">'.$this->l('Subscribe to this offer.').'</a>',
-                'tab' => $tabName
-            ];
-        }
+        $this->_addMissingSolutionsByType($this->module::TYPES[0], $existingSolution, $tabName);
 
         if (version_compare(_PS_VERSION_, '1.7', '>=')) {
             $this->_formInputs[] = [
@@ -251,8 +218,11 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
 
                 $this->_formInputs[] = [
                     'type' => 'switch',
-                    'label' => '<img src="'.__PS_BASE_URI__.'modules/'.$this->module->name.'/views/img/flags/'.strtolower($this->module->getSolutionFlag($insuranceSolution['solutionCode'])).'.jpg" /> '.$this->module->getSolutionDisplayName($insuranceSolution['solutionCode']),
-                    'name' => 'insuranceSolutions['.$insuranceSolution['solutionCode'].']',
+                    'label' => $this->getImgForSolutionCode(
+                        $this->module->getSolutionFlag($insuranceSolution['solutionCode']),
+                        $insuranceSolution['solutionCode']
+                    ),
+                    'name' => 'insuranceSolutions[' . $insuranceSolution['solutionCode'] . ']',
                     'class' => 't',
                     'is_bool' => true,
                     'values' => [
@@ -271,15 +241,21 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
             }
         }
 
-        $type = $this->module::TYPES[1];
-        $missingSolution = $this->module->getMissingSolution($existingSolution, $type);
-        foreach ($missingSolution as $missingSolutionCode) {
+        $this->_addMissingSolutionsByType($this->module::TYPES[1], $existingSolution, $tabName);
+    }
 
+    private function _addMissingSolutionsByType($type, $existingSolution, $tabName)
+    {
+        $missingSolution = $this->module->getMissingSolution($existingSolution, $type);
+
+        foreach ($missingSolution as $missingSolutionCode) {
             $this->_formInputs[] = [
                 'type' => 'switch',
-                'label' => '<img src="'.__PS_BASE_URI__.'modules/'.$this->module->name.'/views/img/flags/'.strtolower($this->module->getSolutionFlag($missingSolutionCode)).'.jpg" /> ' .
-                    $this->module->getSolutionDisplayName($missingSolutionCode),
-                'name' => 'DISABLE_'.$missingSolutionCode,
+                'label' => $this->getImgForSolutionCode(
+                    $this->module->getSolutionFlag($missingSolutionCode),
+                    $missingSolutionCode
+                ),
+                'name' => 'DISABLE_' . $missingSolutionCode,
                 'class' => 't',
                 'disabled' => true,
                 'is_bool' => true,
@@ -293,9 +269,19 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
                         'label' => $this->l('Disabled')
                     ]
                 ],
-                'desc' => $this->l('This option is not available in your contract.').'<br/>'.'<a href="'.$this->module->getNewContractUrlByLang($type, $this->context->language->iso_code).'" target="_blank">'.$this->l('Subscribe to this offer.').'</a>',
+                'desc' => $this->l('This option is not available in your contract.') . '<br/>' . '<a href="' . $this->module->getNewContractUrlByLang($type, $this->context->language->iso_code) . '" target="_blank">' . $this->l('Subscribe to this offer.') . '</a>',
                 'tab' => $tabName
             ];
+        }
+    }
+
+    private function _setConfigValueToFieldsValue($configName, $fieldIndex)
+    {
+        $values = json_decode(Configuration::get($configName), true);
+        if (!empty($values)) {
+            foreach ($values as $key => $value) {
+                $this->fields_value[$fieldIndex . '[' . $key . ']'] = $value;
+            }
         }
     }
 
@@ -325,7 +311,7 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
                         'label' => $this->l('Disabled')
                     ]
                 ],
-                'desc' => $this->l('The log files are available in the folder').' : "/modules/scalexpertplugin/log/"',
+                'desc' => $this->l('The log files are available in the folder') . ' : "/modules/scalexpertplugin/log/"',
                 'tab' => $tabName
             ];
         }
@@ -507,7 +493,7 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
             'error' => ($result['hasError'] ? $result['error'] : false)
         ];
 
-        die(Tools::jsonEncode($return));
+        $this->ajaxDie(Tools::jsonEncode($return));
     }
 
     private function getLabelByStatus($status)
@@ -537,5 +523,12 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
         }
 
         return $status;
+    }
+
+    private function getImgForSolutionCode($imgName, $solutionCode)
+    {
+        return '<img src="' . __PS_BASE_URI__ . 'modules/' . $this->module->name . '/views/img/flags/' .
+            strtolower($imgName) . '.jpg" /> ' .
+            $this->module->getSolutionDisplayName($solutionCode);
     }
 }

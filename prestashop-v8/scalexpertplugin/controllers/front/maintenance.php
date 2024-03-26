@@ -1,10 +1,11 @@
 <?php
 /**
  * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
  *
- * @author    Société Générale
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
  * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
 class ScalexpertpluginMaintenanceModuleFrontController extends ModuleFrontController
@@ -13,6 +14,6 @@ class ScalexpertpluginMaintenanceModuleFrontController extends ModuleFrontContro
     {
         $updateOrdersStatesService = $this->get('scalexpert.service.update_orders_states');
         $updateOrdersStatesService->updateOrdersStates();
-        die('Cron OK');
+        $this->ajaxRender('Cron OK');
     }
 }

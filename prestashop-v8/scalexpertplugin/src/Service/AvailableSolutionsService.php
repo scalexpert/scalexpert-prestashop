@@ -1,10 +1,11 @@
 <?php
 /**
  * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
  *
- * @author    Société Générale
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
  * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
 declare(strict_types=1);
@@ -34,13 +35,14 @@ class AvailableSolutionsService
 
     public function getContextBuyerBillingCountry()
     {
-        if (isset($this->legacyContext->cart)) {
-            if (!empty($this->legacyContext->cart->id_address_invoice)) {
-                $addressInvoice = new \Address((int) $this->legacyContext->cart->id_address_invoice);
+        if (
+            isset($this->legacyContext->cart)
+            && !empty($this->legacyContext->cart->id_address_invoice)
+        ) {
+            $addressInvoice = new \Address((int) $this->legacyContext->cart->id_address_invoice);
 
-                if (\Validate::isLoadedObject($addressInvoice) && !empty($addressInvoice->id_country)) {
-                    $buyerBillingCountry = \Country::getIsoById($addressInvoice->id_country);
-                }
+            if (\Validate::isLoadedObject($addressInvoice) && !empty($addressInvoice->id_country)) {
+                $buyerBillingCountry = \Country::getIsoById($addressInvoice->id_country);
             }
         }
 
@@ -70,11 +72,15 @@ class AvailableSolutionsService
 
         if (!empty($financialSolutions)) {
             // Get active configuration
-            $activeConfiguration = $this->configuration->get(FinancingConfigurationFormDataConfiguration::CONFIGURATION_FINANCING);
+            $activeConfiguration = $this->configuration->get(
+                FinancingConfigurationFormDataConfiguration::CONFIGURATION_FINANCING
+            );
             $activeConfiguration = !empty($activeConfiguration) ? json_decode($activeConfiguration, true) : [];
 
             // Get config configuration
-            $designConfiguration = $this->configuration->get(DesignCustomizeFormDataConfiguration::CONFIGURATION_DESIGN);
+            $designConfiguration = $this->configuration->get(
+                DesignCustomizeFormDataConfiguration::CONFIGURATION_DESIGN
+            );
             $designConfiguration = !empty($designConfiguration) ? json_decode($designConfiguration, true) : [];
 
             foreach ($financialSolutions as $solutionCode => $financialSolution) {
@@ -88,20 +94,29 @@ class AvailableSolutionsService
                         $cartProducts = $this->legacyContext->cart->getProducts();
                     }
 
-                    if (!empty($designConfiguration[$solutionCode]['excluded_categories'])) {
-                        if (!empty($productID)) {
-                            // Check category compatibility with current product on product page
-                            $productCategories = \Product::getProductCategories($productID);
+                    if (
+                        !empty($designConfiguration[$solutionCode]['excludedCategories'])
+                        && !empty($productID)
+                    ) {
+                        // Check category compatibility with current product on product page
+                        $productCategories = \Product::getProductCategories($productID);
 
-                            if (!empty($productCategories)) {
-                                foreach ($designConfiguration[$solutionCode]['excluded_categories'] as $categoryID) {
-                                    // Restricted category for the solution
-                                    if (in_array($categoryID, $productCategories)) {
-                                        continue 2;
-                                    }
+                        if (!empty($productCategories)) {
+                            foreach ($designConfiguration[$solutionCode]['excludedCategories'] as $categoryID) {
+                                // Restricted category for the solution
+                                if (in_array($categoryID, $productCategories)) {
+                                    continue 2;
                                 }
                             }
                         }
+                    }
+
+                    if (
+                        !empty($designConfiguration[$solutionCode]['excludedProducts']['data'])
+                        && !empty($productID)
+                        && in_array($productID, $designConfiguration[$solutionCode]['excludedProducts']['data'])
+                    ) {
+                        continue;
                     }
 
                     if (!empty($cartProducts)) {
@@ -117,15 +132,23 @@ class AvailableSolutionsService
 
                             $productCategories = \Product::getProductCategories($cartProduct['id_product']);
 
-                            if (!empty($productCategories)) {
-                                // Check category compatibility with cart products
-                                if (!empty($designConfiguration[$solutionCode]['excluded_categories'])) {
-                                    foreach ($designConfiguration[$solutionCode]['excluded_categories'] as $categoryID) {
-                                        if (in_array($categoryID, $productCategories)) {
-                                            continue 3;
-                                        }
+                            // Check category compatibility with cart products
+                            if (
+                                !empty($productCategories)
+                                && !empty($designConfiguration[$solutionCode]['excludedCategories'])
+                            ) {
+                                foreach ($designConfiguration[$solutionCode]['excludedCategories'] as $categoryID) {
+                                    if (in_array($categoryID, $productCategories)) {
+                                        continue 3;
                                     }
                                 }
+                            }
+
+                            if (
+                                !empty($designConfiguration[$solutionCode]['excludedProducts']['data'])
+                                && in_array($cartProduct['id_product'], $designConfiguration[$solutionCode]['excludedProducts']['data'])
+                            ) {
+                                continue 2;
                             }
                         }
                     }
@@ -177,18 +200,25 @@ class AvailableSolutionsService
                         foreach ($cartProducts as $cartProduct) {
                             $insuranceSolutionData = $insuranceSolution;
 
-                            if (!empty($designConfiguration[$solutionCode]['excluded_categories'])) {
+                            if (!empty($designConfiguration[$solutionCode]['excludedCategories'])) {
                                 // Check category compatibility with current product on product page
                                 $productCategories = \Product::getProductCategories($cartProduct['id_product']);
 
                                 if (!empty($productCategories)) {
-                                    foreach ($designConfiguration[$solutionCode]['excluded_categories'] as $categoryID) {
+                                    foreach ($designConfiguration[$solutionCode]['excludedCategories'] as $categoryID) {
                                         // Restricted category for the solution
                                         if (in_array($categoryID, $productCategories)) {
                                             continue 2;
                                         }
                                     }
                                 }
+                            }
+
+                            if (
+                                !empty($designConfiguration[$solutionCode]['excludedProducts']['data'])
+                                && in_array($cartProduct['id_product'], $designConfiguration[$solutionCode]['excludedProducts']['data'])
+                            ) {
+                                continue;
                             }
 
                             $itemId = $this->apiClient->createItem($solutionCode, $cartProduct['id_product']);
@@ -222,18 +252,26 @@ class AvailableSolutionsService
                 } else {
                     $insuranceSolutionData = $insuranceSolution;
 
-                    if (!empty($designConfiguration[$solutionCode]['excluded_categories'])) {
+                    if (!empty($designConfiguration[$solutionCode]['excludedCategories'])) {
                         // Check category compatibility with current product on product page
                         $productCategories = \Product::getProductCategories($productID);
 
                         if (!empty($productCategories)) {
-                            foreach ($designConfiguration[$solutionCode]['excluded_categories'] as $categoryID) {
+                            foreach ($designConfiguration[$solutionCode]['excludedCategories'] as $categoryID) {
                                 // Restricted category for the solution
                                 if (in_array($categoryID, $productCategories)) {
                                     continue 2;
                                 }
                             }
                         }
+                    }
+
+                    // Restricted products for the solution
+                    if (
+                        !empty($designConfiguration[$solutionCode]['excludedProducts']['data'])
+                        && in_array($productID, $designConfiguration[$solutionCode]['excludedProducts']['data'])
+                    ) {
+                        continue;
                     }
 
                     $itemId = $this->apiClient->createItem($solutionCode, $productID);

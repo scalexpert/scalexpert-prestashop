@@ -35,12 +35,12 @@
 
                     {if !empty($insuranceSolution.visualInformationNoticeURL) && !empty($insuranceSolution.visualProductTermsURL)}
                         <div class="sep_contentModal-listlink">
-                            {if !empty($insuranceSolution.visualInformationNoticeURL)}
-                                <a href="{$insuranceSolution.visualInformationNoticeURL|default:''}">{l s='Notice' d='Modules.Scalexpertplugin.Shop'}</a>
+                            {if !empty($insuranceSolution.visualProductTermsURL)}
+                                <a href="{$insuranceSolution.visualProductTermsURL|default:''}">{l s='Fiche d\'information produit (IPID)' d='Modules.Scalexpertplugin.Shop'}</a>
                             {/if}
 
-                            {if !empty($insuranceSolution.visualProductTermsURL)}
-                                <a href="{$insuranceSolution.visualProductTermsURL|default:''}">{l s='Terms' d='Modules.Scalexpertplugin.Shop'}</a>
+                            {if !empty($insuranceSolution.visualInformationNoticeURL)}
+                                <a href="{$insuranceSolution.visualInformationNoticeURL|default:''}">{l s='Notice d\'information (NI)' d='Modules.Scalexpertplugin.Shop'}</a>
                             {/if}
                         </div>
                     {/if}

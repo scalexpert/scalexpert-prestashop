@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file original="admin123456789abcdefg" source-language="de-DE" target-language="de-DE" datatype="plaintext">
+    <body>
+      <trans-unit id="44a4e3c5b86d8cfa046a361745eb9f9c">
+        <source>Financing request accepted</source>
+        <target>Financing request accepted</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="854e0d52ec35a15bcfdd0ccf2d9984f8">
+        <source>Financing request in progress</source>
+        <target>Financing request in progress</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="d297101437406a93b501233f8c9cbbae">
+        <source>Financing request requested</source>
+        <target>Financing request requested</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="94853a53cf695350627dd05447c4fd12">
+        <source>Financing request pre-accepted</source>
+        <target>Financing request pre-accepted</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="24b8af52bfc4aae6c797a6988b7e1ce2">
+        <source>Financing request rejected</source>
+        <target>Financing request rejected</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="959eb39fa4978cf5404e6a2050525b4f">
+        <source>Financing request cancelled</source>
+        <target>Financing request cancelled</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="5b319303b12e2f820b03f9aaee1d3fe1">
+        <source>Financing request aborted</source>
+        <target>Financing request aborted</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="a877429e952875622312c53f373d7f9f">
+        <source>A technical error occurred during process, please retry.</source>
+        <target>A technical error occurred during process, please retry.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="d063f1575c083cd73af189484512f143">
+        <source>Insurance subscription activated</source>
+        <target>Insurance subscription activated</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="53c30a1009358b172d172ff3a4ed3611">
+        <source>Insurance subscription request in progress</source>
+        <target>Insurance subscription request in progress</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="8bb7a03a39f47899624ffebe2da5ff1c">
+        <source>Insurance subscribed</source>
+        <target>Insurance subscribed</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="87c1cf1e35f7ca9fe3c3853901272a15">
+        <source>Insurance subscription rejected</source>
+        <target>Insurance subscription rejected</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="ed7b27e2454af239828031ce1649c658">
+        <source>Insurance subscription cancelled</source>
+        <target>Insurance subscription cancelled</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="a752ecf23f63a8d50a442ac42a927746">
+        <source>Insurance subscription terminated</source>
+        <target>Insurance subscription terminated</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="4db1efc6e3e2ba5cde06a38498b04be9">
+        <source>Insurance subscription aborted</source>
+        <target>Insurance subscription aborted</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="e2b7dec8fa4b498156dfee6e4c84b156">
+        <source>This payment method is not available.</source>
+        <target>This payment method is not available.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="495302df11cf5704383417c300d38962">
+        <source>Please provide a valid phone number to select this payment method</source>
+        <target>Bitte geben Sie eine gültige Telefonnummer an, um diese Zahlungsmethode auszuwählen</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="62073b9fecf7d295bd64bbe448cafb5e">
+        <source>An error occurred during financing subscription.</source>
+        <target>An error occurred during financing subscription.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="022273b9111b908c53ffa49427a45f81">
+        <source>Your orders is paid</source>
+        <target>Your orders is paid</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="955c3f43fde8567155003e7ecce0683b">
+        <source>Your financing request has been accepted. A confirmation mail has been sent to you.</source>
+        <target>Your financing request has been accepted. A confirmation mail has been sent to you.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="aa7d0ffd47bba01a6552d0bfad0134c2">
+        <source>Your orders are awaiting financing</source>
+        <target>Your orders are awaiting financing</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="22bcfeaa71e0943bd2666644dd0850ea">
+        <source>Your financing request has been sent to the lending organization and is being studied. You will soon receive an email informing you of the decision regarding this request.</source>
+        <target>Your financing request has been sent to the lending organization and is being studied. You will soon receive an email informing you of the decision regarding this request.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="067d916870e82a37f761ebdeca2c3aa1">
+        <source>Your orders is canceled</source>
+        <target>Your orders is canceled</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="a731d3683f1389f720f902c2c822bd94">
+        <source>We're sorry, your financing request was not accepted or a technical error occurred. We invite you to try again or place a new order by choosing another payment method.</source>
+        <target>We're sorry, your financing request was not accepted or a technical error occurred. We invite you to try again or place a new order by choosing another payment method.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="66b914a3d0878daed70f10d165196200">
+        <source>An error occured. Please contact the merchant to have more informations</source>
+        <target>An error occured. Please contact the merchant to have more informations</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="303a74098e356909ffcf68b9bd4ca1b0">
+        <source>Confirmer</source>
+        <target>Confirmer</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="eaff1bdf24fcffe0e14e29a1bff51a12">
+        <source>Insurance</source>
+        <target>Insurance</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="24a23d787190f2c4812ff9ab11847a72">
+        <source>Status:</source>
+        <target>Status:</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="8b36249c00d04fa8cf0ee475d1e21078">
+        <source>Waiting for payment</source>
+        <target>Waiting for payment</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="50f1d1e90602608bbb8cfcb177c16916">
+        <source>Emprunter</source>
+        <target>Emprunter</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="aeabc949abf68329adb54bd1a8815f17">
+        <source>Fiche d'information produit (IPID)</source>
+        <target>Fiche d'information produit (IPID)</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="0240be2dfe18ab35005c46f7e5fb42ee">
+        <source>Notice d'information (NI)</source>
+        <target>Notice d'information (NI)</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="a82be0f551b8708bc08eb33cd9ded0cf">
+        <source>Information</source>
+        <target>Information</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="877ff788108e33d104d2ce640d30e2ec">
+        <source>Pas de garantie</source>
+        <target>Pas de garantie</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="62654a6330f74535b4b0019d9b24bd43">
+        <source>By subscribing to the insurance, I declare that I have been able to download and print the</source>
+        <target>By subscribing to the insurance, I declare that I have been able to download and print the</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="32d1f5ffe41b79b34f3833c59d5082af">
+        <source>Information notice (IN)</source>
+        <target>Information notice (IN)</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="da80a6660eeb66a3e36a166a2bb96228">
+        <source>of the insurance contract.</source>
+        <target>of the insurance contract.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="a447e52f554a310b7ad09a83ce9051ff">
+        <source>Payer</source>
+        <target>Payer</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="6bc58f15227f5ca8e16849c68330e690">
+        <source>Your informations payment:</source>
+        <target>Your informations payment:</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="b2f40690858b404ed10e62bdf422c704">
+        <source>Amount</source>
+        <target>Amount</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="5d4710f9a8250b13164a82c94d5b00d1">
+        <source>Order reference</source>
+        <target>Order reference</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="44b8ba7ac764470a35259d75ec37ba4f">
+        <source>Financial status</source>
+        <target>Financial status</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="19c419a8a4f1cd621853376a930a2e24">
+        <source>An email has been sent with this information.</source>
+        <target>An email has been sent with this information.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="1b22721c0967c351b34d82496917654f">
+        <source>If you have questions, comments or concerns, please contact our [1]expert customer support team[/1].</source>
+        <target>If you have questions, comments or concerns, please contact our [1]expert customer support team[/1].</target>
+        <note>Line: </note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

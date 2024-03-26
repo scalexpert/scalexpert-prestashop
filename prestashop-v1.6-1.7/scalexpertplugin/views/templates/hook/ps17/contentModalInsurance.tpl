@@ -1,10 +1,12 @@
 {**
-* Copyright © Scalexpert.
-* This file is part of Scalexpert plugin for PrestaShop.
-*
-* @author    Société Générale
-* @copyright Scalexpert
+ * Copyright © Scalexpert.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
+ *
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
+ * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
 *}
+
 
 {if !empty($insuranceSolution) && !empty($md5Id)}
     <div id="{$md5Id|default:''}"
@@ -36,12 +38,12 @@
 
                     {if !empty($insuranceSolution.visualInformationNoticeURL) && !empty($insuranceSolution.visualProductTermsURL)}
                         <div class="sep_contentModal-listlink">
-                            {if !empty($insuranceSolution.visualInformationNoticeURL)}
-                                <a href="{$insuranceSolution.visualInformationNoticeURL|default:''}">{l s='Notice' mod='scalexpertplugin'}</a>
+                            {if !empty($insuranceSolution.visualProductTermsURL)}
+                                <a href="{$insuranceSolution.visualProductTermsURL|default:''}">{l s='Fiche d\'information produit (IPID)' mod='scalexpertplugin'}</a>
                             {/if}
 
-                            {if !empty($insuranceSolution.visualProductTermsURL)}
-                                <a href="{$insuranceSolution.visualProductTermsURL|default:''}">{l s='Terms' mod='scalexpertplugin'}</a>
+                            {if !empty($insuranceSolution.visualInformationNoticeURL)}
+                                <a href="{$insuranceSolution.visualInformationNoticeURL|default:''}">{l s='Notice d\'information (NI)' mod='scalexpertplugin'}</a>
                             {/if}
                         </div>
                     {/if}

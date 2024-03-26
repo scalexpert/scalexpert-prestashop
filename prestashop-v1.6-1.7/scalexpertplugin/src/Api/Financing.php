@@ -1,11 +1,13 @@
 <?php
 /**
  * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
  *
- * @author    Société Générale
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
  * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
+
 
 namespace ScalexpertPlugin\Api;
 
@@ -47,13 +49,11 @@ class Financing extends Entity
         $eligibleSolutions = [];
         foreach ($params as $param) {
             $apiUrl = static::$scope . '/api/v1/eligible-solutions?' . http_build_query($param);
-            $result = Client::get(static::$scope, $apiUrl);
+            $result = Client::get($apiUrl);
 
             if (!$result['hasError']) {
                 foreach ($result['data']['solutions'] as $solution) {
-                    if (empty($eligibleSolutions[$solution['solutionCode']])) {
-                        $eligibleSolutions[$solution['solutionCode']] = $solution;
-                    }
+                    $eligibleSolutions[$solution['solutionCode']] = $solution;
                 }
             }
         }
@@ -73,7 +73,7 @@ class Financing extends Entity
     public static function getSubscriptionInfo($subscriptionId)
     {
         $apiUrl = static::$scope . '/api/v1/subscriptions/' . (string)$subscriptionId;
-        $result = Client::get(static::$scope, $apiUrl);
+        $result = Client::get($apiUrl);
 
         if (!$result['hasError']) {
             return $result['data'];
@@ -89,7 +89,7 @@ class Financing extends Entity
         ];
 
         $apiUrl = static::$scope . '/api/v1/subscriptions?' . http_build_query($params);
-        $result = Client::get(static::$scope, $apiUrl);
+        $result = Client::get($apiUrl);
 
         if (!$result['hasError']) {
             return $result['data']['subscriptions'] ?? [];
@@ -105,7 +105,7 @@ class Financing extends Entity
         ];
 
         $apiUrl = static::$scope . '/api/v1/subscriptions?' . http_build_query($params);
-        $result = Client::get(static::$scope, $apiUrl);
+        $result = Client::get($apiUrl);
 
         if (!$result['hasError']) {
             return $result['data']['subscriptions'] ?? [];
@@ -191,7 +191,7 @@ class Financing extends Entity
         ];
 
         $apiUrl = static::$scope . '/api/v1/subscriptions';
-        return Client::post(static::$scope, $apiUrl, $params);
+        return Client::post($apiUrl, $params);
     }
 
     public static function cancelFinancingSubscription(
@@ -225,6 +225,30 @@ class Financing extends Entity
         ];
 
         $apiUrl = static::$scope . '/api/v1/subscriptions/' . $creditSubscriptionId . '/_cancel';
-        return Client::post(static::$scope, $apiUrl, $params);
+        return Client::post($apiUrl, $params);
+    }
+
+
+    public static function confirmDeliveryFinancingSubscription(
+        $creditSubscriptionId,
+        $trackingNumber = '',
+        $operator = '',
+        $withFullPayload = true
+    ): array
+    {
+        if ($withFullPayload) {
+            $params = [
+                'isDelivered' => true,
+                'trackingNumber' => $trackingNumber,
+                'operator' => $operator,
+            ];
+        } else {
+            $params = [
+                'isDelivered' => true,
+            ];
+        }
+
+        $apiUrl = static::$scope . '/api/v1/subscriptions/' . $creditSubscriptionId . '/_confirmDelivery';
+        return Client::post($apiUrl, $params);
     }
 }

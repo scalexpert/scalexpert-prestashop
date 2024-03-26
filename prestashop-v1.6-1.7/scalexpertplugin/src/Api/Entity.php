@@ -1,11 +1,13 @@
 <?php
 /**
  * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
  *
- * @author    Société Générale
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
  * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
+
 
 namespace ScalexpertPlugin\Api;
 
@@ -36,13 +38,11 @@ class Entity
         $elligibleSolutions = [];
         foreach ($params as $param) {
             $apiUrl = static::$scope . '/api/v1/eligible-solutions?' . http_build_query($param);
-            $result = Client::get(static::$scope, $apiUrl);
+            $result = Client::get($apiUrl);
 
             if (!$result['hasError']) {
                 foreach ($result['data']['solutions'] as $solution) {
-                    if (empty($elligibleSolutions[$solution['solutionCode']])) {
-                        $elligibleSolutions[$solution['solutionCode']] = $solution;
-                    }
+                    $elligibleSolutions[$solution['solutionCode']] = $solution;
                 }
             }
         }

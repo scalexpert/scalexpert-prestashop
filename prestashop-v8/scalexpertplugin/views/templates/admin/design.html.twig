@@ -1,4 +1,3 @@
-
 {% extends '@!PrestaShop/Admin/layout.html.twig' %}
 
 {% block content %}
@@ -31,33 +30,47 @@
                                 <h4 class="card-title">{{ 'General'|trans({}, 'Modules.Scalexpertplugin.Admin') }}</h4>
                                 <hr>
 
-                                {% for field in solution.generalFields %}
-                                    {{ form_row(designConfigurationForm[field]) }}
-                                {% endfor %}
+                                {% if solution.generalFields is defined %}
+                                    {% for field in solution.generalFields %}
+                                        {% if designConfigurationForm[field] is defined %}
+                                            <div class="redirect-option-widget">
+                                                {{ form_row(designConfigurationForm[field]) }}
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
 
                                 <h4 class="card-title">{{ 'Product page design'|trans({}, 'Modules.Scalexpertplugin.Admin') }}</h4>
                                 <hr>
 
-                                {% for field in solution.productFields %}
-                                    {{ form_row(designConfigurationForm[field]) }}
-                                {% endfor %}
+                                {% if solution.productFields is defined %}
+                                    {% for field in solution.productFields %}
+                                        {% if designConfigurationForm[field] is defined %}
+                                            {{ form_row(designConfigurationForm[field]) }}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
 
                                 {% if solution.paymentFields is defined %}
                                     <h4 class="card-title">{{ 'Payment page design'|trans({}, 'Modules.Scalexpertplugin.Admin') }}</h4>
                                     <hr>
 
-                                    {% for field in solution.paymentFields %}
-                                        {{ form_row(designConfigurationForm[field]) }}
-                                    {% endfor %}
+                                    {% if solution.paymentFields is defined %}
+                                        {% for field in solution.paymentFields %}
+                                            {{ form_row(designConfigurationForm[field]) }}
+                                        {% endfor %}
+                                    {% endif %}
                                 {% endif %}
 
                                 {% if solution.cartFields is defined %}
                                     <h4 class="card-title">{{ 'Cart page design'|trans({}, 'Modules.Scalexpertplugin.Admin') }}</h4>
                                     <hr>
 
-                                    {% for field in solution.cartFields %}
-                                        {{ form_row(designConfigurationForm[field]) }}
-                                    {% endfor %}
+                                    {% if solution.cartFields is defined %}
+                                        {% for field in solution.cartFields %}
+                                            {{ form_row(designConfigurationForm[field]) }}
+                                        {% endfor %}
+                                    {% endif %}
                                 {% endif %}
 
                             </div>
@@ -75,9 +88,39 @@
             {{ form_end(designConfigurationForm) }}
         </div>
     </div>
+
+    {% embed '@PrestaShop/Admin/Helpers/bootstrap_popup.html.twig' with {
+        'id': 'confirmation_modal',
+        'title': "Warning"|trans({}, 'Admin.Notifications.Warning'),
+        'closable': false,
+        'actions': [
+            {
+                'type': 'button',
+                'label': "No"|trans({}, 'Admin.Global'),
+                'class': 'btn btn-outline-secondary btn-lg cancel'
+            },
+            {
+                'type': 'button',
+                'label': "Yes"|trans({}, 'Admin.Global'),
+                'class': 'btn btn-primary btn-lg continue'
+            }
+        ],
+    } %}
+        {% block content %}
+            <div class="modal-body">{{ "Are you sure you want to delete this item?"|trans({}, 'Admin.Notifications.Warning') }}</div>
+        {% endblock %}
+    {% endembed %}
+
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('../modules/scalexpertplugin/views/js/choice-tree.js') }}"></script>
+    <script src="{{ asset('themes/new-theme/public/product_page.bundle.js') }}"></script>
+    <script src="{{ asset('themes/default/js/bundle/modal-confirmation.js') }}"></script>
+{% endblock %}
+
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('themes/new-theme/public/product.css') }}" type="text/css" media="all">
 {% endblock %}

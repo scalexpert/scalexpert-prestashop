@@ -1,15 +1,17 @@
 <?php
+/**
+ * Copyright © Scalexpert.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
+ *
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
+ * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ */
+
 
 use ScalexpertPlugin\Api\Financing;
 use ScalexpertPlugin\Model\FinancingOrder;
 
-/**
- * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
- *
- * @author    Société Générale
- * @copyright Scalexpert
- */
 class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontController
 {
     public $id_order;
@@ -19,11 +21,6 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
     /** For PrestaShop 1.6 **/
     public $display_column_left = false;
     public $display_column_right = false;
-
-    public function init()
-    {
-        parent::init();
-    }
 
     public function initContent()
     {
@@ -87,14 +84,10 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
             $idSubscription = FinancingOrder::get($this->id_order);
             $subscriptionInfo = Financing::getSubscriptionInfo($idSubscription);
 
-            $status = $this->module->l('Unknown state');
-            $title = '';
-            $subtitle = '';
-            if (isset($subscriptionInfo['consolidatedStatus'])) {
-
-                // Change order state.
-                $this->updateOrderState($orders, $subscriptionInfo['consolidatedStatus']);
-
+            if (
+                isset($subscriptionInfo['consolidatedStatus'])
+                && $this->updateOrderState($orders, $subscriptionInfo['consolidatedStatus'])
+            ) {
                 $status = $this->module->getFinancialStateName($subscriptionInfo['consolidatedStatus']);
 
                 switch ($subscriptionInfo['consolidatedStatus']) {
@@ -108,13 +101,15 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
                         $title = $this->module->l('Your orders are awaiting financing');
                         $subtitle = $this->module->l('Your financing request has been sent to the lending organization and is being studied. You will soon receive an email informing you of the decision regarding this request.');
                         break;
-                    case 'REJECTED':
-                    case 'CANCELLED':
-                    case 'ABORTED':
+                    default:
                         $title = $this->module->l('Your orders is canceled');
                         $subtitle = $this->module->l('We\'re sorry, your financing request was not accepted or a technical error occurred. We invite you to try again or place a new order by choosing another payment method.');
                         break;
                 }
+            } else {
+                $status = $this->module->getFinancialStateName('');
+                $title = $this->module->l('Your orders is canceled');
+                $subtitle = $this->module->l('We\'re sorry, your financing request was not accepted or a technical error occurred. We invite you to try again or place a new order by choosing another payment method.');
             }
         }
 
@@ -269,12 +264,16 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
     {
         foreach ($orderCollection as $order) {
             if (!Validate::isLoadedObject($order)) {
-                continue;
+                return false;
             }
 
             try {
                 $this->module->updateOrderStateBasedOnFinancingStatus($order, $consolidatedStatus);
-            } catch (\Exception $e) {}
+            } catch (\Exception $e) {
+                return false;
+            }
         }
+
+        return true;
     }
 }

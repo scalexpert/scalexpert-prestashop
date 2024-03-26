@@ -1,14 +1,18 @@
 <?php
-
-use ScalexpertPlugin\Model\FinancingOrder;
-
 /**
  * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
  *
- * @author    Société Générale
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
  * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
+
+
+use ScalexpertPlugin\Api\Financing;
+use ScalexpertPlugin\Model\FinancingOrder;
+
+
 class ScalexpertPluginValidationModuleFrontController extends ModuleFrontController
 {
     /**
@@ -38,64 +42,77 @@ class ScalexpertPluginValidationModuleFrontController extends ModuleFrontControl
             $this->handleError($this->module->l('No customer found.'));
         }
 
+        $address = new Address((int) $cart->id_address_delivery);
+        if (Validate::isLoadedObject($address)) {
+            $phone = !empty($address->phone_mobile) ? $address->phone_mobile : $address->phone;
+            if (!preg_match('/^\d{6,14}$/', $phone)) {
+                $this->handleError($this->module->l('Please provide a valid phone number to select this payment method'));
+            }
+        }
+
         $secure_key = Context::getContext()->customer->secure_key;
+        $currency_id = (int) Context::getContext()->currency->id;
 
         if ($this->isValidOrder() === true) {
             $payment_status = Configuration::get('SCALEXPERT_ORDER_STATE_WAITING');
             $message = null;
         } else {
             $payment_status = Configuration::get('PS_OS_ERROR');
-            $message = $this->module->l($this->module->l('An error occurred while processing payment'));
+            $message = $this->module->l('An error occurred while processing payment');
         }
 
-        $module_name = $this->module->displayName;
-        $currency_id = (int) Context::getContext()->currency->id;
         $solutionCode = Tools::getValue('solutionCode');
         if (!$solutionCode) {
             $this->handleError($this->module->l('You must chose a financial solution.'));
+        }
+
+        $solutionName = '';
+        $financingSolutions = Financing::getEligibleSolutions();
+        if (
+            !empty($financingSolutions)
+            && !empty($financingSolutions[$solutionCode]['communicationKit']['visualTitle'])
+        ) {
+            $solutionName = strip_tags($financingSolutions[$solutionCode]['communicationKit']['visualTitle']);
         }
 
         $validateOrder = $this->module->validateOrder(
             $this->context->cart->id,
             $payment_status,
             $this->context->cart->getOrderTotal(),
-            $this->module->getSolutionDisplayName($solutionCode),
+            $solutionName,
             $message,
             array(),
             $currency_id,
             false,
             $secure_key
         );
+
         $newOrder = new \Order($this->module->currentOrder);
 
         if (
             $validateOrder
             && \Validate::isLoadedObject($newOrder)
         ) {
-            $subscription = ScalexpertPlugin\Api\Financing::createFinancingSubscription(
-                $newOrder,
-                $solutionCode
-            );
-
-            if (!$subscription['hasError']) {
-
-                FinancingOrder::save(
-                    $newOrder->id,
-                    $subscription['data']['id'] ?? ''
+            try {
+                $subscription = ScalexpertPlugin\Api\Financing::createFinancingSubscription(
+                    $newOrder,
+                    $solutionCode
                 );
 
-                if (isset($subscription['data']['redirect']['value'])) {
-                    \Tools::redirect($subscription['data']['redirect']['value']);
-                } else {
-                    $this->handleError(
-                        sprintf(
-                            $this->module->l("Can't redirect to payment platform %s"),
-                            $module_name
-                        )
+                if (!$subscription['hasError']) {
+                    FinancingOrder::save(
+                        $newOrder->id,
+                        $subscription['data']['id'] ?? ''
                     );
+
+                    if (isset($subscription['data']['redirect']['value'])) {
+                        \Tools::redirect($subscription['data']['redirect']['value']);
+                    }
                 }
-            } else {
-                $this->handleError($this->module->l('An error occured during financing subscription.'));
+
+                $this->redirectWithError($newOrder);
+            } catch (\Exception $exception) {
+                $this->redirectWithError($newOrder);
             }
         }
 
@@ -110,18 +127,28 @@ class ScalexpertPluginValidationModuleFrontController extends ModuleFrontControl
         return true;
     }
 
+    protected function redirectWithError($order): void
+    {
+        // Update order state
+        $order->setCurrentState(Configuration::get('PS_OS_ERROR'));
+
+        // Generate redirect url
+        $redirect = \Context::getContext()->link->getModuleLink('scalexpertplugin', 'confirmation', [
+            'order_ref' => $order->reference,
+            'secure_key' => $order->secure_key,
+        ], true);
+        \Tools::redirect($redirect);
+    }
+
     protected function handleError(string $message = ''): void
     {
-        if (
-            version_compare(_PS_VERSION_, '1.7', '>=')
-            && !empty($message)
-        ) {
+        if (version_compare(_PS_VERSION_, '1.7', '>=')) {
             $this->errors[] = $message;
             $this->redirectWithNotifications(
-                $this->context->link->getPageLink('cart', null, null, ['action' => 'show'])
+                $this->context->link->getPageLink('order', null, null)
             );
         } else {
-            \Tools::redirect('index.php?controller=order&step=1');
+            \Tools::redirect('index.php?controller=order&step=1&phoneError=1');
         }
     }
 }

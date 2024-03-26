@@ -1,11 +1,13 @@
 <?php
 /**
  * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
  *
- * @author    Société Générale
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
  * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
+
 
 namespace ScalexpertPlugin\Helper;
 
@@ -57,17 +59,26 @@ class AvailableSolutionsChecker
                         foreach ($cartProducts as $cartProduct) {
                             $insuranceSolutionData = $insuranceSolution;
 
-                            if (!empty($designConfiguration[$solutionCode]['excluded_categories'])) {
+                            if (!empty($designConfiguration[$solutionCode]['excludedCategories'])) {
                                 // Check category compatibility with current product on product page
                                 $productCategories = \Product::getProductCategories($cartProduct['id_product']);
 
                                 if (!empty($productCategories)) {
-                                    foreach ($designConfiguration[$solutionCode]['excluded_categories'] as $categoryID) {
+                                    foreach ($designConfiguration[$solutionCode]['excludedCategories'] as $categoryID) {
                                         // Restricted category for the solution
                                         if (in_array($categoryID, $productCategories)) {
                                             continue 2;
                                         }
                                     }
+                                }
+                            }
+
+                            if (!empty($designConfiguration[$solutionCode]['excludedProducts'])) {
+                                $excludedProducts = explode(',', $designConfiguration[$solutionCode]['excludedProducts']);
+
+                                // Restricted products for the solution
+                                if (in_array($cartProduct['id_product'], $excludedProducts)) {
+                                    continue;
                                 }
                             }
 
@@ -103,17 +114,26 @@ class AvailableSolutionsChecker
                 } else {
                     $insuranceSolutionData = $insuranceSolution;
 
-                    if (!empty($designConfiguration[$solutionCode]['excluded_categories'])) {
+                    if (!empty($designConfiguration[$solutionCode]['excludedCategories'])) {
                         // Check category compatibility with current product on product page
                         $productCategories = \Product::getProductCategories($productID);
 
                         if (!empty($productCategories)) {
-                            foreach ($designConfiguration[$solutionCode]['excluded_categories'] as $categoryID) {
+                            foreach ($designConfiguration[$solutionCode]['excludedCategories'] as $categoryID) {
                                 // Restricted category for the solution
                                 if (in_array($categoryID, $productCategories)) {
                                     continue 2;
                                 }
                             }
+                        }
+                    }
+
+                    if (!empty($designConfiguration[$solutionCode]['excludedProducts'])) {
+                        $excludedProducts = explode(',', $designConfiguration[$solutionCode]['excludedProducts']);
+
+                        // Restricted products for the solution
+                        if (in_array($productID, $excludedProducts)) {
+                            continue;
                         }
                     }
 

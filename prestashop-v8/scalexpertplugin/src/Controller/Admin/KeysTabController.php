@@ -1,10 +1,11 @@
 <?php
 /**
  * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
  *
- * @author    Société Générale
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
  * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
 declare(strict_types=1);
@@ -13,6 +14,7 @@ namespace ScalexpertPlugin\Controller\Admin;
 
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use ScalexpertPlugin\Helper\API\Client;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -21,13 +23,18 @@ class KeysTabController extends FrameworkBundleAdminController
     const TAB_CLASS_NAME = 'AdminScalexpertPluginKeysTab';
 
     /**
+     * @param Request $request
      * @return Response
      */
     public function indexAction(Request $request): Response
     {
         $context = \Context::getContext();
 
-        if (!empty($context->language) && \Validate::isLoadedObject($context->language)) {
+        if (
+            null !== $context
+            && !empty($context->language)
+            && \Validate::isLoadedObject($context->language)
+        ) {
             $isoCode = strtolower($context->language->iso_code);
         } else {
             $isoCode = 'en';
@@ -51,7 +58,6 @@ class KeysTabController extends FrameworkBundleAdminController
             $this->flashErrors($errors);
         }
 
-
         return $this->render('@Modules/scalexpertplugin/views/templates/admin/keys.html.twig', [
             'keysConfigurationForm' => $textForm->createView(),
             'findMyKeyLink' => $this->getFindMyKeyLink($isoCode),
@@ -69,9 +75,8 @@ class KeysTabController extends FrameworkBundleAdminController
             $request->get('type')
         );
 
-        $response = $apiClient->getBearer(Client::scope_financing . ' ' . Client::scope_insurance);
-
-        die(json_encode($response));
+        $response = $apiClient->getBearer(Client::SCOPE_FINANCING . ' ' . Client::SCOPE_INSURANCE);
+        return new JsonResponse(json_encode($response), 200, [], true);
     }
 
     public function getFindMyKeyLink($isoCode)
@@ -81,10 +86,6 @@ class KeysTabController extends FrameworkBundleAdminController
             'fr' => 'https://dev.scalexpert.societegenerale.com/fr/prod/',
         ];
 
-        if (isset($subscribeLinks[$isoCode])) {
-            return $subscribeLinks[$isoCode];
-        }
-
-        return $subscribeLinks['en'];
+        return $subscribeLinks[$isoCode] ?? $subscribeLinks['en'];
     }
 }
