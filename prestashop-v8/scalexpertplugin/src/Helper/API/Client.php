@@ -92,7 +92,7 @@ class Client
             return 'https://api.scalexpert.societegenerale.com/baas/prod';
         }
 
-        return 'https://api.scalexpert.hml.societegenerale.com/baas/uatc';
+        return 'https://api.scalexpert.uatc.societegenerale.com/baas/uatc';
     }
 
     public function debug(): void
