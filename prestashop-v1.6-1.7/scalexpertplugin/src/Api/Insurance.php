@@ -1,11 +1,13 @@
 <?php
 /**
  * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
  *
- * @author    Société Générale
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
  * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
+
 
 namespace ScalexpertPlugin\Api;
 
@@ -32,7 +34,7 @@ class Insurance extends Entity
 
         foreach ($params as $param) {
             $apiUrl = static::$scope.'/api/v1/eligible-solutions?'.http_build_query($param);
-            $result = Client::get(static::$scope, $apiUrl);
+            $result = Client::get($apiUrl);
 
             if (!$result['hasError']) {
                 foreach ($result['data']['solutions'] as $solution) {
@@ -56,7 +58,7 @@ class Insurance extends Entity
             ];
 
             $apiUrl = static::$scope.'/api/v1/eligible-solutions?'.http_build_query($param);
-            $result = Client::get(static::$scope, $apiUrl);
+            $result = Client::get($apiUrl);
 
             if (!$result['hasError']) {
                 foreach ($result['data']['solutions'] as $solution) {
@@ -83,19 +85,8 @@ class Insurance extends Entity
         }
 
         $data = InsuranceFormatter::normalizeInsurance($product, $solutionCode);
-        /*$data = [
-            "solutionCode" => "CIFRWE-DXCO",
-            "sku" => "SMS4ETI14F",
-            "merchantItemId" => "PS_1002",
-            "brand" => "Bosch",
-            "model" => "SMS4ETI14F",
-            "title" => "BOSCH - Lave vaisselle 60 cm SMS4ETI14E",
-            "description" => "L'EfficientDry c'est la performance de séchage améliorée grâce à l'ouverture de porte automatique en fin de cycle.Doté d'un moteur Eco Silence Drive, ce modèle de lave-vaisselle BOSCH SMS4ETI14E permet d'être extrêmement silencieux avec ses 42 dB. Nettoyez toute votre vaisselle de manière optimale avec le lave-vaisselle SMS4ETI14E de BOSCH, d'une capacité de 12 couverts et doté de 6 programmes de lavage. Profitez de la fonction de départ différé pour faire démarrer automatiquement votre lave-vaisselle au meilleur moment et réaliser ainsi des économies sur votre facture EDF. L’affichage du temps restant proposé sur ce lave-vaisselle Bosch vous permet de connaître à tout moment l’heure exacte de fin du cycle de lavage, ce qui vous permet d’organiser votre journée simplement.Ce lave-vaisselle est muni de la technologie AquaSensor qui détecte le degré de salissure, et la capacité variable automatique reconnait la charge de vaisselle afin de laver votre vaisselle afin selon ses besoins.Pour plus de confort, le panier supérieur est réglable sur 3 niveaux (RackMatic) et il est équipé de paniers VarioFlex. Pour votre sécurité, il est équipé de l'Aquastop 100% anti-fuite et d'une sécurité enfants par le verrouillage de la porte.",
-            "characteristics" => "Programme Silence 42 dB. Moteur EcoSilence Drive. Echangeur Thermique. EfficientDry. VarioSpeed Plus. Départ différé et Affichage du temps restant. AquaSensor. Butée (stopper) qui empêche le déraillement du panier inférieur.",
-            "category" => "lave-vaisselle"
-        ];*/
         $apiUrl = static::$scope.'/api/v1/items';
-        $result = Client::post(static::$scope, $apiUrl, $data);
+        $result = Client::post($apiUrl, $data);
 
         if ($result['hasError']) {
             return [];
@@ -113,7 +104,7 @@ class Insurance extends Entity
         ];
 
         $apiUrl = static::$scope.'/api/v1/items/_search-insurances';
-        $result = Client::post(static::$scope, $apiUrl, $data);
+        $result = Client::post($apiUrl, $data);
 
         if (
             $result['hasError']
@@ -167,7 +158,7 @@ class Insurance extends Entity
         ];
 
         $apiUrl = static::$scope.'/api/v1/quotations';
-        $result = Client::post(static::$scope, $apiUrl, $data);
+        $result = Client::post($apiUrl, $data);
 
         if ($result['hasError']) {
             return [];
@@ -179,7 +170,7 @@ class Insurance extends Entity
     public static function getInsuranceSubscriptionBySubscriptionId($subscriptionId)
     {
         $apiUrl = static::$scope.'/api/v1/subscriptions/' . $subscriptionId;
-        $result = Client::get(static::$scope, $apiUrl);
+        $result = Client::get($apiUrl);
 
         if ($result['hasError']) {
             return [];
@@ -229,14 +220,6 @@ class Insurance extends Entity
             ->where('od.product_attribute_id = ' . ($cartInsurancesProduct['id_product_attribute'] ?: 0))
         ;
         $productPrice = (float)Db::getInstance()->getValue($query);
-        /*$productPrice = \Product::getPriceFromOrder(
-            $order->id,
-            $cartInsurancesProduct['id_product'],
-            $cartInsurancesProduct['id_product_attribute'] ?: 0,
-            true,
-            true,
-            true
-        );*/
         $productPrice = \Tools::ps_round($productPrice, 2);
 
         $params = [
@@ -266,7 +249,7 @@ class Insurance extends Entity
         ];
 
         $apiUrl = static::$scope . '/api/v1/subscriptions';
-        $result = Client::post(static::$scope, $apiUrl, $params);
+        $result = Client::post($apiUrl, $params);
 
         if ($result['hasError']) {
             return [];

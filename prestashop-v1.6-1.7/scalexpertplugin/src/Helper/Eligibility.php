@@ -1,11 +1,13 @@
 <?php
 /**
  * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
  *
- * @author    Société Générale
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
  * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
+
 
 namespace ScalexpertPlugin\Helper;
 
@@ -50,6 +52,15 @@ class Eligibility
                     }
                 }
             }
+
+            if (!empty($params['excludedProducts'])) {
+                $excludedProducts = explode(',', $params['excludedProducts']);
+
+                // Restricted products for the solution
+                if (in_array($idProduct, $excludedProducts)) {
+                    unset($customizeProduct[$solutionCode]);
+                }
+            }
         }
 
         return $customizeProduct;
@@ -58,6 +69,7 @@ class Eligibility
     /**
      * @param \Cart $oCart
      * @return array|mixed
+     * @throws \PrestaShopDatabaseException
      */
     public static function getEligibleSolutionByCart($oCart)
     {
@@ -81,11 +93,12 @@ class Eligibility
                 continue;
             }
 
+            $ids = [];
+            foreach ($oCart->getProducts() as $product) {
+                $ids[] = $product['id_product'];
+            }
+
             if (!empty($params['excludedCategories'])) {
-                $ids = [];
-                foreach ($oCart->getProducts() as $product) {
-                    $ids[] = $product['id_product'];
-                }
                 $query = (new DbQuery())->select('cp.id_category')
                     ->from('category_product', 'cp')
                     ->where('id_product IN ('.implode(',', $ids).')');
@@ -96,8 +109,20 @@ class Eligibility
                         // Restricted category for the solution
                         if (in_array($categoryID, $productCategories)) {
                             unset($customizeProduct[$solutionCode]);
-                            break;
+                            continue 2;
                         }
+                    }
+                }
+            }
+
+            if (!empty($params['excludedProducts'])) {
+                $excludedProducts = explode(',', $params['excludedProducts']);
+
+                foreach ($ids as $id) {
+                    // Restricted products for the solution
+                    if (in_array($id, $excludedProducts)) {
+                        unset($customizeProduct[$solutionCode]);
+                        continue 2;
                     }
                 }
             }

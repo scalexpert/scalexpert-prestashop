@@ -58,6 +58,10 @@ services:
       - '@prestashop.adapter.legacy.configuration'
       - '@prestashop.adapter.legacy.context'
 
+  scalexpert.service.insurance_configuration:
+    class: ScalexpertPlugin\Form\Configuration\InsuranceConfigurationFormDataConfiguration
+    arguments: [ '@prestashop.adapter.legacy.configuration' ]
+
   # Handlers
   scalexpert.handler.solution_name:
     class: ScalexpertPlugin\Handler\SolutionNameHandler

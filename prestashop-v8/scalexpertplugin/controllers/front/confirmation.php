@@ -1,16 +1,16 @@
 <?php
+/**
+ * Copyright © Scalexpert.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
+ *
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
+ * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ */
 
 use PrestaShop\PrestaShop\Adapter\Presenter\Order\OrderPresenter;
 use ScalexpertPlugin\Entity\ScalexpertOrderFinancing;
 use ScalexpertPlugin\Service\UpdateOrdersStatesService;
-
-/**
- * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
- *
- * @author    Société Générale
- * @copyright Scalexpert
- */
 
 class ScalexpertpluginConfirmationModuleFrontController extends ModuleFrontController
 {
@@ -53,18 +53,6 @@ class ScalexpertpluginConfirmationModuleFrontController extends ModuleFrontContr
         if ($order->secure_key == $this->context->customer->secure_key) {
             sleep(2);
 
-            /*Tools::redirect($this->context->link->getPageLink(
-                'order-confirmation',
-                true,
-                (int) $this->context->language->id,
-                [
-                    'id_cart' => (int) $order->id_cart,
-                    'id_module' => (int) $this->module->id,
-                    'id_order' => (int) $order->id,
-                    'key' => $customer->secure_key,
-                ]
-            ));*/
-
             /**
              * The order has been placed, so we redirect the customer on the confirmation page.
              */
@@ -79,18 +67,15 @@ class ScalexpertpluginConfirmationModuleFrontController extends ModuleFrontContr
                 );
             }
 
-            $status = $this->module->l('Unknown state');
-            $title = '';
-            $subtitle = '';
             if (isset($subscriptionInfo) && isset($subscriptionInfo['consolidatedStatus'])) {
 
                 // Update order state.
                 /** @var UpdateOrdersStatesService $updateOrdersStatesService */
                 $updateOrdersStatesService = $this->get('scalexpert.service.update_orders_states');
-                try {
-                    $updateOrdersStatesService->updateOrderState($order->reference, $subscriptionInfo['consolidatedStatus']);
-                } catch (Exception $e) {
-                }
+                $updateOrdersStatesService->updateOrderState(
+                    $order->reference,
+                    $subscriptionInfo['consolidatedStatus']
+                );
 
                 $status = $this->module->getFinancialStateName($subscriptionInfo['consolidatedStatus']);
 
@@ -105,16 +90,17 @@ class ScalexpertpluginConfirmationModuleFrontController extends ModuleFrontContr
                         $title = $this->trans('Your orders are awaiting financing', [], 'Modules.Scalexpertplugin.Shop');
                         $subtitle = $this->trans('Your financing request has been sent to the lending organization and is being studied. You will soon receive an email informing you of the decision regarding this request.', [], 'Modules.Scalexpertplugin.Shop');
                         break;
-                    case 'REJECTED':
-                    case 'CANCELLED':
-                    case 'ABORTED':
+                    default:
                         $title = $this->trans('Your orders is canceled', [], 'Modules.Scalexpertplugin.Shop');
                         $subtitle = $this->trans('We\'re sorry, your financing request was not accepted or a technical error occurred. We invite you to try again or place a new order by choosing another payment method.', [], 'Modules.Scalexpertplugin.Shop');
                         $displayReorder = true;
                         break;
                 }
             } else {
-                $this->errors[] = $this->trans('An error occured. Please contact the merchant to have more informations', [], 'Modules.Scalexpertplugin.Shop');
+                $status = $this->module->getFinancialStateName('');
+                $title = $this->trans('Your orders is canceled', [], 'Modules.Scalexpertplugin.Shop');
+                $subtitle = $this->trans('We\'re sorry, your financing request was not accepted or a technical error occurred. We invite you to try again or place a new order by choosing another payment method.', [], 'Modules.Scalexpertplugin.Shop');
+                $displayReorder = true;
             }
         } else {
             $this->errors[] = $this->trans('An error occured. Please contact the merchant to have more informations', [], 'Modules.Scalexpertplugin.Shop');
@@ -148,8 +134,6 @@ class ScalexpertpluginConfirmationModuleFrontController extends ModuleFrontContr
             /* If guest we clear the cookie for security reason */
             $this->context->customer->mylogout();
         }
-
-//        Tools::redirect('index.php');
     }
 
     public function displayOrderConfirmation($order)

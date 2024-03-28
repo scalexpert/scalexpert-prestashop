@@ -73,12 +73,10 @@
                         : {{ financialSubscription.registrationTimestamp }}
                     </div>
 
-
                     {% if financialSubscription.consolidatedStatus == 'ACCEPTED' %}
                         <br/>
                         <div>
                             <form action="" method="POST">
-
                                 <input type="hidden" name="scalexpert_cancel_financial_subscription_id"
                                        value="{{ financialSubscription.creditSubscriptionId }}">
 
@@ -97,6 +95,31 @@
                                 </button>
                             </form>
                         </div>
+                        {% if financialSubscription.displayDeliveryConfirmation %}
+                            <br/>
+                            <div>
+                                <form action="" method="POST">
+                                    <input type="hidden" name="scalexpert_deliver_financial_subscription_id"
+                                           value="{{ financialSubscription.creditSubscriptionId }}">
+
+                                    {% if operators is not empty %}
+                                        <label for="scalexpert_deliver_financial_subscription_operator">
+                                            {{ 'Transporteur'|trans({}, 'Modules.Scalexpertplugin.Admin') }} :
+                                        </label>
+                                        <select id="scalexpert_deliver_financial_subscription_operator" name="scalexpert_deliver_financial_subscription_operator" class="form-control">
+                                            {% for operatorId, operatorName in operators %}
+                                                <option value="{{ operatorId }}">{{ operatorName|trans({}, 'Modules.Scalexpertplugin.Admin') }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <br/>
+                                    {% endif %}
+
+                                    <button class="btn btn-danger" type="submit"
+                                            name="scalexpert_deliver_financial_subscription">{{ 'Confirmer la livraison'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
+                                    </button>
+                                </form>
+                            </div>
+                        {% endif %}
                     {% endif %}
                 </div>
             {% endfor %}

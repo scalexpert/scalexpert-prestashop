@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.4] - 2024-03-26
+### New features
+- Add address phone number validation on payment selection
+- Disable insurance API calls when insurance is not enabled
+- Add delivery confirmation CTA on admin order view
+- Make financing solutions sortable in admin
+- Add product exclusion on financing and insurance solutions
+- Redirect to custom error page when an error occurs during financing process
+
 ## [1.2.3] - 2024-01-31
 ### Bugfix
 - Fix displaying CTA for cancel subscription process on admin panel order detail view.

@@ -1,0 +1,12 @@
+{% use '@PrestaShop/Admin/TwigTemplateForm/bootstrap_4_horizontal_layout.html.twig' %}
+
+{% macro form_row(form) %}
+    <div class="{{ block('form_row_class') }}{#{% if (not compound or force_error|default(false)) and not valid %} has-error{% endif %}#}">
+        {{ form_label(form) }}
+        <div class="{{ block('form_group_class') }}">
+            {{ form_widget(form) }}
+            {{ form_errors(form) }}
+            {#{{ block('form_help') }}#}
+        </div>
+    </div>
+{% endmacro %}

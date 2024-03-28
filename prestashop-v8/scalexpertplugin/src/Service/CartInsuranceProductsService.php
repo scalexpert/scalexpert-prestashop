@@ -1,10 +1,11 @@
 <?php
 /**
  * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
  *
- * @author    Société Générale
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
  * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
 declare(strict_types=1);
@@ -67,7 +68,7 @@ class CartInsuranceProductsService
                 foreach ($insuranceProductsToDelete as $insuranceProductToDelete) {
                     $this->entityManager->remove($insuranceProductToDelete);
                     $this->entityManager->flush();
-                    $deleteResult = $cart->deleteProduct($insuranceProductToDelete->getIdInsuranceProduct());
+                    $cart->deleteProduct($insuranceProductToDelete->getIdInsuranceProduct());
                 }
             }
 
@@ -177,7 +178,9 @@ class CartInsuranceProductsService
     {
         try {
             $cartProducts = $cart->getProducts();
-        } catch (\Exception $exception) {}
+        } catch (\Exception $exception) {
+            $cartProducts = [];
+        }
 
         $addAction = \Tools::getValue('add');
         $qty = (int) \Tools::getValue('qty', 1);
@@ -193,7 +196,7 @@ class CartInsuranceProductsService
                         $insuranceProductQtyInCart = $cart->containsProduct($cartInsurance->getIdInsuranceProduct());
 
                         if (empty($insuranceProductQtyInCart['quantity'])) {
-                            $updateResult = $cart->updateQty(
+                            $cart->updateQty(
                                 $cartProduct['cart_quantity'],
                                 $cartInsurance->getIdInsuranceProduct(),
                                 null,
@@ -213,7 +216,7 @@ class CartInsuranceProductsService
                                 $action = 'down';
                             }
 
-                            $updateResult = $cart->updateQty(
+                            $cart->updateQty(
                                 $qtyDiff,
                                 $cartInsurance->getIdInsuranceProduct(),
                                 null,
@@ -240,7 +243,7 @@ class CartInsuranceProductsService
         } elseif (!empty($addAction) && !empty($idProduct) && !empty($qty)) {
             foreach ($cartInsurances as $cartInsurance) {
                 if ($cartInsurance->getIdProduct() == $idProduct) {
-                    $updateResult = $cart->updateQty(
+                    $cart->updateQty(
                         $qty,
                         $cartInsurance->getIdInsuranceProduct(),
                         null,
@@ -271,18 +274,16 @@ class CartInsuranceProductsService
                     $this->entityManager->remove($quotationProduct);
                     $this->entityManager->flush();
 
-                    $deleteResult = $cart->deleteProduct($quotationProduct->getIdProduct(), $quotationProduct->getIdProductAttribute());
+                    $cart->deleteProduct($quotationProduct->getIdProduct(), $quotationProduct->getIdProductAttribute());
+                } else if (empty($quotationProduct->getQuotations())) {
+                    $this->adjustQuotationsForCartInsurance($productInCart['quantity'], 'up', $quotationProduct);
                 } else {
-                    if (empty($quotationProduct->getQuotations())) {
-                        $this->adjustQuotationsForCartInsurance($productInCart['quantity'], 'up', $quotationProduct);
-                    } else {
-                        $quotationsCount = count($quotationProduct->getQuotations());
+                    $quotationsCount = count($quotationProduct->getQuotations());
 
-                        if ($productInCart['quantity'] > $quotationsCount) {
-                            $this->adjustQuotationsForCartInsurance($productInCart['quantity'] - $quotationsCount, 'up', $quotationProduct);
-                        } elseif ($productInCart['quantity'] < $quotationsCount) {
-                            $this->adjustQuotationsForCartInsurance($quotationsCount - $productInCart['quantity'], 'down', $quotationProduct);
-                        }
+                    if ($productInCart['quantity'] > $quotationsCount) {
+                        $this->adjustQuotationsForCartInsurance($productInCart['quantity'] - $quotationsCount, 'up', $quotationProduct);
+                    } elseif ($productInCart['quantity'] < $quotationsCount) {
+                        $this->adjustQuotationsForCartInsurance($quotationsCount - $productInCart['quantity'], 'down', $quotationProduct);
                     }
                 }
             }
@@ -392,6 +393,10 @@ class CartInsuranceProductsService
 
             if ($insuranceProduct->save()) {
                 \StockAvailable::setQuantity((int) $insuranceProduct->id, 0, 999999999);
+
+                $productDownload = new \ProductDownload();
+                $productDownload->id_product = $insuranceProduct->id;
+                $productDownload->save();
 
                 if (!empty($insuranceCategoryId)) {
                     $insuranceProduct->addToCategories([$insuranceCategoryId]);

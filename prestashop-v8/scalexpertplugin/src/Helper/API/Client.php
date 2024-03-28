@@ -1,10 +1,11 @@
 <?php
 /**
  * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
  *
- * @author    Société Générale
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
  * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
 namespace ScalexpertPlugin\Helper\API;
@@ -22,6 +23,9 @@ use Tools;
 
 class Client
 {
+    public const SCOPE_FINANCING = 'e-financing:rw';
+    public const SCOPE_INSURANCE = 'insurance:rw';
+
     private $configuration;
 
     private $guzzleClient;
@@ -31,9 +35,6 @@ class Client
     private $doctrineEntityManager;
 
     private $hashHandler;
-
-    const scope_financing = 'e-financing:rw';
-    const scope_insurance = 'insurance:rw';
 
     private $_appIdentifier;
     private $_appKey;
@@ -59,7 +60,7 @@ class Client
             $this->_appKey = $this->hashHandler->decrypt($this->configuration->get(KeysConfigurationFormDataConfiguration::SCALEXPERT_KEYS_SECRET_TEST));
         }
 
-        $this->getBearer(sprintf('%s %s', self::scope_financing, self::scope_insurance));
+        $this->getBearer(sprintf('%s %s', self::SCOPE_FINANCING, self::SCOPE_INSURANCE));
     }
 
     /**
@@ -102,7 +103,7 @@ class Client
     public function sendRequest($method, $endpoint, $formParams = [], $query = [], $headers = [], $json = [], $isBearerToken = false)
     {
         if (!$isBearerToken && empty($this->_appBearer)) {
-            $this->getBearer(sprintf('%s %s', self::scope_financing, self::scope_insurance));
+            $this->getBearer(sprintf('%s %s', self::SCOPE_FINANCING, self::SCOPE_INSURANCE));
         }
 
         if (!empty($formParams)) {
@@ -703,24 +704,28 @@ class Client
         $languageDefault = \Configuration::get('PS_LANG_DEFAULT');
 
         $orderShipping = $order->getShipping();
-
-        if (!empty($orderShipping)) {
-            if (isset(reset($orderShipping)['carrier_name'])) {
-                $carrierName = reset($orderShipping)['carrier_name'];
-            }
+        if (
+            !empty($orderShipping)
+            && isset(reset($orderShipping)['carrier_name'])
+        ) {
+            $carrierName = reset($orderShipping)['carrier_name'];
         }
 
         $lastOrders = \Order::getCustomerOrders($customer->id);
-
-        if (!empty($lastOrders) && is_array($lastOrders)) {
-            if (isset($lastOrders[1]['date_add'])) {
-                $lastDatePurchase = preg_replace('/^(\d{4}-\d{2}-\d{2}).*$/', '$1', $lastOrders[1]['date_add']);
-            }
+        if (
+            !empty($lastOrders)
+            && is_array($lastOrders)
+            && isset($lastOrders[1]['date_add'])
+        ) {
+            $lastDatePurchase = preg_replace(
+                '/^(\d{4}-\d{2}-\d{2}).*$/',
+                '$1',
+                $lastOrders[1]['date_add']
+            );
         }
 
-        $orderProducts = $order->getProducts();
         $basketItems = [];
-
+        $orderProducts = $order->getProducts();
         if (!empty($orderProducts)) {
             $repository = $this->doctrineEntityManager->getRepository(ScalexpertProductCustomField::class);
 
@@ -756,7 +761,8 @@ class Client
                     'currencyCode' => $orderCurrency ?: 'NC',
                     'orderId' => (string) $order->reference,
                     'brandName' => $manufacturerName ?? 'NC',
-                    'description' => !empty($orderProduct['description']) ? substr(strip_tags($orderProduct['description']), 0, 255) : 'NC',
+                    'description' => !empty($orderProduct['description']) ?
+                        substr(strip_tags($orderProduct['description']), 0, 255) : 'NC',
                     'specifications' => !empty($characteristics) ? $characteristics : 'NC',
                     'category' => !empty($categoryName) ? substr($categoryName, 0, 20) : 'NC',
                     'sku' => (string) $orderProduct['product_reference'] ?: 'NC',
@@ -793,9 +799,9 @@ class Client
                     'contact' => BuyerFormatter::normalizeContact($shippingAddress, $customer),
                     'contactAddress' => BuyerFormatter::normalizeAddress($shippingAddress, 'MAIN_ADDRESS'),
                     'birthName' => !empty($customer->lastname) ? $customer->lastname : '',
-                    'birthDate' => (!empty($customer->birthday) && '0000-00-00' !== $customer->birthday) ? $customer->birthday : '',
+                    'birthDate' => (!empty($customer->birthday) && '0000-00-00' !== $customer->birthday) ?
+                        $customer->birthday : '',
                     'birthCityName' => '',
-                    // 'birthCountryName' => '',
                     'deliveryMethod' => $carrierName ?? 'NC',
                     'lastDatePurchase' => $lastDatePurchase ?? '',
                     'vip' => false,
@@ -870,5 +876,42 @@ class Client
             'countryFlag' => sprintf('/img/flags/%s.jpg', strtolower($buyerBillingCountry)),
             'type' => $solutionType,
         ];
+    }
+
+    public function confirmDeliveryFinancingSubscription(
+        $creditSubscriptionId,
+        $trackingNumber = '',
+        $operator = '',
+        $withFullPayload = true
+    ): array
+    {
+        if ($withFullPayload) {
+            $data = [
+                'isDelivered' => true,
+                'trackingNumber' => $trackingNumber,
+                'operator' => $operator,
+            ];
+        } else {
+            $data = [
+                'isDelivered' => true,
+            ];
+        }
+
+        $response = $this->sendRequest(
+            'POST',
+            '/e-financing/api/v1/subscriptions/'.$creditSubscriptionId.'/_confirmDelivery',
+            [],
+            [],
+            [],
+            $data
+        );
+
+        $responseData = [];
+
+        if (!empty($response['contentsDecoded'])) {
+            $responseData = $response['contentsDecoded'];
+        }
+
+        return $responseData;
     }
 }

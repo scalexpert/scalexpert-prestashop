@@ -1,11 +1,13 @@
 <?php
 /**
  * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
  *
- * @author    Société Générale
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
  * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
+
 
 namespace ScalexpertPlugin\Api;
 
@@ -57,7 +59,7 @@ class Client
         }
 
         $uniqId = uniqid('', true);
-        $this->logger->logInfo("[".$uniqId."] API CALL : ".json_encode([
+        $this->logger->logInfo("[".$uniqId."] API CALL : ". json_encode([
                 'api_url' => $apiUrl,
                 'type' => 'POST',
                 'params' => $postFields
@@ -82,11 +84,11 @@ class Client
         if (200 !== $httpcode) {
             $errorMessage = 'Error ' . $httpcode;
         } elseif (empty($data['access_token'])) {
-            $errorMessage = 'No token'; //
+            $errorMessage = 'No token';
         }
 
         if (null !== $errorMessage) {
-            $this->logger->logError("[".$uniqId."] API RESPONSE ERROR: ".json_encode([
+            $this->logger->logError("[".$uniqId."] API RESPONSE ERROR: ". json_encode([
                     'http_code' => $httpcode,
                     'error_message' => $errorMessage,
                     'response_data' => $data
@@ -102,7 +104,7 @@ class Client
         $this->appBearer = $data['access_token'];
         curl_close($ch);
 
-        $this->logger->logInfo("[".$uniqId."] API RESPONSE : ".json_encode([
+        $this->logger->logInfo("[".$uniqId."] API RESPONSE : ". json_encode([
                 'http_code' => $httpcode,
                 'response_data' => []
             ])
@@ -141,16 +143,16 @@ class Client
 
     public static function getInstance()
     {
-        if (null !== self::$_instance) {
-            return self::$_instance;
+        if (null !== static::$_instance) {
+            return static::$_instance;
         }
 
-        return self::$_instance = new Client();
+        return static::$_instance = new Client();
     }
 
-    public static function get($scope, $apiUrl)
+    public static function get($apiUrl)
     {
-        $client = self::getInstance();
+        $client = static::getInstance();
         $client->getBearer();
 
         if (!$client->appBearer) {
@@ -174,7 +176,6 @@ class Client
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         $content = curl_exec($ch);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-//        $client->logger->logInfo('['.$uniqId.'][RESPONSE] ' . $content);
 
         $errorMessage = null;
         if (200 !== $httpcode) {
@@ -184,7 +185,7 @@ class Client
         $data = json_decode($content, true);
 
         if (null !== $errorMessage) {
-            $client->logger->logError('['.$uniqId.']API RESPONSE ERROR: '.json_encode([
+            $client->logger->logError('['.$uniqId.']API RESPONSE ERROR: '. json_encode([
                     'http_code' => $httpcode,
                     'error_message' => $errorMessage,
                     'response_data' => $data
@@ -197,7 +198,7 @@ class Client
             ];
         }
 
-        $client->logger->logInfo("[".$uniqId."]API RESPONSE : ".json_encode([
+        $client->logger->logInfo("[".$uniqId."]API RESPONSE : ". json_encode([
                 'http_code' => $httpcode,
                 'response_data' => $data
             ])
@@ -209,9 +210,9 @@ class Client
         ];
     }
 
-    public static function post($scope, $apiUrl, $data = [])
+    public static function post($apiUrl, $data = [])
     {
-        $client = self::getInstance();
+        $client = static::getInstance();
         $client->getBearer();
 
         if (!$client->appBearer) {
@@ -241,7 +242,6 @@ class Client
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         $content = curl_exec($ch);
-//        $client->logger->logInfo('['.$uniqId.'][RESPONSE] ' . $content);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
         $errorMessage = null;
@@ -257,7 +257,7 @@ class Client
         $data = json_decode($content, true);
 
         if (null !== $errorMessage) {
-            $client->logger->logError("[".$uniqId."]API RESPONSE ERROR: ".json_encode([
+            $client->logger->logError("[".$uniqId."]API RESPONSE ERROR: ". json_encode([
                     'http_code' => $httpcode,
                     'error_message' => $errorMessage,
                     'response_data' => $data
@@ -270,7 +270,7 @@ class Client
             ];
         }
 
-        $client->logger->logInfo("[".$uniqId."]API RESPONSE : ".json_encode([
+        $client->logger->logInfo("[".$uniqId."]API RESPONSE : ". json_encode([
                 'http_code' => $httpcode,
                 'response_data' => $data
             ])

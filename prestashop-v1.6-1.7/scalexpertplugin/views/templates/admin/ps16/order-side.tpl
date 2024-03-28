@@ -1,3 +1,11 @@
+{**
+ * Copyright © Scalexpert.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
+ *
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
+ * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+*}
 <div class="row">
     {if !empty($insuranceSubscriptionsByProduct)}
         <div class="col-lg-6">
@@ -89,6 +97,30 @@
                                         </button>
                                     </div>
                                 </form>
+                                {if $financialSubscription.displayDeliveryConfirmation}
+                                <br/>
+                                <form action="" method="post" onsubmit="return confirm('{l s='Do you confirm sending a delivery request?' mod='scalexpertplugin'}');">
+                                    <div id="message" class="form-horizontal">
+                                        <input type="hidden" name="creditSubscriptionId" value="{$financialSubscription.creditSubscriptionId}">
+
+                                        {if !empty($operators)}
+                                            <label for="scalexpert_deliver_financial_subscription_operator">
+                                                {l s='Operator' mod='scalexpertplugin'} :
+                                            </label>
+                                            <select id="scalexpert_deliver_financial_subscription_operator" name="operator" class="form-control">
+                                                {foreach from=$operators item=operatorName key=operatorId}
+                                                    <option value="{$operatorId}">{$operatorName}</option>
+                                                {/foreach}
+                                            </select>
+                                            <br/>
+                                        {/if}
+
+                                        <button type="submit" id="submitSubscriptionConfirmDeliveryRequest" class="btn btn-primary pull-right" name="submitSubscriptionConfirmDeliveryRequest">
+                                            {l s='Confirm delivery' mod='scalexpertplugin'}
+                                        </button>
+                                    </div>
+                                </form>
+                                {/if}
                             </div>
                         {/if}
                     </div>
