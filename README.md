@@ -1,8 +1,11 @@
 # Plugin for Prestashop 1.6, 1.7 & 8.1
 
-Date: 26/03/2024
+readme:
+https://github.com/scalexpert/scalexpert-prestashop/blob/delivery/prestashop-v1.6-1.7/scalexpertplugin/Readme.md
+https://github.com/scalexpert/scalexpert-prestashop/blob/delivery/prestashop-v8/scalexpertplugin/Readme.md
 
-Version: 1.2.4 
-content: Scalexpert E-financing solutions supported : Split payment, Long credit + insurance
+changelog:
+https://github.com/scalexpert/scalexpert-prestashop/blob/delivery/prestashop-v1.6-1.7/scalexpertplugin/CHANGELOG.md
+https://github.com/scalexpert/scalexpert-prestashop/blob/delivery/prestashop-v8/scalexpertplugin/CHANGELOG.md
 
 [Documentation](https://docs.scalexpert.societegenerale.com/apidocs/3mLlrPx3sPtekcQvEEUg/integration-guides/integrations-modes/plugins/prestashop-1.6-1.7-8.1)
