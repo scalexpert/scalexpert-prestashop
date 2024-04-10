@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.5] - 2024-04-05
+### New features
+- Change financing solution labels on administration module pages
+### Bugfix
+- Fix SQL dependency injection
+- Fix phone number validation on payment selection
+- Fix deletion and creation of custom OrderState
+
 ## [1.2.4] - 2024-03-26
 ### New features
 - Add address phone number validation on payment selection

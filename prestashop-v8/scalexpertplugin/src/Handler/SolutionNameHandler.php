@@ -17,23 +17,18 @@ class SolutionNameHandler
     public function getSolutionName($solutionCode): ?string
     {
         $solutions = [
-            'SCFRSP-3XTS' => 'Paiement en 3X (option sans frais)',
-            'SCFRSP-3XPS' => 'Paiement en 3X (option avec frais)',
-            'SCFRSP-4XTS' => 'Paiement en 4X (option sans frais)',
-            'SCFRSP-4XPS' => 'Paiement en 4X (option avec frais)',
-            'SCDELT-DXTS' => 'Crédit long (sans frais)',
-            'SCDELT-DXCO' => 'Crédit long (avec commission)',
-            'SCFRLT-TXPS' => 'Crédit long (sans frais)',
-            'SCFRLT-TXNO' => 'Crédit long (avec commission)',
-
-            'CIFRWE-DXCO' => 'Extention de garantie',
+            'SCFRSP-3XTS' => 'Paiement en 3X sans frais (SCFRSP-3XTS)',
+            'SCFRSP-3XPS' => 'Paiement en 3X frais partagés (SCFRSP-3XPS)',
+            'SCFRSP-4XTS' => 'Paiement en 4X sans frais (SCFRSP-4XTS)',
+            'SCFRSP-4XPS' => 'Paiement en 4X frais partagés (SCFRSP-4XPS)',
+            'SCDELT-DXTS' => 'Crédit long frais partagés (SCDELT-DXTS)',
+            'SCDELT-DXCO' => 'Crédit long (SCDELT-DXCO)',
+            'SCFRLT-TXPS' => 'Crédit long frais partagés (SCFRLT-TXPS)',
+            'SCFRLT-TXNO' => 'Crédit long (SCFRLT-TXNO)',
+            'CIFRWE-DXCO' => 'Extension de garantie',
         ];
 
-        if (isset($solutions[$solutionCode])) {
-            return $solutions[$solutionCode];
-        }
-
-        return null;
+        return $solutions[$solutionCode] ?? null;
     }
 
     public function getSolutionFlag($solutionCode): ?string
@@ -50,11 +45,7 @@ class SolutionNameHandler
             'CIFRWE-DXCO' => 'FR',
         ];
 
-        if (isset($data[$solutionCode])) {
-            return $data[$solutionCode];
-        }
-
-        return null;
+        return $data[$solutionCode] ?? null;
     }
 
     public function getMissingSolution($existingSolution, $type)

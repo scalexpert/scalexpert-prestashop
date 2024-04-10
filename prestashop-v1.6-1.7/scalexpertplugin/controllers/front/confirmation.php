@@ -27,6 +27,9 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
         parent::initContent();
 
         if (version_compare(_PS_VERSION_, '1.7', '>=')) {
+            /*$this->context->smarty->assign(array(
+                'register_form' => (new CustomerForm())->getProxy()
+            ));*/
             $this->setTemplate('module:scalexpertplugin/views/templates/front/ps17/orderConfirmation.tpl');
         } else {
             $this->setTemplate('ps16/orderConfirmation.tpl');
@@ -36,6 +39,14 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
 
     public function postProcess()
     {
+        if (version_compare(_PS_VERSION_, '1.7', '>=')) {
+            $registerForm = $this->makeCustomerForm();
+            if (Tools::getValue('submitCreate')) {
+                $registerForm->fillWith(Tools::getAllValues());
+                $registerForm->submit();
+            }
+        }
+
         $order_ref = Tools::getValue('order_ref');
         $secure_key = Tools::getValue('secure_key');
         if (
@@ -131,6 +142,11 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
             'subscription_status_subtitle' => $subtitle ?? '',
             'is_guest' => $this->context->customer->is_guest,
         ));
+        if (version_compare(_PS_VERSION_, '1.7', '>=')) {
+            $this->context->smarty->assign(array(
+                'register_form' => $registerForm,
+            ));
+        }
 
         if ($this->context->customer->is_guest) {
             $this->context->smarty->assign(array(

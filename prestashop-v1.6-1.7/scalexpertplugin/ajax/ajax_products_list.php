@@ -10,8 +10,6 @@
 
 
 include_once(__DIR__ . '/../../../config/config.inc.php');
-/* Getting cookie or logout */
-require_once(__DIR__ . '/../../../init.php');
 
 $query = Tools::getValue('q', false);
 if (empty($query)) {
@@ -29,12 +27,11 @@ if ($pos = strpos($query, ' (ref:')) {
     $query = substr($query, 0, $pos);
 }
 
-$excludeIds = Tools::getValue('excludeIds', false);
+$excludeIds = pSQL(Tools::getValue('excludeIds'));
 if ($excludeIds && $excludeIds != 'NaN') {
     $excludeIds = implode(',', array_map('intval', explode(',', $excludeIds)));
 } else {
     $excludeIds = '';
-    $excludePackItself = Tools::getValue('packItself', false);
 }
 
 // Excluding downloadable products from packs because download from pack is not supported
@@ -52,7 +49,6 @@ $sql = 'SELECT p.`id_product`, pl.`link_rewrite`, p.`reference`, pl.`name`, imag
         LEFT JOIN `' . _DB_PREFIX_ . 'image_lang` il ON (image_shop.`id_image` = il.`id_image` AND il.`id_lang` = ' . (int)$context->language->id . ')
         WHERE (pl.name LIKE \'%' . pSQL($query) . '%\' OR p.reference LIKE \'%' . pSQL($query) . '%\')' .
     (!empty($excludeIds) ? ' AND p.id_product NOT IN (' . $excludeIds . ') ' : ' ') .
-    (!empty($excludePackItself) ? ' AND p.id_product <> ' . $excludePackItself . ' ' : ' ') .
     ($excludeVirtuals ? 'AND NOT EXISTS (SELECT 1 FROM `' . _DB_PREFIX_ . 'product_download` pd WHERE (pd.id_product = p.id_product))' : '') .
     ($exclude_packs ? 'AND (p.cache_is_pack IS NULL OR p.cache_is_pack = 0)' : '') .
     ' GROUP BY p.id_product';
