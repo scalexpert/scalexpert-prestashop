@@ -42,7 +42,7 @@ class ScalexpertPlugin extends PaymentModule
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.2.4';
+        $this->version = '1.2.5';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 
@@ -127,8 +127,7 @@ class ScalexpertPlugin extends PaymentModule
         return parent::uninstall()
             && $this->deleteInsuranceProductsCategory()
             && $this->unInstallConfiVars()
-            && $this->uninstallDatabase()
-            && $this->uninstallFinancingOrderState();
+            && $this->uninstallDatabase();
     }
 
     public function initDatabase(): bool
@@ -243,8 +242,6 @@ class ScalexpertPlugin extends PaymentModule
             $orderState = new OrderState();
         }
 
-        $orderState->module_name = $this->name;
-
         $orderStateLabel = [
             'EN' => 'Awaiting financing',
             'FR' => 'En attente de financement',
@@ -259,6 +256,7 @@ class ScalexpertPlugin extends PaymentModule
             }
         }
 
+        $orderState->module_name = $this->name;
         $orderState->name = $names;
         $orderState->color = '#34209E';
         $orderState->logable = false;
@@ -274,10 +272,13 @@ class ScalexpertPlugin extends PaymentModule
         $orderState->template = '';
         $orderState->deleted = false;
 
-        $orderStateAdd = (bool)$orderState->add();
-
-        if ($orderStateAdd) {
-            Configuration::updateValue(self::CONFIGURATION_ORDER_STATE_FINANCING, $orderState->id);
+        try {
+            $orderStateAdd = (bool)$orderState->save();
+            if ($orderStateAdd) {
+                Configuration::updateValue(self::CONFIGURATION_ORDER_STATE_FINANCING, $orderState->id);
+            }
+        } catch (PrestaShopException $e) {
+            PrestaShopLogger::addLog('[SCALEXPERTPLUGIN] Error during install: ' . $e->getMessage());
         }
 
         return $orderStateAdd;

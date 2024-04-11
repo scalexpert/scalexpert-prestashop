@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="36359547b09bdb31f46c419a0bd5807e">
         <source>Excluded categories</source>
-        <target>Excluded categories</target>
+        <target>Exclusion de catégories</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="d2598b0e349ea6bc7193f74d3c19e1b5">
@@ -24,17 +24,17 @@
       </trans-unit>
       <trans-unit id="b9987a246a537f4fe86f1f2e3d10dbdb">
         <source>Display</source>
-        <target>Display</target>
+        <target>Afficher</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="b9f5c797ebbf55adccdd8539a65a0241">
         <source>Disabled</source>
-        <target>Disabled</target>
+        <target>Désactivé</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="00d23a76e43b46dae9ec7aa9dcbebb32">
         <source>Enabled</source>
-        <target>Enabled</target>
+        <target>Activé</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="b9b371458ab7c314f88b81c553f6ce51">
@@ -44,87 +44,87 @@
       </trans-unit>
       <trans-unit id="d5a0c7bb5920a9290f7ade5ed65460cb">
         <source>Under the add to cart bloc</source>
-        <target>Under the add to cart bloc</target>
+        <target>En dessous du bloc d'ajout au panier</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="b78a3223503896721cca1303f776159b">
         <source>Title</source>
-        <target>Title</target>
+        <target>Titre</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="911819e9d806d33ddda0c37abb93912d">
         <source>Sub-title</source>
-        <target>Sub-title</target>
+        <target>Sous-titre</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="c9bf828cf5413048103ed155a243b301">
         <source>Display logo</source>
-        <target>Display logo</target>
+        <target>Afficher le logo</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="d54928e4bc856d7b503f6c6d5bf9170a">
         <source>displayShoppingCartFooter</source>
-        <target>displayShoppingCartFooter</target>
+        <target>En dessous du panier.</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="052cc546be3e115b0afad157760f20ad">
         <source>Regroup all payment options</source>
-        <target>Regroup all payment options</target>
+        <target>Grouper les options de paiements</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="33016cc4dd90ee4635438874ec5a7a62">
         <source>This option is not available in your contract.</source>
-        <target>This option is not available in your contract.</target>
+        <target>Cette option n'est pas disponible dans votre contrat</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="8cd423d9cdf6353b930eac380c30ddbe">
         <source>No status</source>
-        <target>No status</target>
+        <target>Pas de statut</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="a3ba0479cc3dd6daa25ab18508013cd7">
         <source>Credit subscription is initialized (INITIALIZED)</source>
-        <target>Credit subscription is initialized (INITIALIZED)</target>
+        <target>Demande de financement initiée (INITIALIZED)</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="6074ade93e704db355f83e14528e680d">
         <source>Credit subscription is completed, awaiting a final decision from the financial institution (PRE_ACCEPTED)</source>
-        <target>Credit subscription is completed, awaiting a final decision from the financial institution (PRE_ACCEPTED)</target>
+        <target>Demande de financement transmise à l’organisme prêteur et en attente de décision (PRE_ACCEPTED)</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="c4f485c0dc368fd3021a472d97c2db05">
         <source>Credit subscription is accepted (ACCEPTED)</source>
-        <target>Credit subscription is accepted (ACCEPTED)</target>
+        <target>Demande de financement acceptée (ACCEPTED)</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="ece5a5e921b34cd112c0be2494b60188">
         <source>Credit subscription is refused (REJECTED)</source>
-        <target>Credit subscription is refused (REJECTED)</target>
+        <target>Demande de financement refusée (REJECTED)</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="f087c5db6f34240109dd3405009fdb01">
         <source>Credit subscription is aborted by the customer or due to technical issue (ABORTED)</source>
-        <target>Credit subscription is aborted by the customer or due to technical issue (ABORTED)</target>
+        <target>Demande de financement abandonnée par le client ou suite à un incident technique (ABORTED)</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="40277210f32bc79352fabd7f10d079f7">
         <source>Credit subscription is cancelled (CANCELLED)</source>
-        <target>Credit subscription is cancelled (CANCELLED)</target>
+        <target>Demande de financement annulée (CANCELLED)</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="ec3028a12402ab7f43962a6f3a667b6e">
         <source>Debug mode</source>
-        <target>Debug mode</target>
+        <target>Mode débug</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="e3ae570abb9ab9700acde87c3cd90ca1">
         <source>The log files are available in the folder</source>
-        <target>The log files are available in the folder</target>
+        <target>Les fichiers de logs sont disponible dans le dossier suivant</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="d1725d60b34e4a5622b80bb6cacb06da">
         <source>Choose environment</source>
-        <target>Choose environment</target>
+        <target>Choisir l'environnement</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="0cbc6611f5540bd0809a388dc95a615b">
@@ -139,27 +139,27 @@
       </trans-unit>
       <trans-unit id="90cabd118d04475abd01e8b2dadcbc0b">
         <source>ID for test API</source>
-        <target>ID for test API</target>
+        <target>Saisir votre identifiant de test</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="b3cfe20cce331ba893520da0455019f8">
         <source>Secret for test API</source>
-        <target>Secret for test API</target>
+        <target>Saisir votre clé de test</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="5136523cb4cfb5e4201232c4a4305e50">
         <source>ID for production API</source>
-        <target>ID for production API</target>
+        <target>Saisir votre identifiant de production</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="1366bb8a5c2b8e0e83dce4a9870f780f">
         <source>Secret for production API</source>
-        <target>Secret for production API</target>
+        <target>Saisir votre clé de production</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="d8c9be9316b8781d885448337f29eada">
         <source>Check API credentials</source>
-        <target>Check API credentials</target>
+        <target>Vérifier ma clé</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="5bde8a801e5a31607c800b7bc1e87cea">
@@ -169,32 +169,32 @@
       </trans-unit>
       <trans-unit id="4500c8d97d551921c5a55799bac2d98c">
         <source>Description of Scalexpert module.</source>
-        <target>Description of Scalexpert module.</target>
+        <target>Scalexpert module.</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="876f23178c29dc2552c0b48bf23cd9bd">
         <source>Are you sure you want to uninstall?</source>
-        <target>Are you sure you want to uninstall?</target>
+        <target>êtes vous sur de vouloir désinstaller le module ?</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="a02758d758e8bec77a33d7f392eb3f8a">
         <source>No currency has been set for this module.</source>
-        <target>No currency has been set for this module.</target>
+        <target>Aucune devise n'a été paramétrée pour ce module.</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="afeeca91f5628333240726a255defce9">
         <source>Pay your purchase by installments</source>
-        <target>Pay your purchase by installments</target>
+        <target>Payez votre achat en plusieurs fois</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="ce0091654cada6f7aa7e55c50ce311ea">
         <source>Cancellation success.</source>
-        <target>Cancellation success.</target>
+        <target>Annulation réalisée avec succès.</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="cd9408e59e84a5f9a0241356f5572b05">
         <source>An Error occurred during cancellation process.</source>
-        <target>An Error occurred during cancellation process.</target>
+        <target>Une erreur s'est produit pendant l'annulation.</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="011baa1ea3a6632a526fdbdbe9c0eec8">
@@ -214,7 +214,7 @@
       </trans-unit>
       <trans-unit id="637a6ff995a0c4b7881a481c7bc7194a">
         <source>Order is paid but financing subscription is not in a finished state.</source>
-        <target>Order is paid but financing subscription is not in a finished state.</target>
+        <target>La commande a été réglée mais le financement n'est pas dans un statut final.</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="0e60ac85bc39f1e221d66a048ff164da">
@@ -269,127 +269,127 @@
       </trans-unit>
       <trans-unit id="a603905470e2a5b8c13e96b579ef0dba">
         <source>Debug</source>
-        <target>Debug</target>
+        <target>Mode Débug</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="0014f8b96d996135614c21355a053994">
         <source>Mapping</source>
-        <target>Mapping</target>
+        <target>Mappage</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="8439802bd95ced20bab837005a5166c1">
         <source>For more information regarding e-financing status, please clic on the following link</source>
-        <target>For more information regarding e-financing status, please clic on the following link</target>
+        <target>Pour plus d’information sur les statuts de financement, veuillez consulter la page suivante</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="84c5e3e99a3639c800fa9dad2ebc206b">
         <source>Cron task</source>
-        <target>Cron task</target>
+        <target>Tâche cron</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="fc541e6ed27cb567905f7351bd12a3fd">
         <source>You configure this cron task (every hour) on your server:</source>
-        <target>You configure this cron task (every hour) on your server:</target>
+        <target>Veuillez configurer cette tâche cron (toutes les heures) sur votre serveur :</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="abcf13ff25f3619b9f6836891a5400f8">
         <source>Configure keys</source>
-        <target>Configure keys</target>
+        <target>Configurer mes clés API</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="6566320c7465a3963f21b7b7f8bb536e">
         <source>Please enter your API key here for the different environments.</source>
-        <target>Please enter your API key here for the different environments.</target>
+        <target>Veuillez renseigner ici vos clés API pour les différents environnements</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="3a36588631f5da705fb2ce84238b75ed">
         <source>You can find your API keys via this link</source>
-        <target>You can find your API keys via this link</target>
+        <target>Vous pouvez retrouver vos clés API via le lien suivant</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="37bb012dd3d4b5ce6d13cec6410ce97e">
         <source>Find my API key</source>
-        <target>Find my API key</target>
+        <target>Trouvez mes clés API !</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="ff8f725c0aa15b5df61ac47f48a3a5bd">
         <source>Display/Hide key</source>
-        <target>Display/Hide key</target>
+        <target>Afficher/Cacher la clé</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="bc90aa32f18d46d9050e9e6725b30e50">
         <source>The option "%visualTitle%" is activated on your site</source>
-        <target>The option "%visualTitle%" is activated on your site</target>
+        <target>L'option "%visualTitle%" est activée sur votre site</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="0c4974959cb3ad6a832bc098fd90aec2">
         <source>The option "%visualTitle%" is not activated on your site</source>
-        <target>The option "%visualTitle%" is not activated on your site</target>
+        <target>L'option "%visualTitle%" n'est pas activée sur votre site</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="04d4b8c32068e42b909db4bf04c58e12">
         <source>enable/disable</source>
-        <target>enable/disable</target>
+        <target>activer/désactiver</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="0db377921f4ce762c62526131097968f">
         <source>General</source>
-        <target>General</target>
+        <target>Configuration Générale</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="9789fd7312d68263d0089a1389b6b574">
         <source>Product page design</source>
-        <target>Product page design</target>
+        <target>Affichage sur la page produit</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="6c5c6c4658ebc26dd36ceab47432be2b">
         <source>Payment page design</source>
-        <target>Payment page design</target>
+        <target>Affichage page de paiement</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="33649bf3a83fae7b87ee08cdf00bfe01">
         <source>Cart page design</source>
-        <target>Cart page design</target>
+        <target>Affichage sur la page panier</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="0a8382c6bbf12fb1f71ddd85f74019dd">
         <source>e-Financing</source>
-        <target>e-Financing</target>
+        <target>e-Financement</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="04f705e53e48bcfc9f578d3eb9970c25">
         <source>Subscribe to another options</source>
-        <target>Subscribe to another options</target>
+        <target>Souscrire à d'autres options</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="f616a8aecfa95f65d785b7bc94327e11">
         <source>Extended insurance</source>
-        <target>Extended insurance</target>
+        <target>Extension de garantie</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="3f663a04a73ebf18e2232adbeebabecf">
         <source>Insurance subscriptions</source>
-        <target>Insurance subscriptions</target>
+        <target>Souscriptions assurances</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="9bf79c7f10eadd0b612b8c354ad19bdc">
         <source>Subscription ID</source>
-        <target>Subscription ID</target>
+        <target>ID de la souscription</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="3ea432800fd3706113181b147c72508a">
         <source>Insurance price</source>
-        <target>Insurance price</target>
+        <target>Prix de l'assurance</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="54f80aec4bb578c4f1ba3fdb9e86a6a4">
         <source>Insurance duration</source>
-        <target>Insurance duration</target>
+        <target>Durée de l'assurance</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="ec53a8c4f07baed5d8825072c89799be">
         <source>Status</source>
-        <target>Status</target>
+        <target>État</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="b806a6afe42fc1b1a99b2539688f4830">
@@ -399,27 +399,27 @@
       </trans-unit>
       <trans-unit id="03246443d6aaaffe5ab9c0b097b40e2f">
         <source>Financing subscriptions</source>
-        <target>Financing subscriptions</target>
+        <target>Financements</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="1b4bb5588c0bf9fddd72b62648e1c6b9">
         <source>Consolidated status</source>
-        <target>Consolidated status</target>
+        <target>Statut du financement</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="41967a8b8b5075eddc7d5d8c25ca9fc8">
         <source>Buyer financed amount</source>
-        <target>Buyer financed amount</target>
+        <target>Montant financé</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="df655244337594ef91dbf6951fdef591">
         <source>Registration timestamp</source>
-        <target>Registration timestamp</target>
+        <target>Date du financement</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="79ac313a5372328947387fb8431b0872">
         <source>Cancellation amount</source>
-        <target>Cancellation amount</target>
+        <target>Montant de l'annulation</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="e5435eaa28ed0f13bafcf25677ef18f3">
@@ -444,12 +444,12 @@
       </trans-unit>
       <trans-unit id="871c67d1e4a0d783813f6696ee204e7c">
         <source>Error missing API keys</source>
-        <target>Error missing API keys</target>
+        <target>Le plugin n'est pas activé sur votre site. Veuillez renseigner vos clé API.</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="2f75d55bd6a19f5182e0023f965efb7d">
         <source>Configure my key</source>
-        <target>Configure my key</target>
+        <target>Configurer ma clé</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="26d4bab4013f5ca345db961501bbda48">
@@ -459,12 +459,12 @@
       </trans-unit>
       <trans-unit id="a559b87068921eec05086ce5485e9784">
         <source>Model</source>
-        <target>Model</target>
+        <target>Modèle</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="93932ba537ba6424fb935c090e4d40a9">
         <source>Characteristics</source>
-        <target>Characteristics</target>
+        <target>Caractéristiques</target>
         <note>Line: </note>
       </trans-unit>
     </body>

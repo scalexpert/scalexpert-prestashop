@@ -45,7 +45,7 @@ class ScalexpertPluginValidationModuleFrontController extends ModuleFrontControl
         $address = new Address((int) $cart->id_address_delivery);
         if (Validate::isLoadedObject($address)) {
             $phone = !empty($address->phone_mobile) ? $address->phone_mobile : $address->phone;
-            if (!preg_match('/^\d{6,14}$/', $phone)) {
+            if (!preg_match('/^\+?(?:[0-9] ?){6,14}[0-9]$/', $phone)) {
                 $this->handleError($this->module->l('Please provide a valid phone number to select this payment method'));
             }
         }

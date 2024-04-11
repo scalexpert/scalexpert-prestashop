@@ -61,7 +61,7 @@ class ScalexpertPlugin extends PaymentModule
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.2.4';
+        $this->version = '1.2.5';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 
@@ -304,7 +304,6 @@ class ScalexpertPlugin extends PaymentModule
         return parent::uninstall()
             && $this->uninstallTabs()
             && $this->uninstallDatabase()
-            && $this->uninstallFinancingOrderStates()
             && $this->uninstallConfigVars();
     }
 
@@ -1246,14 +1245,14 @@ class ScalexpertPlugin extends PaymentModule
     public function getSolutionDisplayName($solutionCode)
     {
         $data = [
-            'SCFRSP-3XTS' => $this->l('Paiement en 3X (option sans frais)'),
-            'SCFRSP-3XPS' => $this->l('Paiement en 3X (option avec frais)'),
-            'SCFRSP-4XTS' => $this->l('Paiement en 4X (option sans frais)'),
-            'SCFRSP-4XPS' => $this->l('Paiement en 4X (option avec frais)'),
-            'SCDELT-DXTS' => $this->l('Crédit long (sans frais)'),
-            'SCDELT-DXCO' => $this->l('Crédit long (avec commission)'),
-            'SCFRLT-TXPS' => $this->l('Crédit long (sans frais)'),
-            'SCFRLT-TXNO' => $this->l('Crédit long (avec commission)'),
+            'SCFRSP-3XTS' => $this->l('Paiement en 3X sans frais (SCFRSP-3XTS)'),
+            'SCFRSP-3XPS' => $this->l('Paiement en 3X frais partagés (SCFRSP-3XPS)'),
+            'SCFRSP-4XTS' => $this->l('Paiement en 4X sans frais (SCFRSP-4XTS)'),
+            'SCFRSP-4XPS' => $this->l('Paiement en 4X frais partagés (SCFRSP-4XPS)'),
+            'SCDELT-DXTS' => $this->l('Crédit long frais partagés (SCDELT-DXTS)'),
+            'SCDELT-DXCO' => $this->l('Crédit long (SCDELT-DXCO)'),
+            'SCFRLT-TXPS' => $this->l('Crédit long frais partagés (SCFRLT-TXPS)'),
+            'SCFRLT-TXNO' => $this->l('Crédit long (SCFRLT-TXNO)'),
             'CIFRWE-DXCO' => $this->l('Extention de garantie'),
         ];
 
