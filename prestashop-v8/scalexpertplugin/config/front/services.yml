@@ -51,6 +51,7 @@ services:
     arguments:
       - '@scalexpert.api.client'
       - '@scalexpert.service.order_updater'
+      - '@prestashop.adapter.legacy.configuration'
 
   scalexpert.service.order_updater:
     class: ScalexpertPlugin\Service\OrderUpdaterService

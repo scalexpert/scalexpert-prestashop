@@ -19,6 +19,7 @@ use ScalexpertPlugin\Form\Configuration\KeysConfigurationFormDataConfiguration;
 use ScalexpertPlugin\Formatter\BuyerFormatter;
 use ScalexpertPlugin\Handler\HashHandler;
 use ScalexpertPlugin\Handler\LogsHandler;
+use Symfony\Component\Dotenv\Dotenv;
 use Tools;
 
 class Client
@@ -43,7 +44,13 @@ class Client
 
     private $_appBearer;
 
-    public function __construct(ConfigurationInterface $configuration, $guzzleClient, LogsHandler $logsHandler, $doctrineEntityManager, HashHandler $hashHandler)
+    public function __construct(
+        ConfigurationInterface $configuration,
+        $guzzleClient,
+        LogsHandler $logsHandler,
+        $doctrineEntityManager,
+        HashHandler $hashHandler
+    )
     {
         $this->configuration = $configuration;
         $this->guzzleClient = $guzzleClient;
@@ -86,13 +93,16 @@ class Client
         $this->_type = $type;
     }
 
-    private function getBaseUrl()
+    private function getBaseUrl(): string
     {
-        if ('production' == $this->_type) {
-            return 'https://api.scalexpert.societegenerale.com/baas/prod';
+        $dotEnv = new Dotenv();
+        $dotEnv->loadEnv(__DIR__ . '/../../../.env');
+
+        if ('production' === $this->_type) {
+            return getenv('SCALEXPERT_API_PRODUCTION_URL');
         }
 
-        return 'https://api.scalexpert.uatc.societegenerale.com/baas/uatc';
+        return getenv('SCALEXPERT_API_TEST_URL');
     }
 
     public function debug(): void

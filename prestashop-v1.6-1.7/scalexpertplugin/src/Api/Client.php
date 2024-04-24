@@ -117,13 +117,7 @@ class Client
 
     private function _getApiUrl()
     {
-        if ('PRODUCTION' === strtoupper($this->appEnvironnement)) {
-            $apiURL = 'https://api.scalexpert.societegenerale.com/baas/prod/';
-        } else {
-            $apiURL = 'https://api.scalexpert.uatc.societegenerale.com/baas/uatc/';
-        }
-
-        return $apiURL;
+        return \Configuration::get('SCALEXPERT_API_' . strtoupper($this->appEnvironnement) . '_URL') . '/';
     }
 
     private function _getApiIdentifier()

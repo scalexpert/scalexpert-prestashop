@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.6] - 2024-04-24
+### New features
+- Change way of handling api urls
+### Bugfix
+- Do not update again an order with financing order_state already exist on it
+
 ## [1.2.5] - 2024-04-05
 ### New features
 - Change financing solution labels on administration module pages
