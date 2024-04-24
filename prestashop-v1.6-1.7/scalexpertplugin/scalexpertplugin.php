@@ -57,11 +57,14 @@ class ScalexpertPlugin extends PaymentModule
         ],
     ];
 
+    const API_URL_PROD = 'SCALEXPERT_API_PRODUCTION_URL';
+    const API_URL_TEST = 'SCALEXPERT_API_TEST_URL';
+
     public function __construct()
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.2.5';
+        $this->version = '1.2.6';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 
@@ -92,6 +95,7 @@ class ScalexpertPlugin extends PaymentModule
             && $this->installDatabase()
             && $this->installCategoryInsurance()
             && $this->createFinancingOrderStates()
+            && $this->createApiUrls()
             && $this->createMeta()
             && $this->generateDefaultMapping()
             && $this->registerHooks();
@@ -267,6 +271,20 @@ class ScalexpertPlugin extends PaymentModule
         return $createFinancingOrderStates;
     }
 
+    public function createApiUrls()
+    {
+        return
+            Configuration::updateValue(
+                static::API_URL_PROD,
+                'https://api.scalexpert.societegenerale.com/baas/prod'
+            )
+            && Configuration::updateValue(
+                static::API_URL_TEST,
+                'https://api.scalexpert.uatc.societegenerale.com/baas/uatc'
+            )
+        ;
+    }
+
     public function createMeta()
     {
         $page = 'module-' . $this->name . '-confirmation';
@@ -357,6 +375,8 @@ class ScalexpertPlugin extends PaymentModule
             'SCALEXPERT_ORDER_STATE_ACCEPTED',
             InsuranceProcess::INSURANCE_CATEGORY_CONFIG_NAME,
             'SCALEXPERT_ORDER_STATE_MAPPING',
+            self::API_URL_PROD,
+            self::API_URL_TEST
         ];
 
         foreach ($vars as $name) {

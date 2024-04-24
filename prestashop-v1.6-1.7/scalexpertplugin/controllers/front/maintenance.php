@@ -24,11 +24,15 @@ class ScalexpertPluginMaintenanceModuleFrontController extends ModuleFrontContro
 {
     protected $logger;
 
+    protected $mappingOrderState = [];
+
     public function __construct()
     {
         $this->logger = new Logger();
 
         parent::__construct();
+
+        $this->loadMappingOrderState();
     }
 
     /**
@@ -70,6 +74,20 @@ class ScalexpertPluginMaintenanceModuleFrontController extends ModuleFrontContro
 
             $this->logAndPrint("Order #$order->reference in progress<br>");
 
+            $previousOrderStateList = $order->getHistory(Context::getContext()->language->id);
+            $orderStateAlreadyOnOrder = false;
+            if (isset($this->mappingOrderState[$consolidatedStatus])) {
+                foreach ($previousOrderStateList as $previousOrderState) {
+                    if ((int)$previousOrderState['id_order_state'] == (int)$this->mappingOrderState[$consolidatedStatus]) {
+                        $orderStateAlreadyOnOrder = true;
+                    }
+                }
+            }
+            if ($orderStateAlreadyOnOrder) {
+                $this->logAndPrint("Order state is already on order for #$order->reference:<br>");
+                return;
+            }
+
             try {
                 $this->module->updateOrderStateBasedOnFinancingStatus($order, $consolidatedStatus);
                 $this->logAndPrint("Successfull order state update for #$order->reference<br>");
@@ -83,5 +101,13 @@ class ScalexpertPluginMaintenanceModuleFrontController extends ModuleFrontContro
     private function logAndPrint($message) {
         $this->logger->logInfo("[MAINTENANCE CRON] $message");
         echo "$message <br>";
+    }
+
+    private function loadMappingOrderState()
+    {
+        $orderStateMapping = json_decode(Configuration::get('SCALEXPERT_ORDER_STATE_MAPPING'), true);
+        if (!empty($orderStateMapping)) {
+            $this->mappingOrderState = $orderStateMapping;
+        }
     }
 }
