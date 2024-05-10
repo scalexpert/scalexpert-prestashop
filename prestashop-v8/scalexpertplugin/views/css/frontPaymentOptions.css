@@ -14,10 +14,18 @@
     align-items: center;
 }
 
+.payment-options .sep_financialSolution:last-child {
+    margin-bottom: 20px;
+}
+
 .payment-options .sep_financialSolution-title {
     width: 50%;
 }
 
 .payment-options .sep_financialSolution-i {
     cursor: pointer;
+}
+
+.payment-options .sep_financialSolutionContent {
+    margin-bottom: 1.25rem;
 }

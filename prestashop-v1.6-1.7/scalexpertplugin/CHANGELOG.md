@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.0] - 2024-05-10
+### New features
+- Display simulation interface on product page and payment page
+### Bugfix
+- Use and display existing credential on config form
+
 ## [1.2.6] - 2024-04-24
 ### New features
 - Change way of handling api urls

@@ -30,7 +30,7 @@ class UpdateOrdersStatesService
     public function __construct(
         Client $apiClient,
         OrderUpdaterService $orderUpdaterService,
-        ConfigurationInterface $configuration
+        ConfigurationInterface $configuration,
     )
     {
         $this->apiClient = $apiClient;

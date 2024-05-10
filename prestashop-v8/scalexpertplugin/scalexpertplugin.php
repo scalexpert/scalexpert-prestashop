@@ -42,7 +42,7 @@ class ScalexpertPlugin extends PaymentModule
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.2.6';
+        $this->version = '1.3.0';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 
@@ -540,6 +540,35 @@ class ScalexpertPlugin extends PaymentModule
         $availableFinancialSolutions = $availableSolutionsService->getAvailableFinancialSolutions();
         $availableOptions = [];
 
+        $availableSimulation = $availableSolutionsService->getSimulationForAvailableFinancialSolutions();
+        $groupedSolutionSimulations = [];
+        $singleSolutionSimulations = [];
+        if (
+            !empty($availableSimulation)
+            && isset($availableSimulation['solutionSimulations'])
+        ) {
+            // Group financing solutions by having fees or not
+            foreach ($availableSimulation['solutionSimulations'] as $solutionSimulation) {
+                foreach ($solutionSimulation['simulations'] as $simulation) {
+                    $simulation['designConfiguration'] = $solutionSimulation['designConfiguration'];
+                    $simulation['isLongFinancingSolution'] = $solutionSimulation['isLongFinancingSolution'];
+                    $simulation['hasFeesOnFirstInstallment'] =
+                        $solutionSimulation['hasFeesSolution']
+                        && 0 < $simulation['feesAmount']
+                    ;
+
+                    $groupedSolutionSimulations[] = $simulation;
+                    if (!isset($singleSolutionSimulations[$solutionSimulation['solutionCode']])) {
+                        $singleSolutionSimulations[$solutionSimulation['solutionCode']] = $simulation;
+                    }
+                }
+            }
+        }
+
+        uasort($groupedSolutionSimulations, function ($a, $b) {
+            return $a['duration'] > $b['duration'];
+        });
+
         $regroupPayments = Configuration::get(RegroupPaymentsConfigurationFormDataConfiguration::CONFIGURATION_REGROUP_PAYMENTS);
         $designConfiguration = Configuration::get(DesignCustomizeFormDataConfiguration::CONFIGURATION_DESIGN);
         $designConfiguration = !empty($designConfiguration) ? json_decode($designConfiguration, true) : [];
@@ -558,8 +587,9 @@ class ScalexpertPlugin extends PaymentModule
                         $availableFinancialSolution['visualLogo'] = null;
                     }
 
-                    $availableFinancialSolution['position'] =
-                        $designConfiguration[$availableFinancialSolution['solutionCode']]['position'];
+                    $availableFinancialSolution['position'] = $designConfiguration[$availableFinancialSolution['solutionCode']]['position'];
+                    $availableFinancialSolution['simulation'] = $singleSolutionSimulations[$availableFinancialSolution['solutionCode']];
+                    $availableFinancialSolution['simulationPopinData'] = $groupedSolutionSimulations;
                 }
             }
 
@@ -707,7 +737,7 @@ class ScalexpertPlugin extends PaymentModule
                 'ajax',
                 [
                     'ajax' => true,
-                    'action' => 'GetFinancialInsertsOnProduct'
+                    'action' => 'GetFinancingSimulationInsertOnProduct'
                 ]
             ),
             'getInsuranceInsertsAjaxURL' => $this->context->link->getModuleLink(
@@ -1129,9 +1159,20 @@ class ScalexpertPlugin extends PaymentModule
             }
         }
 
+
+        $this->context->controller->registerStylesheet(
+            'frontSimulation',
+            $this->_path . 'views/css/frontSimulation.css'
+        );
+
         $this->context->controller->registerStylesheet(
             'frontContentModalCSS',
             $this->_path . 'views/css/frontContentModal.css'
+        );
+
+        $this->context->controller->registerStylesheet(
+            'frontSimulationModal',
+            $this->_path . 'views/css/frontSimulationModal.css'
         );
     }
 
@@ -1140,6 +1181,11 @@ class ScalexpertPlugin extends PaymentModule
         $this->context->controller->registerStylesheet(
             'frontProductAdditionalInfoCSS',
             $this->_path . 'views/css/frontProductAdditionalInfo.css'
+        );
+
+        $this->context->controller->registerStylesheet(
+            'frontProductSimulation',
+            $this->_path . 'views/css/frontProductSimulation.css'
         );
 
         $this->context->controller->registerJavascript(
@@ -1182,9 +1228,19 @@ class ScalexpertPlugin extends PaymentModule
             $this->_path . 'views/css/frontPaymentOptions.css'
         );
 
+        $this->context->controller->registerStylesheet(
+            'frontPaymentSimulation',
+            $this->_path . 'views/css/frontPaymentSimulation.css'
+        );
+
         $this->context->controller->registerJavascript(
             'frontPaymentOptionsJS',
             $this->_path . 'views/js/frontPaymentOptions.js'
+        );
+
+        $this->context->controller->registerJavascript(
+            'frontPaymentSimulationJS',
+            $this->_path . 'views/js/frontPaymentSimulation.js'
         );
     }
 

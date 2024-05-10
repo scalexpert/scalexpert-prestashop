@@ -1,0 +1,152 @@
+/**
+ * Copyright © Scalexpert.
+ * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
+ *
+ * @author    Scalexpert (https://scalexpert.societegenerale.com/)
+ * @copyright Scalexpert
+ * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ */
+
+.sep-color {
+    color: #E2010B;
+}
+
+.sep-Simulations {
+    font-size: 14px;
+}
+
+.sep-Simulations-groupSolution {
+}
+
+.sep-Simulations-solution {
+    display: none;
+}
+.sep-Simulations-solution:first-child {
+    display: block;
+}
+
+.sep-Simulations-solution .sep-Simulations-solution-price{
+    font-weight: 700;
+    color: #E2010B;
+    margin-bottom: 5px;
+}
+
+.sep-Simulations-solution .sep-Simulations-solution-top {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+    min-height: 24px;
+}
+
+.sep-Simulations-solution .sep-Simulations-solution-i {
+    cursor: pointer;
+    margin: 0 4px;
+}
+
+.sep-Simulations-solution .sep-Simulations-solution-infoSimulation {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.sep-Simulations-solution .sep-Simulations-solution-listSimulation {
+    display: flex;
+    margin: 0 4px 0 0;
+    padding: 0;
+    flex-wrap: wrap;
+}
+
+.sep-Simulations-solution .sep-Simulations-solution-itemSimulation {
+    border: 2px solid black;
+    border-radius: 8px;
+    width: 38px;
+    height: 38px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: black;
+    font-size: 14px;
+    margin: 0 4px 4px 0;
+}
+.sep-Simulations-solution .sep-Simulations-solution-itemSimulation[data-current="true"] {
+    background: #E2010B;
+    border-color: #E2010B;
+    color: white;
+    cursor: default;
+}
+
+.sep-Simulations-solution .sep-Simulations-solution-infoMonthlyPayment {
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.sep-Simulations-solution .sep-Simulations-solution-infoMonthlyPayment .sep-color {
+    font-weight: 700;
+}
+
+.sep-Simulations-solution .sep-Simulations-solution-visualDescription {
+    color: #545454;
+    font-size: 12px;
+}
+
+.sep-Simulations-Product-groupSolution {
+    margin-top: 15px;
+}
+.sep-Simulations-Product-groupSolution:first-child {
+    margin-top: 0;
+
+}
+
+.sep-Simulations-Product-solution {
+    background: none #fff;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 15px;
+}
+
+.sep-Simulations-solution .sep-Simulations-installments {
+    color: #666;
+    border-top: 1px solid #E6E6E6;
+    padding-top: 8px;
+}
+
+.sep-Simulations-solution .sep-Simulations-installments-mentions {
+    padding-top: 8px;
+    color: #808080;
+}
+
+.sep-Simulations-solution .sep-Simulations-installments-mentions > span{
+    display: inline-block;
+}
+
+.sep-Simulations-solution .sep-Simulations-installments .sep-Simulations-installments-item {
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #dcdcdc;
+    padding: 0 16px;
+}
+
+.sep-Simulations-solution .sep-Simulations-installments .sep-Simulations-installments-item-label {
+
+}
+
+.sep-Simulations-solution .sep-Simulations-installments .sep-Simulations-installments-item-value {
+
+}
+
+.sep-Simulations-solution .sep-Simulations-installments .sep-Simulations-installments-total {
+    border-bottom-color: #666666;
+    font-weight: 700;
+}
+
+.sep-Simulations-solution .scalexpert_important {
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.sep-Simulations-solution .part_bottom .scalexpert_important {
+    font-size: 15px;
+}

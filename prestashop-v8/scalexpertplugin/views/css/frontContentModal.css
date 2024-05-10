@@ -59,6 +59,10 @@
     padding-left: 0;
 }
 
+body#checkout .sep_contentModal .modal-content {
+    padding: 0;
+}
+
 .sep_contentModal .modal-content .modal-body p {
     color: inherit;
     font-size: inherit;
