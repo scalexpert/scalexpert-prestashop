@@ -9,10 +9,11 @@
 
 
 $(function () {
-    let domDisplay = '';
-    let productId = 0;
-    let modalSelector = '.sep_financialSolution [data-modal="sep_openModal"]';
-    let xhr = '';
+    let domDisplay = '',
+        productId = 0,
+        modalSelector = '.sep_financialSolution [data-modal="sep_openModal"],.sep-Simulations .sep-Simulations-solution [data-modal="sep_openModal"]',
+        xhr = '',
+        solutionSelector = '.sep-Simulations-solution [data-js="selectSolutionSimulation"]';
 
     $(document).ready(function () {
         domDisplay = $('#scalexpertplugin-displayProductAdditionalInfo');
@@ -61,19 +62,26 @@ $(function () {
     }
 
     function successAjax(jsonData) {
-        let html = ''
+        let htmlFinancial = '';
+        let htmlSimulation = '';
         if (typeof jsonData !== 'undefined') {
-            if (typeof jsonData.financialInserts !== 'undefined') {
+            if (typeof jsonData.financialInserts !== 'undefined') { // Classic financial solution
                 jsonData.financialInserts.forEach(function (elm) {
                     if (typeof elm !== 'undefined' && typeof elm.formattedInsert !== 'undefined') {
-                        html += elm.formattedInsert;
+                        htmlFinancial += elm.formattedInsert;
                     }
                 });
+
+                domDisplay.html(htmlFinancial);
+                addEventOpenModal();
+            }
+            if (typeof jsonData.simulationInsert !== 'undefined') { // Simulation on product page
+                htmlSimulation = jsonData.simulationInsert;
+                domDisplay.html(htmlSimulation);
+                addEventChangeSimulation();
+                addEventOpenModal();
             }
         }
-
-        domDisplay.html(html);
-        addEventOpenModal();
     }
 
     function addEventOpenModal() {
@@ -81,7 +89,12 @@ $(function () {
             $(modalSelector).each(function (i, elm) {
                 if (typeof elm !== 'undefined' && $(elm).length) {
                     let attrModal = $(elm).attr('href');
-                    if (attrModal) {
+
+                    if(typeof attrModal === 'undefined') {
+                        attrModal = $(elm).attr('data-idmodal');
+                    }
+
+                    if(typeof attrModal !== 'undefined' && attrModal) {
                         $(elm).off().on('click', function (e) {
                             e.preventDefault();
                             $(attrModal).modal('show');
@@ -111,5 +124,27 @@ $(function () {
                 callAjax();
             }
         });
+    }
+
+    function addEventChangeSimulation() {
+        if($(solutionSelector).length) {
+            $(solutionSelector).each(function (i, elm) {
+                if (typeof elm !== 'undefined' && $(elm).length) {
+                    let idSolution = $(elm).attr('data-id');
+                    if(typeof idSolution !== 'undefined' && idSolution) {
+                        let idGroupSolution = $(elm).attr('data-groupid');
+                        $(elm).off().on('click', function (e) {
+                            e.preventDefault();
+
+                            let idGroupSolutionSelect = '.sep-Simulations-groupSolution[data-id="' + idGroupSolution + '"]';
+                            $(idGroupSolutionSelect + ' .sep-Simulations-solution').hide();
+                            $(idGroupSolutionSelect + ' .sep-Simulations-solution[data-id="' + idSolution + '"]').show();
+                            return;
+                        });
+                    }
+
+                }
+            });
+        }
     }
 });

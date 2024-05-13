@@ -8,9 +8,10 @@
  */
 
 $(function () {
-    let domDisplay = '';
-    let modalSelector = '.sep_main_productsButtons [data-modal="sep_openModal"]';
-    let xhr = '';
+    let domDisplay = '',
+        modalSelector = '.sep_main_productsButtons [data-modal="sep_openModal"],.sep-Simulations .sep-Simulations-solution [data-modal="sep_openModal"]',
+        xhr = '',
+        solutionSelector = '.sep-Simulations-solution [data-js="selectSolutionSimulation"]';
 
     $(document).ready(function () {
         domDisplay = $('#scalexpertplugin-displayProductButtons');
@@ -63,6 +64,7 @@ $(function () {
         if (!jsonData.hasError && typeof jsonData.content != 'undefined') {
             domDisplay.html(jsonData.content);
             initProductModals();
+            addEventChangeSimulation();
         }
     }
 
@@ -71,6 +73,11 @@ $(function () {
             $(modalSelector).each(function (i, elm) {
                 if (typeof elm !== 'undefined' && $(elm).length) {
                     let attrModal = $(elm).attr('href');
+
+                    if(typeof attrModal === 'undefined') {
+                        attrModal = $(elm).attr('data-idmodal');
+                    }
+
                     if (attrModal) {
                         $(elm).off().on('click', function (e) {
                             e.preventDefault();
@@ -100,5 +107,27 @@ $(function () {
                 callAjax();
             }
         });
+    }
+
+    function addEventChangeSimulation() {
+        if($(solutionSelector).length) {
+            $(solutionSelector).each(function (i, elm) {
+                if (typeof elm !== 'undefined' && $(elm).length) {
+                    let idSolution = $(elm).attr('data-id');
+                    if(typeof idSolution !== 'undefined' && idSolution) {
+                        let idGroupSolution = $(elm).attr('data-groupid');
+                        $(elm).off().on('click', function (e) {
+                            e.preventDefault();
+
+                            let idGroupSolutionSelect = '.sep-Simulations-groupSolution[data-id="' + idGroupSolution + '"]';
+                            $(idGroupSolutionSelect + ' .sep-Simulations-solution').hide();
+                            $(idGroupSolutionSelect + ' .sep-Simulations-solution[data-id="' + idSolution + '"]').show();
+                            return;
+                        });
+                    }
+
+                }
+            });
+        }
     }
 });

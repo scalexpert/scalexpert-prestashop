@@ -21,3 +21,7 @@
 .payment-options .sep_financialSolution-i {
     cursor: pointer;
 }
+
+.payment-options .sep_financialSolutionContent {
+    margin-bottom: 1.25rem;
+}

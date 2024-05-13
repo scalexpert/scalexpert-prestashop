@@ -1,6 +1,10 @@
 # Changelog
 
-## [1.2.6] - 2024-04-24
+## [1.3.0] - 2024-05-10
+### New features
+- Display simulation interface on product page and payment page
+
+## [1.2.6] - 2024-04-05
 ### New features
 - Change way of handling api urls
 ### Bugfix

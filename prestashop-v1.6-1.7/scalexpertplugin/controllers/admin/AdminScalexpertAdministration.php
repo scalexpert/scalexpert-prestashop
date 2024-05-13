@@ -325,7 +325,9 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
         // Set values
         $this->fields_value['mode'] = Configuration::get('SCALEXPERT_ENVIRONMENT');
         $this->fields_value['apiTestIdentifier'] = Configuration::get('SCALEXPERT_API_TEST_IDENTIFIER');
+        $this->fields_value['apiTestKey'] = Hash::decrypt(Configuration::get('SCALEXPERT_API_TEST_KEY'));
         $this->fields_value['apiProductionIdentifier'] = Configuration::get('SCALEXPERT_API_PRODUCTION_IDENTIFIER');
+        $this->fields_value['apiProductionKey'] = Hash::decrypt(Configuration::get('SCALEXPERT_API_PRODUCTION_KEY'));
 
         // Set Form Inputs
         $this->_formInputs[] = [

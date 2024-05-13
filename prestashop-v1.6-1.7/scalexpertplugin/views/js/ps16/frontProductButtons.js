@@ -8,8 +8,9 @@
  */
 
 $(function () {
-    var domDisplay = '';
-    var modalSelector = '.sep_main_productsButtons [data-modal="sep_openModal"]';
+    var domDisplay = '',
+        modalSelector = '.sep_main_productsButtons [data-modal="sep_openModal"], .sep-Simulations [data-modal="sep_openModal"]',
+        solutionSelector = '.sep-Simulations-solution [data-js="selectSolutionSimulation"]';
 
     $(document).ready(function () {
         domDisplay = $('#scalexpertplugin-displayProductButtons');
@@ -51,6 +52,7 @@ $(function () {
         if (!jsonData.hasError && typeof jsonData.content != 'undefined') {
             domDisplay.html(jsonData.content);
             initProductModals();
+            addEventChangeSimulation();
         }
     }
 
@@ -73,6 +75,28 @@ $(function () {
             $(modalSelector).each(function (i, elm) {
                 if (typeof elm !== 'undefined' && $(elm).length) {
                     $(elm).off();
+                }
+            });
+        }
+    }
+
+    function addEventChangeSimulation() {
+        if($(solutionSelector).length) {
+            $(solutionSelector).each(function (i, elm) {
+                if (typeof elm !== 'undefined' && $(elm).length) {
+
+                    var idSolution = $(elm).attr('data-id');
+                    if (typeof idSolution !== 'undefined' && idSolution) {
+                        $(elm).off().on('click', function (e) {
+                            e.preventDefault();
+
+                            var idGroupSolutionSelect = '.sep-Simulations-groupSolution';
+                            $(idGroupSolutionSelect + ' .sep-Simulations-solution').hide();
+                            $(idGroupSolutionSelect + ' .sep-Simulations-solution[data-id="' + idSolution + '"]').show();
+
+                            return;
+                        });
+                    }
                 }
             });
         }

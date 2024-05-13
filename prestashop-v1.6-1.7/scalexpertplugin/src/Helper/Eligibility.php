@@ -99,15 +99,22 @@ class Eligibility
             }
 
             if (!empty($params['excludedCategories'])) {
-                $query = (new DbQuery())->select('cp.id_category')
+                $query = (new DbQuery())
+                    ->select('cp.id_category')
                     ->from('category_product', 'cp')
                     ->where('id_product IN ('.implode(',', $ids).')');
                 $productCategories = \Db::getInstance()->executeS($query);
 
                 if ($productCategories) {
+                    // Extract category ids for in_array check
+                    $categoryIds = [];
+                    foreach ($productCategories as $category) {
+                        $categoryIds[] = $category['id_category'];
+                    }
+
                     foreach ($params['excludedCategories'] as $categoryID) {
                         // Restricted category for the solution
-                        if (in_array($categoryID, $productCategories)) {
+                        if (in_array($categoryID, $categoryIds)) {
                             unset($customizeProduct[$solutionCode]);
                             continue 2;
                         }

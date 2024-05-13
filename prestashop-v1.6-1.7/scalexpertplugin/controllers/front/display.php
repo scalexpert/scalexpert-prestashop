@@ -15,6 +15,7 @@ use ScalexpertPlugin\Helper\AvailableSolutionsChecker;
 use ScalexpertPlugin\Helper\FinancingEligibility;
 use ScalexpertPlugin\Helper\InsuranceEligibility;
 use ScalexpertPlugin\Helper\InsuranceProcess;
+use ScalexpertPlugin\Helper\SimulationFormatter;
 
 class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
 {
@@ -26,7 +27,11 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
         }
 
         if ('financial' === $type) {
-            $content = $this->_getFinancialsForProduct();
+            if ('FR' === strtoupper($this->context->language->iso_code)) {
+                $content = $this->_getSimulationForProduct();
+            } else {
+                $content = $this->_getFinancialsForProduct();
+            }
         } elseif ('insurance' === $type) {
             $content = $this->_getInsuranceForProduct();
         }
@@ -177,6 +182,61 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
                     $idProductAttribute,
                     $oProduct->getPrice(true, $idProductAttribute, 2)
                 );
+            }
+        }
+
+        return $content;
+    }
+
+    private function _getSimulationForProduct()
+    {
+        $idProduct = (int)Tools::getValue('idProduct');
+        $oProduct = new Product($idProduct);
+        if (!Validate::isLoadedObject($oProduct)) {
+            return '';
+        }
+
+        $customizeProduct = FinancingEligibility::getEligibleSolutionByProduct($idProduct);
+        if (empty($customizeProduct)) {
+            return '';
+        }
+
+        $eligibleSolutions = Financing::getEligibleSolutionsForFront(
+            floor($oProduct->getPrice()),
+            strtoupper($this->context->language->iso_code)
+        );
+
+        $designData = $this->module->buildDesignData($eligibleSolutions, $customizeProduct);
+
+        $simulateResponse = Financing::simulateFinancing(
+            $oProduct->getPrice(),
+            strtoupper($this->context->language->iso_code),
+            $designData['solutionCodes']
+        );
+
+        $content = '';
+        if (
+            !$simulateResponse['hasError']
+            && isset($simulateResponse['data']['solutionSimulations'])
+        ) {
+            $simulationsFullData = SimulationFormatter::normalizeSimulations(
+                $simulateResponse['data'],
+                $designData['designSolutions'],
+                true
+            );
+
+            $this->context->smarty->assign([
+                'solutionSimulations' => $simulationsFullData,
+                'financedAmount' => $simulateResponse['data']['financedAmount'],
+                'financedAmountFormatted' => \Tools::displayPrice(
+                    $simulateResponse['data']['financedAmount']
+                ),
+            ]);
+
+            if (version_compare(_PS_VERSION_, '1.7', '>=')) {
+                $content .= $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'scalexpertplugin/views/templates/hook/ps17/productFinancialSimulationContent.tpl');
+            } else {
+                $content .= $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'scalexpertplugin/views/templates/hook/ps16/productFinancialSimulationContent.tpl');
             }
         }
 

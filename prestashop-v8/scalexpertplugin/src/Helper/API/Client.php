@@ -924,4 +924,34 @@ class Client
 
         return $responseData;
     }
+
+    public function simulateFinancing(
+        $financedAmount,
+        $buyerBillingCountry = '',
+        $solutionCodes = []
+    ): array
+    {
+        $data = [
+            'financedAmount' => (float)$financedAmount,
+            'buyerBillingCountry' => strtoupper($buyerBillingCountry),
+            'solutionCodes' => $solutionCodes,
+        ];
+
+        $response = $this->sendRequest(
+            'POST',
+            '/e-financing/api/v1/_simulate-solutions',
+            [],
+            [],
+            [],
+            $data
+        );
+
+        $responseData = [];
+
+        if (!empty($response['contentsDecoded'])) {
+            $responseData = $response['contentsDecoded'];
+        }
+
+        return $responseData;
+    }
 }

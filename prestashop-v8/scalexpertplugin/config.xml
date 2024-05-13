@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+    <name>scalexpertplugin</name>
+    <displayName><![CDATA[Scalexpert]]></displayName>
+    <version><![CDATA[1.3.0]]></version>
+    <description><![CDATA[Description of Scalexpert module.]]></description>
+    <author><![CDATA[Soci&eacute;t&eacute; g&eacute;n&eacute;rale]]></author>
+    <tab><![CDATA[payments_gateways]]></tab>
+	<confirmUninstall><![CDATA[Are you sure you want to uninstall?]]></confirmUninstall>
+    <is_configurable>0</is_configurable>
+    <need_instance>0</need_instance>
+</module>

@@ -13,6 +13,7 @@ use ScalexpertPlugin\Api\Insurance;
 use ScalexpertPlugin\Helper\FinancingEligibility;
 use ScalexpertPlugin\Helper\InsuranceEligibility;
 use ScalexpertPlugin\Helper\InsuranceProcess;
+use ScalexpertPlugin\Helper\SimulationFormatter;
 use ScalexpertPlugin\Model\CartInsurance;
 use ScalexpertPlugin\Model\ProductField;
 use ScalexpertPlugin\Model\FinancingOrder;
@@ -64,7 +65,7 @@ class ScalexpertPlugin extends PaymentModule
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.2.6';
+        $this->version = '1.3.0';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 
@@ -435,8 +436,18 @@ class ScalexpertPlugin extends PaymentModule
                     'frontContentModalCSS',
                     $this->_path . 'views/css/ps17/frontContentModal.css'
                 );
+                $this->context->controller->registerStylesheet(
+                    'frontSimulation',
+                    $this->_path . 'views/css/ps17/frontSimulation.css'
+                );
+                $this->context->controller->registerStylesheet(
+                    'frontSimulationModal',
+                    $this->_path . 'views/css/ps17/frontSimulationModal.css'
+                );
             } else {
                 $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontGlobal.css');
+                $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontSimulation.css');
+                $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontSimulationModal.css');
             }
         }
     }
@@ -452,6 +463,11 @@ class ScalexpertPlugin extends PaymentModule
             $this->context->controller->registerStylesheet(
                 'frontProductButtonsCSS',
                 $this->_path . 'views/css/ps17/frontProductButtons.css'
+            );
+
+            $this->context->controller->registerStylesheet(
+                'frontProductSimulation',
+                $this->_path . 'views/css/ps17/frontProductSimulation.css'
             );
 
             $this->context->controller->registerJavascript(
@@ -473,6 +489,7 @@ class ScalexpertPlugin extends PaymentModule
         } else {
             $this->context->controller->addJS($this->_path . 'views/js/ps16/frontProductButtons.js');
             $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontProductButtons.css');
+            $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontProductSimulation.css');
 
             if ($activeInsurances) {
                 $this->context->controller->addJS($this->_path . 'views/js/ps16/frontProductButtons-insurance.js');
@@ -517,6 +534,11 @@ class ScalexpertPlugin extends PaymentModule
             $this->context->controller->registerJavascript(
                 'frontPaymentOptionsJS',
                 $this->_path . 'views/js/ps17/frontPaymentOptions.js'
+            );
+
+            $this->context->controller->registerJavascript(
+                'frontPaymentSimulation',
+                $this->_path . 'views/js/ps17/frontPaymentSimulation.js'
             );
         } else {
             $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontPayment.css');
@@ -725,6 +747,7 @@ class ScalexpertPlugin extends PaymentModule
             return [];
         }
 
+        $designData = $this->buildDesignData($eligibleSolutions, $customizeProduct, true);
         $redirectControllerLink = $this->context->link->getModuleLink($this->name, 'validation', [], true);
         $regroupPayments = (int)Configuration::get('SCALEXPERT_GROUP_FINANCING_SOLUTIONS');
         $availableOptions = [];
@@ -736,13 +759,31 @@ class ScalexpertPlugin extends PaymentModule
             ]
         );
 
+        $simulateResponse = Financing::simulateFinancing(
+            $oCart->getOrderTotal(),
+            strtoupper($this->context->language->iso_code),
+            $designData['solutionCodes']
+        );
+
+        $singleSolutionSimulations = SimulationFormatter::normalizeSimulations(
+            $simulateResponse['data'],
+            $designData['designSolutions']
+        );
+        $groupedSolutionSimulations = SimulationFormatter::normalizeSimulations(
+            $simulateResponse['data'],
+            $designData['designSolutions'],
+            true
+        );
+
         foreach ($eligibleSolutions as $k => &$eligibleSolutionTemp) {
             if (!empty($eligibleSolutionTemp['communicationKit'])) {
                 $eligibleSolutionTemp = $eligibleSolutionTemp['communicationKit'];
 
                 if (isset($customizeProduct[$eligibleSolutionTemp['solutionCode']])) {
                     if (!empty($customizeProduct[$eligibleSolutionTemp['solutionCode']]['title_payment'])) {
-                        $eligibleSolutionTemp['visualTitle'] = $customizeProduct[$eligibleSolutionTemp['solutionCode']]['title_payment'];
+                        $eligibleSolutionTemp['visualTitle'] = $customizeProduct[
+                            $eligibleSolutionTemp['solutionCode']
+                        ]['title_payment'];
                     }
 
                     $eligibleSolutionTemp['useLogo'] = 0;
@@ -750,13 +791,23 @@ class ScalexpertPlugin extends PaymentModule
                         $eligibleSolutionTemp['useLogo'] = 1;
                     }
 
-                    $eligibleSolutionTemp['position'] = $customizeProduct[$eligibleSolutionTemp['solutionCode']]['position'];
+                    $eligibleSolutionTemp['position'] = $customizeProduct[
+                        $eligibleSolutionTemp['solutionCode']
+                    ]['position'];
+
+                    if (
+                        !$simulateResponse['hasError']
+                        && isset($simulateResponse['data']['solutionSimulations'])
+                    ) {
+                        $eligibleSolutionTemp['simulation'] =
+                            $singleSolutionSimulations[$eligibleSolutionTemp['solutionCode']] ?? '';
+                        $eligibleSolutionTemp['simulationPopinData'] = $groupedSolutionSimulations['all'] ?? '';
+                    }
                 } else {
                     unset($eligibleSolutions[$k]);
                 }
             }
         }
-
         // Sort products by position
         $this->sortSolutionsByPosition($eligibleSolutions);
 
@@ -773,7 +824,9 @@ class ScalexpertPlugin extends PaymentModule
                 )
                 ->setAction($redirectControllerLink)
                 ->setAdditionalInformation(
-                    $this->fetch('module:' . $this->name . '/views/templates/hook/ps17/regroupedPayments.tpl')
+                    $this->fetch(
+                        'module:' . $this->name . '/views/templates/hook/ps17/regroupedPayments.tpl'
+                    )
                 )
                 ->setBinary(true);
 
@@ -793,7 +846,9 @@ class ScalexpertPlugin extends PaymentModule
                         ], true)
                     )
                     ->setAdditionalInformation(
-                        $this->fetch('module:' . $this->name . '/views/templates/hook/ps17/paymentAdditionalInformation.tpl')
+                        $this->fetch(
+                            'module:' . $this->name . '/views/templates/hook/ps17/paymentAdditionalInformation.tpl'
+                        )
                     );
 
                 if ($eligibleSolution['useLogo']) {
@@ -1583,5 +1638,46 @@ class ScalexpertPlugin extends PaymentModule
         }
 
         return $solutionCode;
+    }
+
+    public function buildDesignData(
+        $eligibleSolutions,
+        $customizeProduct,
+        $isPayment = false
+    )
+    {
+        $solutionCodes = [];
+        $designSolutions = [];
+
+        foreach ($eligibleSolutions as $eligibleSolution) {
+            $solutionCode = $eligibleSolution['solutionCode'];
+
+            if (isset($customizeProduct[$solutionCode])) {
+                // Built available solution codes array
+                $solutionCodes[] = $solutionCode;
+
+                // Prepare design config variables for front
+                $designSolutions[$solutionCode] = $eligibleSolution['communicationKit'];
+                $designSolutions[$solutionCode]['position'] = $customizeProduct[$solutionCode]['position'];
+                if ($isPayment) {
+                    $designSolutions[$solutionCode]['displayLogo'] = $customizeProduct[$solutionCode]['logo_payment'];
+                    if (!empty($customizeProduct[$solutionCode]['title_payment'])) {
+                        $designSolutions[$solutionCode]['visualTitle'] = $customizeProduct[$solutionCode]['title_payment'];
+                    }
+                } else {
+                    $designSolutions[$solutionCode]['displayLogo'] = $customizeProduct[$solutionCode]['logo'];
+                    if (!empty($customizeProduct[$solutionCode]['title'])) {
+                        $designSolutions[$solutionCode]['visualTitle'] = $customizeProduct[$solutionCode]['title'];
+                    }
+                }
+
+                $designSolutions[$solutionCode]['custom'] = $customizeProduct[$solutionCode];
+            }
+        }
+
+        return [
+            'solutionCodes' => $solutionCodes,
+            'designSolutions' => $designSolutions
+        ];
     }
 }

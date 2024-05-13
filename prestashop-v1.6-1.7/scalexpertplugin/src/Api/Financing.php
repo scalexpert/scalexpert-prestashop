@@ -251,4 +251,28 @@ class Financing extends Entity
         $apiUrl = static::$scope . '/api/v1/subscriptions/' . $creditSubscriptionId . '/_confirmDelivery';
         return Client::post($apiUrl, $params);
     }
+
+    public static function simulateFinancing(
+        $financedAmount,
+        $buyerBillingCountry = '',
+        $solutionCodes = []
+    ): array
+    {
+        if (
+            empty($financedAmount)
+            || empty($buyerBillingCountry)
+            || empty($solutionCodes)
+        ) {
+            return [];
+        }
+
+        $params = [
+            'financedAmount' => (float)$financedAmount,
+            'buyerBillingCountry' => strtoupper($buyerBillingCountry),
+            'solutionCodes' => $solutionCodes,
+        ];
+
+        $apiUrl = static::$scope . '/api/v1/_simulate-solutions';
+        return Client::post($apiUrl, $params);
+    }
 }

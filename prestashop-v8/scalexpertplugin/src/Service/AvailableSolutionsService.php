@@ -14,6 +14,7 @@ namespace ScalexpertPlugin\Service;
 
 use PrestaShop\PrestaShop\Adapter\LegacyContext;
 use PrestaShop\PrestaShop\Core\ConfigurationInterface;
+use PrestaShop\PrestaShop\Core\Localization\Locale;
 use ScalexpertPlugin\Form\Configuration\FinancingConfigurationFormDataConfiguration;
 use ScalexpertPlugin\Form\Configuration\InsuranceConfigurationFormDataConfiguration;
 use ScalexpertPlugin\Form\Customize\DesignCustomizeFormDataConfiguration;
@@ -25,7 +26,11 @@ class AvailableSolutionsService
 
     private $configuration;
 
-    public function __construct(Client $apiClient, ConfigurationInterface $configuration, LegacyContext $context)
+    public function __construct(
+        Client $apiClient,
+        ConfigurationInterface $configuration,
+        LegacyContext $context
+    )
     {
         $this->apiClient = $apiClient;
         $this->configuration = $configuration;
@@ -53,7 +58,10 @@ class AvailableSolutionsService
         return $buyerBillingCountry;
     }
 
-    public function getAvailableFinancialSolutions($productID = null, $productIDAttribute = null): array
+    public function getAvailableFinancialSolutions(
+        $productID = null,
+        $productIDAttribute = null
+    ): array
     {
         $availableSolutions = [];
 
@@ -166,7 +174,10 @@ class AvailableSolutionsService
         return $availableSolutions;
     }
 
-    public function getAvailableInsuranceSolutions($productID = null, $productIDAttribute = null): array
+    public function getAvailableInsuranceSolutions(
+        $productID = null,
+        $productIDAttribute = null
+    ): array
     {
         $insuranceSolutions = [];
         $buyerBillingCountry = $this->getContextBuyerBillingCountry();
@@ -299,5 +310,243 @@ class AvailableSolutionsService
         }
 
         return $insuranceSolutions;
+    }
+
+    public function getSimulationForAvailableFinancialSolutions(
+        $productID = null,
+        $productIDAttribute = null
+    ): array
+    {
+        if (empty($productID)) {
+            if (
+                isset($this->legacyContext->cart)
+                && \Validate::isLoadedObject($this->legacyContext->cart)
+            ) {
+                $cartPrice = $this->legacyContext->cart->getOrderTotal();
+            }
+
+            $productPrice = !empty($cartPrice) ? $cartPrice : 0;
+        } else {
+            $productPrice = \Product::getPriceStatic($productID, true, $productIDAttribute, 2);
+        }
+
+        $buyerBillingCountry = $this->getContextBuyerBillingCountry();
+        $financialSolutions = $this->apiClient->getFinancialSolutions($productPrice, $buyerBillingCountry);
+        // Get config configuration
+        $designConfiguration = $this->configuration->get(
+            DesignCustomizeFormDataConfiguration::CONFIGURATION_DESIGN
+        );
+        $designConfiguration = !empty($designConfiguration) ? json_decode($designConfiguration, true) : [];
+
+        $availableSolutions = [];
+        if (!empty($financialSolutions)) {
+            // Get active configuration
+            $activeConfiguration = $this->configuration->get(
+                FinancingConfigurationFormDataConfiguration::CONFIGURATION_FINANCING
+            );
+            $activeConfiguration = !empty($activeConfiguration) ? json_decode($activeConfiguration, true) : [];
+
+            foreach ($financialSolutions as $solutionCode => $financialSolution) {
+                // Case solution is not active in configuration
+                if (empty($activeConfiguration[$solutionCode])) {
+                    continue;
+                }
+
+                if (isset($designConfiguration[$solutionCode])) {
+                    // On product page, check productDisplay is enabled
+                    if (
+                        null !== $productID
+                        && !$designConfiguration[$solutionCode]['productDisplay']
+                    ) {
+                        continue;
+                    }
+
+                    if (isset($this->legacyContext->cart)) {
+                        $cartProducts = $this->legacyContext->cart->getProducts();
+                    }
+
+                    if (
+                        !empty($designConfiguration[$solutionCode]['excludedCategories'])
+                        && !empty($productID)
+                    ) {
+                        // Check category compatibility with current product on product page
+                        $productCategories = \Product::getProductCategories($productID);
+
+                        if (!empty($productCategories)) {
+                            foreach ($designConfiguration[$solutionCode]['excludedCategories'] as $categoryID) {
+                                // Restricted category for the solution
+                                if (in_array($categoryID, $productCategories)) {
+                                    continue 2;
+                                }
+                            }
+                        }
+                    }
+
+                    if (
+                        !empty($designConfiguration[$solutionCode]['excludedProducts']['data'])
+                        && !empty($productID)
+                        && in_array($productID, $designConfiguration[$solutionCode]['excludedProducts']['data'])
+                    ) {
+                        continue;
+                    }
+
+                    if (!empty($cartProducts)) {
+                        $insuranceProductsCategory = $this->configuration->get(
+                            CartInsuranceProductsService::CONFIGURATION_INSURANCE_PRODUCTS_CATEGORY
+                        );
+
+                        foreach ($cartProducts as $cartProduct) {
+                            // Financial solutions are not compatible with insurance products
+                            if ($cartProduct['id_category_default'] == $insuranceProductsCategory) {
+                                continue 2;
+                            }
+
+                            $productCategories = \Product::getProductCategories($cartProduct['id_product']);
+
+                            // Check category compatibility with cart products
+                            if (
+                                !empty($productCategories)
+                                && !empty($designConfiguration[$solutionCode]['excludedCategories'])
+                            ) {
+                                foreach ($designConfiguration[$solutionCode]['excludedCategories'] as $categoryID) {
+                                    if (in_array($categoryID, $productCategories)) {
+                                        continue 3;
+                                    }
+                                }
+                            }
+
+                            if (
+                                !empty($designConfiguration[$solutionCode]['excludedProducts']['data'])
+                                && in_array(
+                                    $cartProduct['id_product'],
+                                    $designConfiguration[$solutionCode]['excludedProducts']['data']
+                                )
+                            ) {
+                                continue 2;
+                            }
+                        }
+                    }
+                } else {
+                    continue;
+                }
+
+                $availableSolutions[] = $solutionCode;
+            }
+        }
+
+        $simulateResponse = $this->apiClient->simulateFinancing(
+            $productPrice,
+            $buyerBillingCountry,
+            $availableSolutions
+        );
+
+        if(
+            !empty($simulateResponse)
+            && !empty($simulateResponse['solutionSimulations'])
+        ) {
+            $currentLocale = $this->legacyContext->getCurrentLocale();
+            $currentCurrencyCode = $this->legacyContext->currency->iso_code;
+
+            $simulateResponse['financedAmountFormatted'] = $currentLocale->formatPrice(
+                $simulateResponse['financedAmount'],
+                $currentCurrencyCode
+            );
+
+            $solutionSimulations = &$simulateResponse['solutionSimulations'];
+            foreach ($solutionSimulations as $k => $solutionSimulation) {
+                $solutionCode = $solutionSimulation['solutionCode'];
+
+                // Add customization data
+                $solutionSimulations[$k]['designConfiguration'] = $financialSolutions[$solutionCode];
+                $solutionSimulations[$k]['designConfiguration']['custom'] = $designConfiguration[$solutionCode];
+                if ($productID) {
+                    if (!empty($designConfiguration[$solutionCode]['productTitle'])) {
+                        $solutionSimulations[$k]['designConfiguration']['visualTitle'] =
+                            $designConfiguration[$solutionCode]['productTitle'];
+                    }
+
+                    if (empty($designConfiguration[$solutionCode]['productDisplayLogo'])) {
+                        $solutionSimulations[$k]['designConfiguration']['visualLogo'] = null;
+                    }
+                } else {
+                    if (!empty($designConfiguration[$solutionCode]['paymentTitle'])) {
+                        $solutionSimulations[$k]['designConfiguration']['visualTitle'] =
+                            $designConfiguration[$solutionCode]['paymentTitle'];
+                    }
+
+                    if (empty($designConfiguration[$solutionCode]['paymentDisplayLogo'])) {
+                        $solutionSimulations[$k]['designConfiguration']['visualLogo'] = null;
+                    }
+                }
+
+                // Add context data
+                $solutionSimulations[$k]['isLongFinancingSolution'] = $this->isLongFinancingSolution($solutionCode);
+                $solutionSimulations[$k]['hasFeesSolution'] = $this->hasFeesFinancingSolution($solutionCode);
+
+                foreach ($solutionSimulation['simulations'] as $j => $simulation) {
+                    // Refactor percentage data
+                    $solutionSimulations[$k]['simulations'][$j]['effectiveAnnualPercentageRateFormatted'] = $simulation['effectiveAnnualPercentageRate'] . '%';
+                    $solutionSimulations[$k]['simulations'][$j]['nominalPercentageRateFormatted'] = $simulation['nominalPercentageRate'] . '%';
+
+                    // Refactor price data
+                    $solutionSimulations[$k]['simulations'][$j]['totalCostFormatted'] = $currentLocale->formatPrice(
+                        $simulation['totalCost'],
+                        $currentCurrencyCode
+                    );
+                    $solutionSimulations[$k]['simulations'][$j]['dueTotalAmountFormatted'] = $currentLocale->formatPrice(
+                        $simulation['dueTotalAmount'],
+                        $currentCurrencyCode
+                    );
+                    $solutionSimulations[$k]['simulations'][$j]['feesAmountFormatted'] = $currentLocale->formatPrice(
+                        $simulation['feesAmount'],
+                        $currentCurrencyCode
+                    );
+
+                    foreach ($simulation['installments'] as $i => $installment) {
+                        // Refactor price data
+                        $solutionSimulations[$k]['simulations'][$j]['installments'][$i]['amountFormatted'] = $currentLocale->formatPrice(
+                            $installment['amount'],
+                            $currentCurrencyCode
+                        );
+                    }
+                }
+            }
+        }
+
+        return $simulateResponse;
+    }
+
+
+    public function isFrenchLongFinancingSolution(string $solutionCode): bool
+    {
+        return in_array($solutionCode, [
+            'SCFRLT-TXPS',
+            'SCFRLT-TXNO',
+        ], true);
+    }
+
+    public function isDeutschLongFinancingSolution(string $solutionCode): bool
+    {
+        return in_array($solutionCode, [
+            'SCDELT-DXTS',
+            'SCDELT-DXCO',
+        ], true);
+    }
+
+    public function isLongFinancingSolution(string $solutionCode): bool
+    {
+        return
+            $this->isFrenchLongFinancingSolution($solutionCode)
+            || $this->isDeutschLongFinancingSolution($solutionCode)
+        ;
+    }
+
+    public function hasFeesFinancingSolution(string $solutionCode): bool
+    {
+        return in_array($solutionCode, [
+            'SCFRSP-3XPS',
+            'SCFRSP-4XPS',
+            'SCFRLT-TXPS',
+        ], true);
     }
 }
