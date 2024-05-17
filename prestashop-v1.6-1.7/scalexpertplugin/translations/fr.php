@@ -1,29 +1,19 @@
 <?php
-/**
- * Copyright © Scalexpert.
- * This file is part of Scalexpert plugin for PrestaShop. See COPYING.md for license details.
- *
- * @author    Scalexpert (https://scalexpert.societegenerale.com/)
- * @copyright Scalexpert
- * @license   https://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
- */
-
 
 global $_MODULE;
 $_MODULE = array();
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_5bde8a801e5a31607c800b7bc1e87cea'] = 'Scalexpert';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_1276098435ed7310ec53829106355d2f'] = 'Module de demande de financements par Société Générale';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_92d4773a9f32fc3333cb8238471cf763'] = 'Veuillez autoriser l\'extension cURL sur votre serveur pour installer ce module';
+$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_495302df11cf5704383417c300d38962'] = 'Veuillez renseigner un numéro de téléphone mobile ou fixe valide pour sélectionner ce moyen de paiement';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_afeeca91f5628333240726a255defce9'] = 'Payez votre achat en plusieurs fois';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_f70d47154e3f51cb0e94b3b01ed8e87c'] = 'Statut inconnu';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_637a6ff995a0c4b7881a481c7bc7194a'] = 'La commande a été réglée mais le financement n\'est pas dans un statut final.';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_789682facccaf61639000017713a3b49'] = 'Votre demande d\'annulation a été envoyée avec succès.';
-$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_56594c139baca0ad5415f83fde4ea98f'] = 'Paiement en 3X (option sans frais)';
-$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_586895b243aa1e4c22b60e7e8b94af6f'] = 'Paiement en 3X (option avec frais)';
-$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_2d52b7e2f29b7fad46b6a948c0968377'] = 'Paiement en 4X (option sans frais)';
-$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_048f3cd379dd7d08542e7c9d8ce6615c'] = 'Paiement en 4X (option avec frais)';
-$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_d26ea829fbc0179339f1421be7c61bc4'] = 'Crédit long (sans frais)';
-$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_8dcc3ceb3655297edfcad1cadcba4055'] = 'Crédit long (avec commission)';
+$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_dcdcd14f98a384ff224e72fa2aaa6dce'] = 'La confirmation de livraison a bien été transmise.';
+$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_bee5ea38ebd1e4b3bbb62d72434c7d41'] = 'Le financement n\'a pas été accepté ou le numéro de suivi est vide.';
+$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_9ea089c2760954e10b48e7ff6f2cc7cb'] = 'Une erreur s\'est produite durant le processus d\'annulation du financement.';
+$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_b6fdf8daba6e042d3714c4a33d70998a'] = 'Une erreur s\'est produite durant le processus de confirmation de livraison.';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_e93e043d5d2ff60b37f84e922d3ed2c0'] = 'Extention de garantie';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_44a4e3c5b86d8cfa046a361745eb9f9c'] = 'demande de financement acceptée';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_854e0d52ec35a15bcfdd0ccf2d9984f8'] = 'demande de financement en cours';
@@ -40,6 +30,16 @@ $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_87c1cf1e35f7ca9fe3c3853
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_ed7b27e2454af239828031ce1649c658'] = 'souscription d\'assurance annulée';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_a752ecf23f63a8d50a442ac42a927746'] = 'souscription d\'assurance terminée';
 $_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_4db1efc6e3e2ba5cde06a38498b04be9'] = 'souscription d\'assurance avortée';
+$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_0e60ac85bc39f1e221d66a048ff164da'] = 'UPS';
+$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_53c6f3cca240d98b5e648d93115a2426'] = 'DHL';
+$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_1d11d7a418728d55e53e16e0f21d072b'] = 'Chronopost';
+$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_ef66792403b1151083dd12427231825e'] = 'La Poste';
+$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_3b9031dce4fcf88b489a923963dd0c49'] = 'DPD';
+$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_7d0020fc04a0ed468e36aa03a00d9151'] = 'Relais Colis';
+$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_a371d489d851929601c6a2442d46fb0d'] = 'Mondial Relais';
+$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_194c93c94927cd9a435b3b51b657b4ae'] = 'Fedex';
+$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_07351bfe713bfebc506f0660ff44b7bf'] = 'Gls';
+$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_696b031073e74bf2cb98e5ef201d4aa3'] = 'Autre';
 $_MODULE['<{scalexpertplugin}prestashop>adminscalexpertadministration_c4b0ec0917f27275ae9c263b0967a057'] = 'Configurer le plugin Scalexpert';
 $_MODULE['<{scalexpertplugin}prestashop>adminscalexpertadministration_c9cc8cce247e49bae79f15173ce97354'] = 'Enregistrer';
 $_MODULE['<{scalexpertplugin}prestashop>adminscalexpertadministration_6794986846165af9674c2e532bcb66e3'] = 'Le plugin n\'est pas activé. Veuillez saisir vos clé dans l\'onglet Settings.';
@@ -119,7 +119,6 @@ $_MODULE['<{scalexpertplugin}prestashop>confirmation_085f774daa0906d08879c22eefd
 $_MODULE['<{scalexpertplugin}prestashop>validation_9816839e1f9b3c31bf84f80d29d67350'] = 'La panier est invalide.';
 $_MODULE['<{scalexpertplugin}prestashop>validation_f02f75a914b5464ce1b32e5517c86f79'] = 'Le moyen de paiement a été désactivé.';
 $_MODULE['<{scalexpertplugin}prestashop>validation_03aecdcf8bb36ffa88d4410f4df4a8c6'] = 'Aucun client trouvé.';
-$_MODULE['<{scalexpertplugin}prestashop>validation_ce361a51581b7b351836a5e7b1a40fcf'] = 'Veuillez renseigner un numéro de téléphone mobile ou fixe valide pour sélectionner ce moyen de paiement.';
 $_MODULE['<{scalexpertplugin}prestashop>validation_e61b0be95b713b117d27dbd19d75f69a'] = 'Un erreur s\'est produite pendant le processus de financement.';
 $_MODULE['<{scalexpertplugin}prestashop>validation_ab83e358ad7fdaaddaa91a85351f3fab'] = 'Vous devez choisir un moyen de financement.';
 $_MODULE['<{scalexpertplugin}prestashop>order-side_3f663a04a73ebf18e2232adbeebabecf'] = 'Souscriptions d\'assurances';

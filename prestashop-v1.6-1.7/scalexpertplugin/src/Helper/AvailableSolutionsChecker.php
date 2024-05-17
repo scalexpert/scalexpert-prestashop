@@ -27,8 +27,9 @@ class AvailableSolutionsChecker
     )
     {
         $insuranceSolutions = [];
-        $buyerBillingCountry = static::getContextBuyerBillingCountry();
-        $allInsuranceSolutions = Insurance::getEligibleSolutionsFromBuyerBillingCountry($buyerBillingCountry);
+        $allInsuranceSolutions = Insurance::getEligibleSolutionsFromBuyerBillingCountry(
+            \Context::getContext()->language->iso_code
+        );
 
         if (!empty($allInsuranceSolutions)) {
             // Get active configuration
@@ -163,26 +164,5 @@ class AvailableSolutionsChecker
         }
 
         return $insuranceSolutions;
-    }
-
-    protected static function getContextBuyerBillingCountry()
-    {
-        $cart = \Context::getContext()->cart;
-        if (
-            \Validate::isLoadedObject($cart)
-            && !empty($cart->id_address_invoice)
-        ) {
-            $addressInvoice = new \Address((int) $cart->id_address_invoice);
-
-            if (\Validate::isLoadedObject($addressInvoice) && !empty($addressInvoice->id_country)) {
-                $buyerBillingCountry = \Country::getIsoById($addressInvoice->id_country);
-            }
-        }
-
-        if (empty($buyerBillingCountry)) {
-            $buyerBillingCountry = \Context::getContext()->language->iso_code;
-        }
-
-        return $buyerBillingCountry;
     }
 }

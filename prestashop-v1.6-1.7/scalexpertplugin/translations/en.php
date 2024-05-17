@@ -13,3 +13,4 @@ global $_MODULE;
 $_MODULE = array();
 $_MODULE['<{scalexpertplugin}prestashop>adminscalexpertcustomize_52f5e0bc3859bc5f5e25130b6c7e8881'] = 'Order';
 $_MODULE['<{scalexpertplugin}prestashop>adminscalexpertcustomize_b9b371458ab7c314f88b81c553f6ce51'] = 'Position';
+$_MODULE['<{scalexpertplugin}prestashop>scalexpertplugin_696b031073e74bf2cb98e5ef201d4aa3'] = 'Other';

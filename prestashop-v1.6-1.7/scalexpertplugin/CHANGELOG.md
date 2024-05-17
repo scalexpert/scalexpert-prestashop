@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.1] - 2024-05-17
+### Bugfix
+- Update modal content of financing solutions on payment step in the checkout
+- Adapt delivery confirmation process and returns according to the customer country
+- Display financing solutions or simulator according to current locale
+
 ## [1.3.0] - 2024-05-10
 ### New features
 - Display simulation interface on product page and payment page

@@ -106,12 +106,12 @@
                         <div id="message" class="form-horizontal">
                             <input type="hidden" name="creditSubscriptionId" value="{$financialSubscription.creditSubscriptionId}">
 
-                            {if !empty($operators)}
+                            {if !empty($financialSubscription.operators)}
                                 <label for="scalexpert_deliver_financial_subscription_operator">
                                     {l s='Operator' mod='scalexpertplugin'} :
                                 </label>
                                 <select id="scalexpert_deliver_financial_subscription_operator" name="operator" class="form-control">
-                                {foreach from=$operators item=operatorName key=operatorId}
+                                {foreach from=$financialSubscription.operators item=operatorName key=operatorId}
                                     <option value="{$operatorId}">{$operatorName}</option>
                                 {/foreach}
                                 </select>

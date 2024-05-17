@@ -30,7 +30,7 @@ class UpdateOrdersStatesService
     public function __construct(
         Client $apiClient,
         OrderUpdaterService $orderUpdaterService,
-        ConfigurationInterface $configuration,
+        ConfigurationInterface $configuration
     )
     {
         $this->apiClient = $apiClient;
@@ -61,34 +61,38 @@ class UpdateOrdersStatesService
     public function updateOrderState($merchantGlobalOrderId, $consolidatedStatus): void
     {
         $ordersCollection = \Order::getByReference($merchantGlobalOrderId);
+        if (
+            count($ordersCollection) <= 0
+            || !isset($this->mappingOrderState[$consolidatedStatus])
+        ) {
+            return;
+        }
 
-        if (count($ordersCollection) > 0) {
-            foreach ($ordersCollection as $order) {
-                $previousOrderStateList = $order->getHistory(Context::getContext()->language->id);
-                $orderStateAlreadyOnOrder = false;
-                if (isset($this->mappingOrderState[$consolidatedStatus])) {
-                    foreach ($previousOrderStateList as $previousOrderState) {
-                        if ((int)$previousOrderState['id_order_state'] == (int)$this->mappingOrderState[$consolidatedStatus]) {
-                            $orderStateAlreadyOnOrder = true;
-                        }
-                    }
-                }
-                if ($orderStateAlreadyOnOrder) {
-                    return;
-                }
+        foreach ($ordersCollection as $order) {
+            $previousOrderStateList = $order->getHistory(Context::getContext()->language->id);
+            $orderStateAlreadyOnOrder = false;
 
-                try {
-                    $this->orderUpdaterService->updateOrderStateBasedOnFinancingStatus($order, $consolidatedStatus);
-                } catch (\Exception $e) {
-                    \PrestaShopLogger::addLog(
-                        '[SCALEXPERTPLUGIN] Error while updateOrderState: '.$e->getMessage(),
-                        3,
-                        null,
-                        'Order',
-                        $order->id,
-                        true
-                    );
+            foreach ($previousOrderStateList as $previousOrderState) {
+                if ((int)$previousOrderState['id_order_state'] == (int)$this->mappingOrderState[$consolidatedStatus]) {
+                    $orderStateAlreadyOnOrder = true;
                 }
+            }
+
+            if ($orderStateAlreadyOnOrder) {
+                return;
+            }
+
+            try {
+                $this->orderUpdaterService->updateOrderStateBasedOnFinancingStatus($order, $consolidatedStatus);
+            } catch (\Exception $e) {
+                \PrestaShopLogger::addLog(
+                    '[SCALEXPERTPLUGIN] Error while updateOrderState: '.$e->getMessage(),
+                    3,
+                    null,
+                    'Order',
+                    $order->id,
+                    true
+                );
             }
         }
     }

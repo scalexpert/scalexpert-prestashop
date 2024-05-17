@@ -10,14 +10,7 @@
     <div class="sep-Simulations-installments">
         <div class="sep-Simulations-installments-total sep-Simulations-installments-item">
             <span class="sep-Simulations-installments-item-label">
-                {if !empty($solution.isLongFinancingSolution)}
-                    {l s='Montant total dû' mod='scalexpertplugin'}
-                {else}
-                    {l s='Montant total dû' mod='scalexpertplugin'}
-                    {if !empty($solution.totalCost)}
-                        {l s='(dont frais)' mod='scalexpertplugin'}
-                    {/if}
-                {/if}
+                {l s='Montant total dû' mod='scalexpertplugin'}
             </span>
             <span class="sep-Simulations-installments-item-value">
                 {$solution.dueTotalAmountFormatted|default:''}

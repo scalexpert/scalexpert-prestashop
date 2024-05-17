@@ -907,7 +907,7 @@ class Client
             ];
         }
 
-        $response = $this->sendRequest(
+        return $this->sendRequest(
             'POST',
             '/e-financing/api/v1/subscriptions/'.$creditSubscriptionId.'/_confirmDelivery',
             [],
@@ -915,14 +915,6 @@ class Client
             [],
             $data
         );
-
-        $responseData = [];
-
-        if (!empty($response['contentsDecoded'])) {
-            $responseData = $response['contentsDecoded'];
-        }
-
-        return $responseData;
     }
 
     public function simulateFinancing(
