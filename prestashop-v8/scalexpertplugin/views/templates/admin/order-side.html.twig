@@ -102,12 +102,12 @@
                                     <input type="hidden" name="scalexpert_deliver_financial_subscription_id"
                                            value="{{ financialSubscription.creditSubscriptionId }}">
 
-                                    {% if operators is not empty %}
+                                    {% if financialSubscription.operators is not empty %}
                                         <label for="scalexpert_deliver_financial_subscription_operator">
                                             {{ 'Transporteur'|trans({}, 'Modules.Scalexpertplugin.Admin') }} :
                                         </label>
                                         <select id="scalexpert_deliver_financial_subscription_operator" name="scalexpert_deliver_financial_subscription_operator" class="form-control">
-                                            {% for operatorId, operatorName in operators %}
+                                            {% for operatorId, operatorName in financialSubscription.operators %}
                                                 <option value="{{ operatorId }}">{{ operatorName|trans({}, 'Modules.Scalexpertplugin.Admin') }}</option>
                                             {% endfor %}
                                         </select>

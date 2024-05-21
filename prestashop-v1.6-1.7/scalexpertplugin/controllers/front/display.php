@@ -229,7 +229,7 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
                 'solutionSimulations' => $simulationsFullData,
                 'financedAmount' => $simulateResponse['data']['financedAmount'],
                 'financedAmountFormatted' => \Tools::displayPrice(
-                    $simulateResponse['data']['financedAmount']
+                    (float)$simulateResponse['data']['financedAmount']
                 ),
             ]);
 

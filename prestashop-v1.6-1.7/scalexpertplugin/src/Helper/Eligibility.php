@@ -33,6 +33,13 @@ class Eligibility
         $jsonCustomizeProduct = Configuration::get('SCALEXPERT_CUSTOMIZE_PRODUCT');
         $customizeProduct = json_decode($jsonCustomizeProduct, true);
 
+        if (
+            !is_array($customizeProduct)
+            || empty($customizeProduct)
+        ) {
+            return [];
+        }
+
         foreach ($customizeProduct as $solutionCode => $params) {
             if (empty($financingSolutions[$solutionCode])) {
                 unset($customizeProduct[$solutionCode]);
@@ -86,6 +93,13 @@ class Eligibility
         $financingSolutions = static::getConfigSolutions();
         $jsonCustomizeProduct = Configuration::get('SCALEXPERT_CUSTOMIZE_PRODUCT');
         $customizeProduct = json_decode($jsonCustomizeProduct, true);
+
+        if (
+            !is_array($customizeProduct)
+            || empty($customizeProduct)
+        ) {
+            return [];
+        }
 
         foreach ($customizeProduct as $solutionCode => $params) {
             if (empty($financingSolutions[$solutionCode])) {

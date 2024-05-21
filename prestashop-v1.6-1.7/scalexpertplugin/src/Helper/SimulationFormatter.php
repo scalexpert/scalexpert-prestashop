@@ -16,7 +16,8 @@ class SimulationFormatter
     public static function normalizeSimulations(
         $simulateResponse,
         $designSolution = [],
-        $groupSolutions = false
+        $groupSolutions = false,
+        $sortBySolutionCode = false
     ): array
     {
         $simulationsFullData = [];
@@ -77,12 +78,23 @@ class SimulationFormatter
                         && 0 < $simulation['feesAmount']
                     ;
 
-                    $simulationsFullData['all'][] = $simulation;
+                    if ($sortBySolutionCode) {
+                        $simulationsFullData[$solutionSimulation['solutionCode']][] = $simulation;
+                    } else {
+                        $simulationsFullData['all'][] = $simulation;
+                    }
+
                 }
             }
 
             // Sort by duration
-            static::sortSolutionsByDuration($simulationsFullData['all']);
+            if ($sortBySolutionCode) {
+                foreach ($simulationsFullData as $simulationsFullDatum) {
+                    static::sortSolutionsByDuration($simulationsFullDatum);
+                }
+            } else {
+                static::sortSolutionsByDuration($simulationsFullData['all']);
+            }
         } else {
             foreach ($solutionSimulations as $solutionSimulation) {
                 $solutionCode = $solutionSimulation['solutionCode'];

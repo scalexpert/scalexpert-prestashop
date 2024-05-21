@@ -229,12 +229,12 @@
       </trans-unit>
       <trans-unit id="1d11d7a418728d55e53e16e0f21d072b">
         <source>CHRONOPOST</source>
-        <target>CHRONOPOST</target>
+        <target>Chronopost</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="ef66792403b1151083dd12427231825e">
         <source>LA_POSTE</source>
-        <target>LA_POSTE</target>
+        <target>La Poste</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="3b9031dce4fcf88b489a923963dd0c49">
@@ -244,17 +244,17 @@
       </trans-unit>
       <trans-unit id="7d0020fc04a0ed468e36aa03a00d9151">
         <source>RELAIS_COLIS</source>
-        <target>RELAIS_COLIS</target>
+        <target>Relais Colis</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="a371d489d851929601c6a2442d46fb0d">
         <source>MONDIAL_RELAY</source>
-        <target>MONDIAL_RELAY</target>
+        <target>Mondial Relais</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="194c93c94927cd9a435b3b51b657b4ae">
         <source>FEDEX</source>
-        <target>FEDEX</target>
+        <target>Fedex</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="07351bfe713bfebc506f0660ff44b7bf">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="696b031073e74bf2cb98e5ef201d4aa3">
         <source>UNKNOWN</source>
-        <target>UNKNOWN</target>
+        <target>Other</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="a603905470e2a5b8c13e96b579ef0dba">

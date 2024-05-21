@@ -42,7 +42,7 @@ class ScalexpertPlugin extends PaymentModule
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.3.0';
+        $this->version = '1.3.1';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 
@@ -557,7 +557,7 @@ class ScalexpertPlugin extends PaymentModule
                         && 0 < $simulation['feesAmount']
                     ;
 
-                    $groupedSolutionSimulations[] = $simulation;
+                    $groupedSolutionSimulations[$solutionSimulation['solutionCode']][] = $simulation;
                     if (!isset($singleSolutionSimulations[$solutionSimulation['solutionCode']])) {
                         $singleSolutionSimulations[$solutionSimulation['solutionCode']] = $simulation;
                     }
@@ -565,9 +565,13 @@ class ScalexpertPlugin extends PaymentModule
             }
         }
 
-        uasort($groupedSolutionSimulations, function ($a, $b) {
-            return $a['duration'] > $b['duration'];
-        });
+        if (!empty($groupedSolutionSimulations)) {
+            foreach ($groupedSolutionSimulations as $groupedSolutionSimulation) {
+                uasort($groupedSolutionSimulation, function ($a, $b) {
+                    return $a['duration'] > $b['duration'];
+                });
+            }
+        }
 
         $regroupPayments = Configuration::get(RegroupPaymentsConfigurationFormDataConfiguration::CONFIGURATION_REGROUP_PAYMENTS);
         $designConfiguration = Configuration::get(DesignCustomizeFormDataConfiguration::CONFIGURATION_DESIGN);
@@ -589,7 +593,7 @@ class ScalexpertPlugin extends PaymentModule
 
                     $availableFinancialSolution['position'] = $designConfiguration[$availableFinancialSolution['solutionCode']]['position'];
                     $availableFinancialSolution['simulation'] = $singleSolutionSimulations[$availableFinancialSolution['solutionCode']];
-                    $availableFinancialSolution['simulationPopinData'] = $groupedSolutionSimulations;
+                    $availableFinancialSolution['simulationPopinData'] = $groupedSolutionSimulations[$availableFinancialSolution['solutionCode']];
                 }
             }
 
@@ -600,6 +604,7 @@ class ScalexpertPlugin extends PaymentModule
 
                 $this->smarty->assign([
                     'availableFinancialSolutions' => $availableFinancialSolutions,
+                    'financedAmountFormatted' => $availableSimulation['financedAmountFormatted'] ?? '',
                     'redirectControllerLink' => $redirectControllerLink,
                 ]);
 
@@ -629,7 +634,8 @@ class ScalexpertPlugin extends PaymentModule
                     );
 
                     $this->smarty->assign([
-                        'availableSolution' => $availableFinancialSolution
+                        'availableSolution' => $availableFinancialSolution,
+                        'financedAmountFormatted' => $availableSimulation['financedAmountFormatted'] ?? '',
                     ]);
 
                     $availableOption = new PaymentOption();
@@ -792,8 +798,6 @@ class ScalexpertPlugin extends PaymentModule
             $trackingNumber = $orderCarrier->tracking_number;
         }
 
-        $templateData['operators'] = $this->getOperators();
-
         $apiClient = $this->get('scalexpert.api.client');
         $entityManager = $this->get('doctrine.orm.entity_manager');
         $cartInsuranceRepository = $entityManager->getRepository(ScalexpertCartInsurance::class);
@@ -854,6 +858,9 @@ class ScalexpertPlugin extends PaymentModule
                 $financialSubscription['displayDeliveryConfirmation'] = $this->displayDeliveryConfirmation(
                     $financialSubscription['solutionCode'],
                     $trackingNumber
+                );
+                $financialSubscription['operators'] = $this->getOperators(
+                    $this->isDeutschLongFinancingSolution($financialSubscription['solutionCode'])
                 );
             }
 
@@ -930,8 +937,8 @@ class ScalexpertPlugin extends PaymentModule
                     );
 
                     if (
-                        isset($responseConfirmDelivery['status'])
-                        && 'ACCEPTED' === $responseConfirmDelivery['status']
+                        isset($responseConfirmDelivery['code'])
+                        && 204 === (int)$responseConfirmDelivery['code']
                     ) {
                         $this->get('session')->getFlashBag()->add('success',
                             $this->trans(
@@ -1451,9 +1458,11 @@ class ScalexpertPlugin extends PaymentModule
         ], true);
     }
 
-    public function getOperators(): array
+    public function getOperators(
+        bool $isDeutsch = false
+    ): array
     {
-        return [
+        return $isDeutsch ? [] : [
             'UPS' => $this->trans('UPS', [], 'Modules.Scalexpertplugin.Admin'),
             'DHL' => $this->trans('DHL', [], 'Modules.Scalexpertplugin.Admin'),
             'CHRONOPOST' => $this->trans('CHRONOPOST', [], 'Modules.Scalexpertplugin.Admin'),
