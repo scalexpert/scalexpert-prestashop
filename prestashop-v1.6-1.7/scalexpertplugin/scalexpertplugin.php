@@ -65,7 +65,7 @@ class ScalexpertPlugin extends PaymentModule
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.3.1';
+        $this->version = '1.3.2';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 
@@ -297,17 +297,25 @@ class ScalexpertPlugin extends PaymentModule
         $langTitle = [
             'en' => 'Order confirmation',
             'fr' => 'Confirmation de commande',
+            'de' => 'Order confirmation',
         ];
         $langUrl = [
             'en' => 'order-confirmation',
             'fr' => 'confirmation-de-commande',
+            'de' => 'order-confirmation',
         ];
         $langs = \Language::getLanguages();
         $titles = [];
         $url_rewrites = [];
         foreach ($langs as $lang) {
-            $titles[$lang['id_lang']] = $langTitle[strtolower($lang['iso_code'])];
-            $url_rewrites[$lang['id_lang']] = $langUrl[strtolower($lang['iso_code'])];
+            if (
+                isset($langTitle[strtolower($lang['iso_code'])])
+                && isset($langUrl[strtolower($lang['iso_code'])])
+            ) {
+                $titles[$lang['id_lang']] = $langTitle[strtolower($lang['iso_code'])];
+                $url_rewrites[$lang['id_lang']] = $langUrl[strtolower($lang['iso_code'])];
+            }
+
         }
 
         $meta = new Meta();

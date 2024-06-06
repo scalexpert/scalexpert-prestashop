@@ -42,7 +42,7 @@ class ScalexpertPlugin extends PaymentModule
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.3.1';
+        $this->version = '1.3.2';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 
@@ -295,17 +295,24 @@ class ScalexpertPlugin extends PaymentModule
         $langTitle = [
             'en' => 'Order confirmation',
             'fr' => 'Confirmation de commande',
+            'de' => 'Order confirmation',
         ];
         $langUrl = [
             'en' => 'order-confirmation',
             'fr' => 'confirmation-de-commande',
+            'de' => 'order-confirmation',
         ];
         $langs = \Language::getLanguages();
         $titles = [];
         $url_rewrites = [];
         foreach ($langs as $lang) {
-            $titles[$lang['id_lang']] = $langTitle[strtolower($lang['iso_code'])];
-            $url_rewrites[$lang['id_lang']] = $langUrl[strtolower($lang['iso_code'])];
+            if (
+                isset($langTitle[strtolower($lang['iso_code'])])
+                && isset($langUrl[strtolower($lang['iso_code'])])
+            ) {
+                $titles[$lang['id_lang']] = $langTitle[strtolower($lang['iso_code'])];
+                $url_rewrites[$lang['id_lang']] = $langUrl[strtolower($lang['iso_code'])];
+            }
         }
 
         $meta = new Meta();
@@ -357,6 +364,14 @@ class ScalexpertPlugin extends PaymentModule
             'icon' => 'build',
         ];
 
+        // Parent Config
+        $data[] = [
+            'className' => 'AdminScalexpertPluginParentConfig',
+            'routeName' => '',
+            'name' => $this->getTabsTranslation('AdminScalexpertPluginParentConfig'),
+            'parent' => 'AdminScalexpertPlugin',
+        ];
+
         // Customize tab
         $data[] = [
             'className' => 'AdminScalexpertPluginParentCustomize',
@@ -371,14 +386,6 @@ class ScalexpertPlugin extends PaymentModule
             'routeName' => 'scalexpert_controller_tabs_admin_design',
             'name' => $this->getTabsTranslation(DesignTabController::TAB_CLASS_NAME),
             'parent' => 'AdminScalexpertPluginParentCustomize',
-        ];
-
-        // Parent Config
-        $data[] = [
-            'className' => 'AdminScalexpertPluginParentConfig',
-            'routeName' => '',
-            'name' => $this->getTabsTranslation('AdminScalexpertPluginParentConfig'),
-            'parent' => 'AdminScalexpertPlugin',
         ];
 
         // Config
@@ -495,7 +502,7 @@ class ScalexpertPlugin extends PaymentModule
 
         $nameData = [];
         foreach (Language::getLanguages() as $lang) {
-            if ($data[$tabClassName][strtoupper($lang['iso_code'])]) {
+            if (isset($data[$tabClassName][strtoupper($lang['iso_code'])])) {
                 $nameData[$lang['id_lang']] = $data[$tabClassName][strtoupper($lang['iso_code'])];
             } else {
                 $nameData[$lang['id_lang']] = $data[$tabClassName]['EN'];

@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.2] - 2024-06-05
+### Bugfix
+- Fix meta creation on module install for deutsch locale
+- Rename licence file
+
 ## [1.3.1] - 2024-05-17
 ### Bugfix
 - Update modal content of financing solutions on payment step in the checkout
