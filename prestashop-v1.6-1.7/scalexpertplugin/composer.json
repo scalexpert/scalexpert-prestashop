@@ -1,4 +1,14 @@
 {
+    "name": "module/scalexpertplugin",
+    "description": "Description of Scalexpert module.",
+    "authors": [
+        {
+            "name": "Société générale"
+        }
+    ],
+    "license": [
+        "OSL-3.0"
+    ],
     "autoload": {
         "psr-4": {
             "ScalexpertPlugin\\": "src/"
