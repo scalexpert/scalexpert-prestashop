@@ -42,7 +42,7 @@ class ScalexpertPlugin extends PaymentModule
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.3.2';
+        $this->version = '1.3.3';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 

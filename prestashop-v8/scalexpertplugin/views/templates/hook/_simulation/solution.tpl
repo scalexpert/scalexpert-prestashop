@@ -50,7 +50,7 @@
 
                     {if !empty($solution.designConfiguration.visualDescription)}
                         <div class="sep-Simulations-solution-visualDescription">
-                            {$solution.designConfiguration.visualDescription|default:''}
+                            {$solution.designConfiguration.visualDescription|default:'' nofilter}
                         </div>
                     {/if}
                 </div>
