@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.3.3] - 2024-06-25
+### Bugfix
+- Fix displaying of html in simulator box
+
 ## [1.3.2] - 2024-06-05
 ### Bugfix
 - Fix meta creation on module install for deutsch locale

@@ -10,7 +10,6 @@
 
 {if !empty($availableSolution)}
     <div class="sep_financialSolutionContent">
-        {$availableSolution.visualDescription|default:'' nofilter}
         {$availableSolution.visualLegalText|default:'' nofilter}
 
         {if !empty($availableSolution.simulation) && !empty($availableSolution.simulationPopinData)}

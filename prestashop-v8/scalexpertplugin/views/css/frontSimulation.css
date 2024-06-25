@@ -142,9 +142,13 @@
     font-weight: 700;
 }
 
+.sep_financialSolutionContent .scalexpert_important,
+.sep-Simulations-solution .scalexpert_important {
+    font-weight: bold;
+}
+
 .sep-Simulations-solution .scalexpert_important {
     font-size: 13px;
-    font-weight: bold;
 }
 
 .sep-Simulations-solution .part_bottom .scalexpert_important {
