@@ -27,9 +27,9 @@ class AvailableSolutionsService
     private $configuration;
 
     public function __construct(
-        Client $apiClient,
+        Client                 $apiClient,
         ConfigurationInterface $configuration,
-        LegacyContext $context
+        LegacyContext          $context
     )
     {
         $this->apiClient = $apiClient;
@@ -38,7 +38,7 @@ class AvailableSolutionsService
         $this->legacyContext = $context->getContext();
     }
 
-    public function getContextBuyerBillingCountry()
+    public function getContextBuyerBillingCountry(): string
     {
         return $this->legacyContext->language->iso_code;
     }
@@ -52,145 +52,122 @@ class AvailableSolutionsService
         $buyerBillingCountry = $this->getContextBuyerBillingCountry();
         $financialSolutions = $this->apiClient->getFinancialSolutions($productPrice, $buyerBillingCountry);
 
-        return $this->getAvailableSolutions(false, $financialSolutions, $productID);
+        return $this->getAvailableSolutions($financialSolutions, $productID);
     }
 
     public function getAvailableInsuranceSolutions(
-        $productID = null,
-        $productIDAttribute = null
+        string $context,
+               $productID = null,
+               $productIDAttribute = null
     ): array
     {
-        $insuranceSolutions = [];
         $buyerBillingCountry = $this->getContextBuyerBillingCountry();
         $allInsuranceSolutions = $this->apiClient->getInsuranceSolutionsByBuyerBillingCountry($buyerBillingCountry);
 
-        if (!empty($allInsuranceSolutions)) {
-            // Get active configuration
-            $activeConfiguration = $this->configuration->get(InsuranceConfigurationFormDataConfiguration::CONFIGURATION_INSURANCE);
-            $activeConfiguration = !empty($activeConfiguration) ? json_decode($activeConfiguration, true) : [];
+        if (empty($allInsuranceSolutions)) {
+            return [];
+        }
 
-            // Get config configuration
-            $designConfiguration = $this->configuration->get(DesignCustomizeFormDataConfiguration::CONFIGURATION_DESIGN);
-            $designConfiguration = !empty($designConfiguration) ? json_decode($designConfiguration, true) : [];
+        // Get active configuration
+        $activeConfiguration = json_decode(
+            $this->configuration->get(InsuranceConfigurationFormDataConfiguration::CONFIGURATION_INSURANCE, '{}'),
+            true
+        );
 
-            foreach ($allInsuranceSolutions as $solutionCode => $insuranceSolution) {
-                // Case solution is not active in configuration
-                if (empty($activeConfiguration[$solutionCode])) {
-                    continue;
-                }
+        // Get config configuration
+        $designConfiguration = json_decode(
+            $this->configuration->get(DesignCustomizeFormDataConfiguration::CONFIGURATION_DESIGN, '{}'),
+            true
+        );
 
-                if (!isset($designConfiguration[$solutionCode])) {
-                    continue;
-                }
+        if (isset($this->legacyContext->cart)) {
+            $cartProducts = $this->legacyContext->cart->getProducts();
+        }
 
-                if (empty($productID)) {
-                    if (isset($this->legacyContext->cart)) {
-                        $cartProducts = $this->legacyContext->cart->getProducts();
-                    }
+        $insuranceSolutions = [];
+        foreach ($allInsuranceSolutions as $solutionCode => $insuranceSolution) {
+            // Case solution is not active in configuration
+            if (empty($activeConfiguration[$solutionCode])) {
+                continue;
+            }
 
-                    if (!empty($cartProducts)) {
-                        foreach ($cartProducts as $cartProduct) {
-                            $insuranceSolutionData = $insuranceSolution;
+            if (!isset($designConfiguration[$solutionCode])) {
+                continue;
+            }
 
-                            if (!empty($designConfiguration[$solutionCode]['excludedCategories'])) {
-                                // Check category compatibility with current product on product page
-                                $productCategories = \Product::getProductCategories($cartProduct['id_product']);
-
-                                if (!empty($productCategories)) {
-                                    foreach ($designConfiguration[$solutionCode]['excludedCategories'] as $categoryID) {
-                                        // Restricted category for the solution
-                                        if (in_array($categoryID, $productCategories)) {
-                                            continue 2;
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (
-                                !empty($designConfiguration[$solutionCode]['excludedProducts']['data'])
-                                && in_array($cartProduct['id_product'], $designConfiguration[$solutionCode]['excludedProducts']['data'])
-                            ) {
-                                continue;
-                            }
-
-                            $itemId = $this->apiClient->createItem($solutionCode, $cartProduct['id_product']);
-
-                            if (!empty($itemId)) {
-                                $insuranceSolutionData['itemId'] = $itemId;
-
-                                $productPrice = \Product::getPriceStatic(
-                                    $cartProduct['id_product'],
-                                    true,
-                                    $cartProduct['id_product_attribute'],
-                                    2
-                                );
-
-                                $insurances = $this->apiClient->getInsurancesByItemId($solutionCode, $productPrice, $itemId);
-
-                                if (!empty($insurances)) {
-                                    $insuranceSolutionData['insurances'] = $insurances;
-                                }
-                            }
-
-                            if (empty($insuranceSolutionData['insurances'])) {
-                                continue;
-                            }
-
-                            $insuranceSolutionData['relatedProduct'] = $cartProduct;
-                            $insuranceSolutionData['designConfiguration'] = $designConfiguration[$solutionCode];
-                            $insuranceSolutions[] = $insuranceSolutionData;
-                        }
-                    }
-                } else {
-                    $insuranceSolutionData = $insuranceSolution;
-
-                    if (!empty($designConfiguration[$solutionCode]['excludedCategories'])) {
-                        // Check category compatibility with current product on product page
-                        $productCategories = \Product::getProductCategories($productID);
-
-                        if (!empty($productCategories)) {
-                            foreach ($designConfiguration[$solutionCode]['excludedCategories'] as $categoryID) {
-                                // Restricted category for the solution
-                                if (in_array($categoryID, $productCategories)) {
-                                    continue 2;
-                                }
-                            }
-                        }
-                    }
-
-                    // Restricted products for the solution
-                    if (
-                        !empty($designConfiguration[$solutionCode]['excludedProducts']['data'])
-                        && in_array($productID, $designConfiguration[$solutionCode]['excludedProducts']['data'])
-                    ) {
-                        continue;
-                    }
-
-                    $itemId = $this->apiClient->createItem($solutionCode, $productID);
-
-                    if (!empty($itemId)) {
-                        $insuranceSolutionData['itemId'] = $itemId;
-
-                        $productPrice = \Product::getPriceStatic($productID, true, $productIDAttribute, 2);
-                        $insurances = $this->apiClient->getInsurancesByItemId($solutionCode, $productPrice, $itemId);
-
-                        if (!empty($insurances)) {
-                            $insuranceSolutionData['insurances'] = $insurances;
-                            $insuranceSolutionData['productID'] = $productID;
-                        }
-                    }
-
-                    if (empty($insuranceSolutionData['insurances'])) {
+            if ('cart' === $context && !empty($cartProducts)) {
+                foreach ($cartProducts as $cartProduct) {
+                    $insuranceSolutionData = $this->getInsuranceData(
+                        (int)$cartProduct['id_product'],
+                        $cartProduct['id_product_attribute'],
+                        $solutionCode,
+                        $insuranceSolution,
+                        $designConfiguration[$solutionCode]
+                    );
+                    if (empty($insuranceSolutionData)) {
                         continue;
                     }
 
                     $insuranceSolutionData['designConfiguration'] = $designConfiguration[$solutionCode];
+                    $insuranceSolutionData['relatedProduct'] = $cartProduct;
                     $insuranceSolutions[] = $insuranceSolutionData;
                 }
+            } else {
+                $insuranceSolutionData = $this->getInsuranceData(
+                    (int)$productID,
+                    $productIDAttribute,
+                    $solutionCode,
+                    $insuranceSolution,
+                    $designConfiguration[$solutionCode]
+                );
+                if (empty($insuranceSolutionData)) {
+                    continue;
+                }
+
+                $insuranceSolutionData['designConfiguration'] = $designConfiguration[$solutionCode];
+                $insuranceSolutionData['productID'] = $productID;
+                $insuranceSolutions[] = $insuranceSolutionData;
             }
         }
 
         return $insuranceSolutions;
+    }
+
+    protected function getInsuranceData(
+        int    $idProduct,
+               $idProductAttribute,
+        string $solutionCode,
+        array  $insuranceSolution,
+        array  $designConfigurationForSolutionCode
+    ): array
+    {
+        if (
+            $this->isProductExcluded($idProduct, $designConfigurationForSolutionCode)
+        ) {
+            return [];
+        }
+
+        $insuranceSolutionData = $insuranceSolution;
+        $itemId = $this->apiClient->createItem($solutionCode, $idProduct);
+
+        if (!empty($itemId)) {
+            $insuranceSolutionData['itemId'] = $itemId;
+
+            $productPrice = \Product::getPriceStatic(
+                $idProduct,
+                true,
+                $idProductAttribute,
+                2
+            );
+
+            $insurances = $this->apiClient->getInsurancesByItemId($solutionCode, $productPrice, $itemId);
+
+            if (!empty($insurances)) {
+                $insuranceSolutionData['insurances'] = $insurances;
+            }
+        }
+
+        return empty($insuranceSolutionData['insurances']) ? [] : $insuranceSolutionData;
     }
 
     public function getSimulationForAvailableFinancialSolutions(
@@ -201,87 +178,90 @@ class AvailableSolutionsService
         $productPrice = $this->getProductPrice($productID, $productIDAttribute);
         $buyerBillingCountry = $this->getContextBuyerBillingCountry();
         $financialSolutions = $this->apiClient->getFinancialSolutions($productPrice, $buyerBillingCountry);
+
         // Get config configuration
-        $designConfiguration = $this->configuration->get(
-            DesignCustomizeFormDataConfiguration::CONFIGURATION_DESIGN
+        $designConfiguration = json_decode(
+            $this->configuration->get(DesignCustomizeFormDataConfiguration::CONFIGURATION_DESIGN, '{}'),
+            true
         );
-        $designConfiguration = !empty($designConfiguration) ? json_decode($designConfiguration, true) : [];
 
         $simulateResponse = $this->apiClient->simulateFinancing(
             $productPrice,
             $buyerBillingCountry,
-            $this->getAvailableSolutions(true, $financialSolutions, $productID)
+            $this->getAvailableSolutions($financialSolutions, $productID, true)
         );
 
-        if(
-            !empty($simulateResponse)
-            && !empty($simulateResponse['solutionSimulations'])
+        if (
+            empty($simulateResponse)
+            || empty($simulateResponse['solutionSimulations'])
         ) {
-            $currentLocale = $this->legacyContext->getCurrentLocale();
-            $currentCurrencyCode = $this->legacyContext->currency->iso_code;
+            return $simulateResponse;
+        }
 
-            $simulateResponse['financedAmountFormatted'] = $currentLocale->formatPrice(
-                $simulateResponse['financedAmount'],
-                $currentCurrencyCode
-            );
+        $currentLocale = $this->legacyContext->getCurrentLocale();
+        $currentCurrencyCode = $this->legacyContext->currency->iso_code;
 
-            $solutionSimulations = &$simulateResponse['solutionSimulations'];
-            foreach ($solutionSimulations as $k => $solutionSimulation) {
-                $solutionCode = $solutionSimulation['solutionCode'];
+        $simulateResponse['financedAmountFormatted'] = $currentLocale->formatPrice(
+            $simulateResponse['financedAmount'],
+            $currentCurrencyCode
+        );
 
-                // Add customization data
-                $solutionSimulations[$k]['designConfiguration'] = $financialSolutions[$solutionCode];
-                $solutionSimulations[$k]['designConfiguration']['custom'] = $designConfiguration[$solutionCode];
-                if ($productID) {
-                    if (!empty($designConfiguration[$solutionCode]['productTitle'])) {
-                        $solutionSimulations[$k]['designConfiguration']['visualTitle'] =
-                            $designConfiguration[$solutionCode]['productTitle'];
-                    }
+        $solutionSimulations = &$simulateResponse['solutionSimulations'];
+        foreach ($solutionSimulations as $k => $solutionSimulation) {
+            $solutionCode = $solutionSimulation['solutionCode'];
 
-                    if (empty($designConfiguration[$solutionCode]['productDisplayLogo'])) {
-                        $solutionSimulations[$k]['designConfiguration']['visualLogo'] = null;
-                    }
-                } else {
-                    if (!empty($designConfiguration[$solutionCode]['paymentTitle'])) {
-                        $solutionSimulations[$k]['designConfiguration']['visualTitle'] =
-                            $designConfiguration[$solutionCode]['paymentTitle'];
-                    }
-
-                    if (empty($designConfiguration[$solutionCode]['paymentDisplayLogo'])) {
-                        $solutionSimulations[$k]['designConfiguration']['visualLogo'] = null;
-                    }
+            // Add customization data
+            $solutionSimulations[$k]['designConfiguration'] = $financialSolutions[$solutionCode];
+            $solutionSimulations[$k]['designConfiguration']['custom'] = $designConfiguration[$solutionCode] ?? [];
+            if ($productID) {
+                if (!empty($designConfiguration[$solutionCode]['productTitle'])) {
+                    $solutionSimulations[$k]['designConfiguration']['visualTitle'] =
+                        $designConfiguration[$solutionCode]['productTitle'];
                 }
 
-                // Add context data
-                $solutionSimulations[$k]['isLongFinancingSolution'] = $this->isLongFinancingSolution($solutionCode);
-                $solutionSimulations[$k]['hasFeesSolution'] = $this->hasFeesFinancingSolution($solutionCode);
+                if (empty($designConfiguration[$solutionCode]['productDisplayLogo'])) {
+                    $solutionSimulations[$k]['designConfiguration']['visualLogo'] = null;
+                }
+            } else {
+                if (!empty($designConfiguration[$solutionCode]['paymentTitle'])) {
+                    $solutionSimulations[$k]['designConfiguration']['visualTitle'] =
+                        $designConfiguration[$solutionCode]['paymentTitle'];
+                }
 
-                foreach ($solutionSimulation['simulations'] as $j => $simulation) {
-                    // Refactor percentage data
-                    $solutionSimulations[$k]['simulations'][$j]['effectiveAnnualPercentageRateFormatted'] = $simulation['effectiveAnnualPercentageRate'] . '%';
-                    $solutionSimulations[$k]['simulations'][$j]['nominalPercentageRateFormatted'] = $simulation['nominalPercentageRate'] . '%';
+                if (empty($designConfiguration[$solutionCode]['paymentDisplayLogo'])) {
+                    $solutionSimulations[$k]['designConfiguration']['visualLogo'] = null;
+                }
+            }
 
+            // Add context data
+            $solutionSimulations[$k]['isLongFinancingSolution'] = $this->isLongFinancingSolution($solutionCode);
+            $solutionSimulations[$k]['hasFeesSolution'] = $this->hasFeesFinancingSolution($solutionCode);
+
+            foreach ($solutionSimulation['simulations'] as $j => $simulation) {
+                // Refactor percentage data
+                $solutionSimulations[$k]['simulations'][$j]['effectiveAnnualPercentageRateFormatted'] = $simulation['effectiveAnnualPercentageRate'] . '%';
+                $solutionSimulations[$k]['simulations'][$j]['nominalPercentageRateFormatted'] = $simulation['nominalPercentageRate'] . '%';
+
+                // Refactor price data
+                $solutionSimulations[$k]['simulations'][$j]['totalCostFormatted'] = $currentLocale->formatPrice(
+                    $simulation['totalCost'],
+                    $currentCurrencyCode
+                );
+                $solutionSimulations[$k]['simulations'][$j]['dueTotalAmountFormatted'] = $currentLocale->formatPrice(
+                    $simulation['dueTotalAmount'],
+                    $currentCurrencyCode
+                );
+                $solutionSimulations[$k]['simulations'][$j]['feesAmountFormatted'] = $currentLocale->formatPrice(
+                    $simulation['feesAmount'],
+                    $currentCurrencyCode
+                );
+
+                foreach ($simulation['installments'] as $i => $installment) {
                     // Refactor price data
-                    $solutionSimulations[$k]['simulations'][$j]['totalCostFormatted'] = $currentLocale->formatPrice(
-                        $simulation['totalCost'],
+                    $solutionSimulations[$k]['simulations'][$j]['installments'][$i]['amountFormatted'] = $currentLocale->formatPrice(
+                        $installment['amount'],
                         $currentCurrencyCode
                     );
-                    $solutionSimulations[$k]['simulations'][$j]['dueTotalAmountFormatted'] = $currentLocale->formatPrice(
-                        $simulation['dueTotalAmount'],
-                        $currentCurrencyCode
-                    );
-                    $solutionSimulations[$k]['simulations'][$j]['feesAmountFormatted'] = $currentLocale->formatPrice(
-                        $simulation['feesAmount'],
-                        $currentCurrencyCode
-                    );
-
-                    foreach ($simulation['installments'] as $i => $installment) {
-                        // Refactor price data
-                        $solutionSimulations[$k]['simulations'][$j]['installments'][$i]['amountFormatted'] = $currentLocale->formatPrice(
-                            $installment['amount'],
-                            $currentCurrencyCode
-                        );
-                    }
                 }
             }
         }
@@ -294,6 +274,7 @@ class AvailableSolutionsService
     {
         return in_array($solutionCode, [
             'SCFRLT-TXPS',
+            'SCFRLT-TXTS',
             'SCFRLT-TXNO',
         ], true);
     }
@@ -310,8 +291,19 @@ class AvailableSolutionsService
     {
         return
             $this->isFrenchLongFinancingSolution($solutionCode)
-            || $this->isDeutschLongFinancingSolution($solutionCode)
-        ;
+            || $this->isDeutschLongFinancingSolution($solutionCode);
+    }
+
+    public function displayDeliveryConfirmation(
+        string $solutionCode,
+        bool $isDelivered
+    ): bool
+    {
+        return !$isDelivered
+            && (
+                $this->isFrenchLongFinancingSolution($solutionCode)
+                || $this->isDeutschLongFinancingSolution($solutionCode)
+            );
     }
 
     public function hasFeesFinancingSolution(string $solutionCode): bool
@@ -321,6 +313,26 @@ class AvailableSolutionsService
             'SCFRSP-4XPS',
             'SCFRLT-TXPS',
         ], true);
+    }
+
+    public function getOperators(
+        $solutionCode,
+        $translator
+    ): array
+    {
+        $isDeutschSolution = $this->isDeutschLongFinancingSolution($solutionCode);
+        return $isDeutschSolution ? [] : [
+            'UPS' => $translator->trans('UPS', [], 'Modules.Scalexpertplugin.Admin'),
+            'DHL' => $translator->trans('DHL', [], 'Modules.Scalexpertplugin.Admin'),
+            'CHRONOPOST' => $translator->trans('CHRONOPOST', [], 'Modules.Scalexpertplugin.Admin'),
+            'LA_POSTE' => $translator->trans('LA_POSTE', [], 'Modules.Scalexpertplugin.Admin'),
+            'DPD' => $translator->trans('DPD', [], 'Modules.Scalexpertplugin.Admin'),
+            'RELAIS_COLIS' => $translator->trans('RELAIS_COLIS', [], 'Modules.Scalexpertplugin.Admin'),
+            'MONDIAL_RELAY' => $translator->trans('MONDIAL_RELAY', [], 'Modules.Scalexpertplugin.Admin'),
+            'FEDEX' => $translator->trans('FEDEX', [], 'Modules.Scalexpertplugin.Admin'),
+            'GLS' => $translator->trans('GLS', [], 'Modules.Scalexpertplugin.Admin'),
+            'UNKNOWN' => $translator->trans('UNKNOWN', [], 'Modules.Scalexpertplugin.Admin'),
+        ];
     }
 
     protected function getProductPrice(
@@ -342,110 +354,78 @@ class AvailableSolutionsService
     }
 
     protected function getAvailableSolutions(
-        bool $onlyCode = false,
         array $financialSolutions,
-        $productID = null
+              $productID = null,
+        bool  $onlyCode = false
     ): array
     {
         if (empty($financialSolutions)) {
             return [];
         }
 
-        $availableSolutions = [];
         // Get active configuration
-        $activeConfiguration = $this->configuration->get(
-            FinancingConfigurationFormDataConfiguration::CONFIGURATION_FINANCING
+        $activeConfiguration = json_decode(
+            $this->configuration->get(FinancingConfigurationFormDataConfiguration::CONFIGURATION_FINANCING, '{}'),
+            true
         );
-        $activeConfiguration = !empty($activeConfiguration) ? json_decode($activeConfiguration, true) : [];
 
         // Get config configuration
-        $designConfiguration = $this->configuration->get(
-            DesignCustomizeFormDataConfiguration::CONFIGURATION_DESIGN
+        $designConfiguration = json_decode(
+            $this->configuration->get(DesignCustomizeFormDataConfiguration::CONFIGURATION_DESIGN, '{}'),
+            true
         );
-        $designConfiguration = !empty($designConfiguration) ? json_decode($designConfiguration, true) : [];
 
+        if (isset($this->legacyContext->cart)) {
+            $cartProducts = $this->legacyContext->cart->getProducts();
+        }
+
+        $availableSolutions = [];
         foreach ($financialSolutions as $solutionCode => $financialSolution) {
             // Case solution is not active in configuration
-            if (empty($activeConfiguration[$solutionCode])) {
+            if (
+                empty($activeConfiguration[$solutionCode])
+                || !isset($designConfiguration[$solutionCode])
+            ) {
                 continue;
             }
 
-            if (isset($designConfiguration[$solutionCode])) {
-                // On product page, check productDisplay is enabled
-                if (
-                    null !== $productID
-                    && !$designConfiguration[$solutionCode]['productDisplay']
-                ) {
-                    continue;
-                }
-
-                if (isset($this->legacyContext->cart)) {
-                    $cartProducts = $this->legacyContext->cart->getProducts();
-                }
-
-                if (
-                    !empty($designConfiguration[$solutionCode]['excludedCategories'])
-                    && !empty($productID)
-                ) {
-                    // Check category compatibility with current product on product page
-                    $productCategories = \Product::getProductCategories($productID);
-
-                    if (!empty($productCategories)) {
-                        foreach ($designConfiguration[$solutionCode]['excludedCategories'] as $categoryID) {
-                            // Restricted category for the solution
-                            if (in_array($categoryID, $productCategories)) {
-                                continue 2;
-                            }
-                        }
-                    }
-                }
-
-                if (
-                    !empty($designConfiguration[$solutionCode]['excludedProducts']['data'])
-                    && !empty($productID)
-                    && in_array($productID, $designConfiguration[$solutionCode]['excludedProducts']['data'])
-                ) {
-                    continue;
-                }
-
-                if (!empty($cartProducts)) {
-                    $insuranceProductsCategory = $this->configuration->get(
-                        CartInsuranceProductsService::CONFIGURATION_INSURANCE_PRODUCTS_CATEGORY
-                    );
-
-                    foreach ($cartProducts as $cartProduct) {
-                        // Financial solutions are not compatible with insurance products
-                        if ($cartProduct['id_category_default'] == $insuranceProductsCategory) {
-                            continue 2;
-                        }
-
-                        $productCategories = \Product::getProductCategories($cartProduct['id_product']);
-
-                        // Check category compatibility with cart products
-                        if (
-                            !empty($productCategories)
-                            && !empty($designConfiguration[$solutionCode]['excludedCategories'])
-                        ) {
-                            foreach ($designConfiguration[$solutionCode]['excludedCategories'] as $categoryID) {
-                                if (in_array($categoryID, $productCategories)) {
-                                    continue 3;
-                                }
-                            }
-                        }
-
-                        if (
-                            !empty($designConfiguration[$solutionCode]['excludedProducts']['data'])
-                            && in_array(
-                                $cartProduct['id_product'],
-                                $designConfiguration[$solutionCode]['excludedProducts']['data']
-                            )
-                        ) {
-                            continue 2;
-                        }
-                    }
-                }
-            } else {
+            // On product page, check productDisplay is enabled
+            if (
+                null !== $productID
+                && !$designConfiguration[$solutionCode]['productDisplay']
+            ) {
                 continue;
+            }
+
+            // On product page, check that product doesn't belong to excluded products or excluded categories
+            if (
+                null !== $productID
+                && $this->isProductExcluded(
+                    (int)$productID,
+                    $designConfiguration[$solutionCode]
+                )
+            ) {
+                continue;
+            }
+
+            if (!empty($cartProducts)) {
+                $insuranceProductsCategory = $this->configuration->get(
+                    CartInsuranceProductsService::CONFIGURATION_INSURANCE_PRODUCTS_CATEGORY
+                );
+
+                foreach ($cartProducts as $cartProduct) {
+                    // Financial solutions are not compatible with insurance products
+                    if ($cartProduct['id_category_default'] == $insuranceProductsCategory) {
+                        continue 2;
+                    }
+
+                    // On cart page, check that products don't belong to excluded products or excluded categories
+                    if (
+                        $this->isProductExcluded((int)$cartProduct['id_product'], $designConfiguration[$solutionCode])
+                    ) {
+                        continue 2;
+                    }
+                }
             }
 
             if ($onlyCode) {
@@ -458,5 +438,31 @@ class AvailableSolutionsService
         }
 
         return $availableSolutions;
+    }
+
+    protected function isProductExcluded(
+        int   $productId,
+        array $exclusions
+    ): bool
+    {
+        $productCategories = \Product::getProductCategories($productId);
+
+        // Check category compatibility with cart products
+        if (
+            !empty($productCategories)
+            && !empty($exclusions['excludedCategories'])
+        ) {
+            foreach ($exclusions['excludedCategories'] as $categoryID) {
+                if (in_array($categoryID, $productCategories)) {
+                    return true;
+                }
+            }
+        }
+
+        return !empty($exclusions['excludedProducts']['data'])
+            && in_array(
+                $productId,
+                $exclusions['excludedProducts']['data']
+            );
     }
 }

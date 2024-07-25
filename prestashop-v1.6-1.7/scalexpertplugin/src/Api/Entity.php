@@ -20,33 +20,36 @@ class Entity
     public static function getEligibleSolutions()
     {
         $params = [];
-        if (!empty(static::$buyerBillingCountry)) {
-            foreach (static::$buyerBillingCountry as $buyerBillingCountry) {
-                if (!empty(static::$financindAmounts)) {
-                    foreach (static::$financindAmounts as $financedAmount) {
-                        $params[] = [
-                            'financedAmount' => $financedAmount,
-                            'buyerBillingCountry' => $buyerBillingCountry
-                        ];
-                    }
-                } else {
-                    $params[] = ['buyerBillingCountry' => $buyerBillingCountry];
+        $eligibleSolutions = [];
+
+        if (empty(static::$buyerBillingCountry)) {
+            return [];
+        }
+
+        foreach (static::$buyerBillingCountry as $buyerBillingCountry) {
+            if (!empty(static::$financindAmounts)) {
+                foreach (static::$financindAmounts as $financedAmount) {
+                    $params[] = [
+                        'financedAmount' => $financedAmount,
+                        'buyerBillingCountry' => $buyerBillingCountry
+                    ];
                 }
+            } else {
+                $params[] = ['buyerBillingCountry' => $buyerBillingCountry];
             }
         }
 
-        $elligibleSolutions = [];
         foreach ($params as $param) {
             $apiUrl = static::$scope . '/api/v1/eligible-solutions?' . http_build_query($param);
             $result = Client::get($apiUrl);
 
             if (!$result['hasError']) {
                 foreach ($result['data']['solutions'] as $solution) {
-                    $elligibleSolutions[$solution['solutionCode']] = $solution;
+                    $eligibleSolutions[$solution['solutionCode']] = $solution;
                 }
             }
         }
 
-        return $elligibleSolutions;
+        return $eligibleSolutions;
     }
 }

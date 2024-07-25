@@ -14,11 +14,15 @@ use ScalexpertPlugin\Helper\FinancingEligibility;
 use ScalexpertPlugin\Helper\InsuranceEligibility;
 use ScalexpertPlugin\Helper\InsuranceProcess;
 use ScalexpertPlugin\Helper\SimulationFormatter;
+use ScalexpertPlugin\Helper\SolutionManager;
 use ScalexpertPlugin\Model\CartInsurance;
 use ScalexpertPlugin\Model\ProductField;
 use ScalexpertPlugin\Model\FinancingOrder;
 use ScalexpertPlugin\Api\Financing;
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
+use ScalexpertPlugin\Service\DataBuilder;
+use ScalexpertPlugin\Service\OrderUpdater;
+use ScalexpertPlugin\Service\SolutionSorter;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
@@ -32,10 +36,6 @@ class ScalexpertPlugin extends PaymentModule
     const MODULE_ADMIN_CONTROLLERS = [
         'AdminScalexpertAdministration',
         'AdminScalexpertCustomize'
-    ];
-    const TYPES = [
-        0 => 'financials',
-        1 => 'insurance',
     ];
 
     const ORDER_STATES = [
@@ -65,7 +65,7 @@ class ScalexpertPlugin extends PaymentModule
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.3.3';
+        $this->version = '1.4.0';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 
@@ -82,7 +82,7 @@ class ScalexpertPlugin extends PaymentModule
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => '1.7.99.99');
     }
 
-    public function install()
+    public function install(): bool
     {
         if (!extension_loaded('curl')) {
             $this->_errors[] = $this->l('You have to enable the cURL extension on your server to install this module');
@@ -102,26 +102,35 @@ class ScalexpertPlugin extends PaymentModule
             && $this->registerHooks();
     }
 
-    private function registerHooks()
+    private function registerHooks(): bool
     {
-        return $this->registerHook('header')
-            && $this->registerHook('displayBackOfficeHeader')
-            && $this->registerHook('displayProductButtons')
-            && $this->registerHook('displayShoppingCartFooter')
-            && $this->registerHook('displayOrderConfirmation')
-            && $this->registerHook('displayAdminProductsExtra')
-            && $this->registerHook('actionCartSave')
-            && $this->registerHook('actionProductSave')
-            && $this->registerHook('displayAdminOrderTop')
-            && $this->registerHook('displayAdminOrder')
-            && $this->registerHook('displayAdminOrderSide')
-            && $this->registerHook('actionOrderStatusPostUpdate')
-            && $this->registerHook('payment')
-            && $this->registerHook('paymentReturn')
-            && $this->registerHook('paymentOptions');
+        $hooks = [
+            'header',
+            'displayBackOfficeHeader',
+            'displayProductButtons',
+            'displayShoppingCartFooter',
+            'displayOrderConfirmation',
+            'displayAdminProductsExtra',
+            'actionCartSave',
+            'actionProductSave',
+            'displayAdminOrderTop',
+            'displayAdminOrder',
+            'displayAdminOrderSide',
+            'actionOrderStatusPostUpdate',
+            'payment',
+            'paymentReturn',
+            'paymentOptions'
+        ];
+
+        $registerOk = true;
+        foreach ($hooks as $hook) {
+            $registerOk &= $this->registerHook($hook);
+        }
+
+        return $registerOk;
     }
 
-    public function installTabs()
+    public function installTabs(): bool
     {
         // We create the Parent Tab
         if (!$parentTabId = Tab::getIdFromClassName(static::MODULE_ADMIN_PARENT_CONTROLLER)) {
@@ -172,39 +181,37 @@ class ScalexpertPlugin extends PaymentModule
         return true;
     }
 
-    public function installDatabase()
+    public function installDatabase(): bool
     {
         return ProductField::createTable()
             && CartInsurance::createTable()
             && FinancingOrder::createTable();
     }
 
-    public function installCategoryInsurance()
+    public function installCategoryInsurance(): bool
     {
         $insuranceProductsCategory = new Category();
-
         $rootCategory = Category::getRootCategory();
-
         if (Validate::isLoadedObject($rootCategory)) {
             $insuranceProductsCategory->id_parent = $rootCategory->id;
         }
 
         $insuranceProductsCategoryData = [
-            'EN' => 'Insurance Products (do not delete)',
-            'FR' => 'Produits d\'assurance (ne pas supprimer)',
-            'DE' => 'Versicherungsprodukte (nicht löschen)',
+            'en' => 'Insurance Products (do not delete)',
+            'fr' => 'Produits d\'assurance (ne pas supprimer)',
+            'de' => 'Versicherungsprodukte (nicht löschen)',
         ];
 
         $insuranceProductsCategoryNames = [];
         $insuranceProductsCategoryLinkRewrites = [];
 
         foreach (Language::getLanguages() as $lang) {
-            if (!empty($insuranceProductsCategoryData[strtoupper($lang['iso_code'])])) {
-                $insuranceProductsCategoryNames[$lang['id_lang']] = $insuranceProductsCategoryData[strtoupper($lang['iso_code'])];
-                $insuranceProductsCategoryLinkRewrites[$lang['id_lang']] = Tools::str2url($insuranceProductsCategoryData[strtoupper($lang['iso_code'])]);
+            if (!empty($insuranceProductsCategoryData[$lang['iso_code']])) {
+                $insuranceProductsCategoryNames[$lang['id_lang']] = $insuranceProductsCategoryData[$lang['iso_code']];
+                $insuranceProductsCategoryLinkRewrites[$lang['id_lang']] = Tools::str2url($insuranceProductsCategoryData[$lang['iso_code']]);
             } else {
-                $insuranceProductsCategoryNames[$lang['id_lang']] = $insuranceProductsCategoryData['EN'];
-                $insuranceProductsCategoryLinkRewrites[$lang['id_lang']] = Tools::str2url($insuranceProductsCategoryData['EN']);
+                $insuranceProductsCategoryNames[$lang['id_lang']] = $insuranceProductsCategoryData['en'];
+                $insuranceProductsCategoryLinkRewrites[$lang['id_lang']] = Tools::str2url($insuranceProductsCategoryData['en']);
             }
         }
 
@@ -214,7 +221,6 @@ class ScalexpertPlugin extends PaymentModule
         $insuranceProductsCategory->link_rewrite = $insuranceProductsCategoryLinkRewrites;
 
         $creationResult = $insuranceProductsCategory->save();
-
         if ($creationResult) {
             Configuration::updateValue(
                 InsuranceProcess::INSURANCE_CATEGORY_CONFIG_NAME,
@@ -272,7 +278,7 @@ class ScalexpertPlugin extends PaymentModule
         return $createFinancingOrderStates;
     }
 
-    public function createApiUrls()
+    public function createApiUrls(): bool
     {
         return
             Configuration::updateValue(
@@ -282,8 +288,7 @@ class ScalexpertPlugin extends PaymentModule
             && Configuration::updateValue(
                 static::API_URL_TEST,
                 'https://api.scalexpert.uatc.societegenerale.com/baas/uatc'
-            )
-        ;
+            );
     }
 
     public function createMeta()
@@ -304,18 +309,15 @@ class ScalexpertPlugin extends PaymentModule
             'fr' => 'confirmation-de-commande',
             'de' => 'order-confirmation',
         ];
-        $langs = \Language::getLanguages();
+
         $titles = [];
         $url_rewrites = [];
-        foreach ($langs as $lang) {
-            if (
-                isset($langTitle[strtolower($lang['iso_code'])])
-                && isset($langUrl[strtolower($lang['iso_code'])])
-            ) {
+        $languages = \Language::getLanguages();
+        foreach ($languages as $lang) {
+            if (isset($langTitle[strtolower($lang['iso_code'])], $langUrl[strtolower($lang['iso_code'])])) {
                 $titles[$lang['id_lang']] = $langTitle[strtolower($lang['iso_code'])];
                 $url_rewrites[$lang['id_lang']] = $langUrl[strtolower($lang['iso_code'])];
             }
-
         }
 
         $meta = new Meta();
@@ -326,7 +328,7 @@ class ScalexpertPlugin extends PaymentModule
         return $meta->save();
     }
 
-    public function uninstall()
+    public function uninstall(): bool
     {
         return parent::uninstall()
             && $this->uninstallTabs()
@@ -334,7 +336,7 @@ class ScalexpertPlugin extends PaymentModule
             && $this->uninstallConfigVars();
     }
 
-    public function uninstallFinancingOrderStates()
+    public function uninstallFinancingOrderStates(): bool
     {
         if (!empty(self::ORDER_STATES)) {
             foreach (self::ORDER_STATES as $orderStateToAdd) {
@@ -349,7 +351,7 @@ class ScalexpertPlugin extends PaymentModule
         return true;
     }
 
-    public function uninstallTabs()
+    public function uninstallTabs(): bool
     {
         foreach (static::MODULE_ADMIN_CONTROLLERS as $controllerName) {
             $idTab = (int)Tab::getIdFromClassName($controllerName);
@@ -368,7 +370,7 @@ class ScalexpertPlugin extends PaymentModule
         return true;
     }
 
-    public function uninstallConfigVars()
+    public function uninstallConfigVars(): bool
     {
         $vars = [
             'SCALEXPERT_ENVIRONMENT',
@@ -395,12 +397,11 @@ class ScalexpertPlugin extends PaymentModule
         return true;
     }
 
-    public function uninstallDatabase()
+    public function uninstallDatabase(): bool
     {
-        ProductField::deleteTable();
-        CartInsurance::deleteTable();
-
-        return true;
+        return ProductField::deleteTable()
+            && CartInsurance::deleteTable()
+        ;
     }
 
     public function hookHeader()
@@ -424,39 +425,41 @@ class ScalexpertPlugin extends PaymentModule
             }
         }
 
-        if (!empty($this->context->controller->php_self)) {
-            switch ($this->context->controller->php_self) {
-                case 'product' :
-                    $this->_getProductHeader($activeInsurances);
-                    break;
-                case 'cart' :
-                    $this->_getCartHeader($activeInsurances);
-                    break;
-                case 'order' :
-                    $this->_getOrderHeader($activeInsurances);
-                    break;
-                default:
-                    break;
-            }
+        if (empty($this->context->controller->php_self)) {
+            return;
+        }
 
-            if (version_compare(_PS_VERSION_, '1.7', '>=')) {
-                $this->context->controller->registerStylesheet(
-                    'frontContentModalCSS',
-                    $this->_path . 'views/css/ps17/frontContentModal.css'
-                );
-                $this->context->controller->registerStylesheet(
-                    'frontSimulation',
-                    $this->_path . 'views/css/ps17/frontSimulation.css'
-                );
-                $this->context->controller->registerStylesheet(
-                    'frontSimulationModal',
-                    $this->_path . 'views/css/ps17/frontSimulationModal.css'
-                );
-            } else {
-                $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontGlobal.css');
-                $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontSimulation.css');
-                $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontSimulationModal.css');
-            }
+        switch ($this->context->controller->php_self) {
+            case 'product' :
+                $this->_getProductHeader($activeInsurances);
+                break;
+            case 'cart' :
+                $this->_getCartHeader($activeInsurances);
+                break;
+            case 'order' :
+                $this->_getOrderHeader($activeInsurances);
+                break;
+            default:
+                break;
+        }
+
+        if (version_compare(_PS_VERSION_, '1.7', '>=')) {
+            $this->context->controller->registerStylesheet(
+                'frontContentModalCSS',
+                $this->_path . 'views/css/ps17/frontContentModal.css'
+            );
+            $this->context->controller->registerStylesheet(
+                'frontSimulation',
+                $this->_path . 'views/css/ps17/frontSimulation.css'
+            );
+            $this->context->controller->registerStylesheet(
+                'frontSimulationModal',
+                $this->_path . 'views/css/ps17/frontSimulationModal.css'
+            );
+        } else {
+            $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontGlobal.css');
+            $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontSimulation.css');
+            $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontSimulationModal.css');
         }
     }
 
@@ -509,8 +512,8 @@ class ScalexpertPlugin extends PaymentModule
     private function _getCartHeader($activeInsurances)
     {
         if (
-            version_compare(_PS_VERSION_, '1.7', '>=')
-            && $activeInsurances
+            $activeInsurances
+            && version_compare(_PS_VERSION_, '1.7', '>=')
         ) {
             Media::addJsDef([
                 'scalexpertpluginFrontUrl' => $this->context->link->getModuleLink('scalexpertplugin', 'display')
@@ -553,7 +556,7 @@ class ScalexpertPlugin extends PaymentModule
 
             /* First step order */
             if (
-                isset($this->context->controller->step)
+                property_exists($this->context->controller, 'step')
                 && $this->context->controller->step === 0
                 && $activeInsurances
             ) {
@@ -563,7 +566,7 @@ class ScalexpertPlugin extends PaymentModule
         }
     }
 
-    public function hookDisplayProductButtons($params)
+    public function hookDisplayProductButtons($params): string
     {
         if (version_compare(_PS_VERSION_, '1.7', '>=')) {
             return $this->display(__FILE__, 'views/templates/hook/ps17/hookDisplayProductButtons.tpl');
@@ -579,7 +582,7 @@ class ScalexpertPlugin extends PaymentModule
         return $this->display(__FILE__, 'views/templates/hook/ps16/hookDisplayProductButtons.tpl');
     }
 
-    public function hookDisplayShoppingCartFooter($params)
+    public function hookDisplayShoppingCartFooter($params): string
     {
         // Delete expired insurance product
         $cart = $params['cart'];
@@ -611,7 +614,10 @@ class ScalexpertPlugin extends PaymentModule
                     } else {
                         // Update price by removing taxe
                         $address = \Address::initialize(null);
-                        $id_tax_rules = (int)\Product::getIdTaxRulesGroupByIdProduct($insuranceProduct->id, \Context::getContext());
+                        $id_tax_rules = (int)\Product::getIdTaxRulesGroupByIdProduct(
+                            $insuranceProduct->id,
+                            \Context::getContext()
+                        );
                         $tax_manager = \TaxManagerFactory::getManager($address, $id_tax_rules);
                         $tax_calculator = $tax_manager->getTaxCalculator();
 
@@ -644,7 +650,6 @@ class ScalexpertPlugin extends PaymentModule
             'scalexpertpluginFrontUrl' => $this->context->link->getModuleLink('scalexpertplugin', 'display'),
         ]);
         return $this->display(__FILE__, 'views/templates/hook/ps16/hookDisplayShoppingCartFooter.tpl');
-
     }
 
     /**
@@ -655,8 +660,9 @@ class ScalexpertPlugin extends PaymentModule
         $this->context->controller->addCSS($this->_path . 'views/css/back.css');
 
         if (
-            !empty($this->context->controller->module)
-            && $this->context->controller->module->name == $this->name
+            property_exists($this->context->controller, 'module')
+            && !empty($this->context->controller->module->name)
+            && $this->context->controller->module->name === $this->name
         ) {
             $this->context->controller->addJquery();
             $this->context->controller->addJS($this->_path . 'views/js/back.js');
@@ -698,7 +704,7 @@ class ScalexpertPlugin extends PaymentModule
         }
 
         // Sort products by position
-        $this->sortSolutionsByPosition($eligibleSolutions);
+        SolutionSorter::sortSolutionsByPosition($eligibleSolutions);
 
         $this->smarty->assign([
             'module_dir' => $this->_path,
@@ -717,13 +723,12 @@ class ScalexpertPlugin extends PaymentModule
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      */
-    public function hookPaymentOptions($params)
+    public function hookPaymentOptions($params): array
     {
-        if (!$this->active) {
-            return [];
-        }
-
-        if (!$this->checkCurrency($params['cart'])) {
+        if (
+            !$this->active
+            || !$this->checkCurrency($params['cart'])
+        ) {
             return [];
         }
 
@@ -744,7 +749,7 @@ class ScalexpertPlugin extends PaymentModule
             return [];
         }
 
-        $designData = $this->buildDesignData($eligibleSolutions, $customizeProduct, true);
+        $designData = DataBuilder::buildDesignData($eligibleSolutions, $customizeProduct, true);
         $redirectControllerLink = $this->context->link->getModuleLink($this->name, 'validation', [], true);
         $regroupPayments = (int)Configuration::get('SCALEXPERT_GROUP_FINANCING_SOLUTIONS');
         $availableOptions = [];
@@ -779,9 +784,7 @@ class ScalexpertPlugin extends PaymentModule
 
                 if (isset($customizeProduct[$eligibleSolutionTemp['solutionCode']])) {
                     if (!empty($customizeProduct[$eligibleSolutionTemp['solutionCode']]['title_payment'])) {
-                        $eligibleSolutionTemp['visualTitle'] = $customizeProduct[
-                            $eligibleSolutionTemp['solutionCode']
-                        ]['title_payment'];
+                        $eligibleSolutionTemp['visualTitle'] = $customizeProduct[$eligibleSolutionTemp['solutionCode']]['title_payment'];
                     }
 
                     $eligibleSolutionTemp['useLogo'] = 0;
@@ -789,9 +792,7 @@ class ScalexpertPlugin extends PaymentModule
                         $eligibleSolutionTemp['useLogo'] = 1;
                     }
 
-                    $eligibleSolutionTemp['position'] = $customizeProduct[
-                        $eligibleSolutionTemp['solutionCode']
-                    ]['position'];
+                    $eligibleSolutionTemp['position'] = $customizeProduct[$eligibleSolutionTemp['solutionCode']]['position'];
 
                     if (
                         !$simulateResponse['hasError']
@@ -808,7 +809,7 @@ class ScalexpertPlugin extends PaymentModule
             }
         }
         // Sort products by position
-        $this->sortSolutionsByPosition($eligibleSolutions);
+        SolutionSorter::sortSolutionsByPosition($eligibleSolutions);
 
         if (!empty($regroupPayments)) {
             $this->smarty->assign([
@@ -867,7 +868,7 @@ class ScalexpertPlugin extends PaymentModule
         return $availableOptions;
     }
 
-    public function hookDisplayOrderConfirmation($params)
+    public function hookDisplayOrderConfirmation($params): string
     {
         if (false === $this->active) {
             return '';
@@ -895,7 +896,7 @@ class ScalexpertPlugin extends PaymentModule
     /**
      * This hook is used to display the order confirmation page.
      */
-    public function hookPaymentReturn($params)
+    public function hookPaymentReturn($params): string
     {
         if (false === $this->active) {
             return '';
@@ -908,7 +909,7 @@ class ScalexpertPlugin extends PaymentModule
             $order = $params['objOrder'];
             $total = Tools::displayPrice($params['total_to_pay'], $params['currencyObj']);
         }
-        if ($order->getCurrentOrderState()->id != Configuration::get('PS_OS_ERROR')) {
+        if ((int)$order->getCurrentOrderState()->id !== (int)Configuration::get('PS_OS_ERROR')) {
             $this->smarty->assign('status', 'ok');
         }
 
@@ -917,11 +918,11 @@ class ScalexpertPlugin extends PaymentModule
 
         $status = $this->l('Unknown state');
         if (isset($subscriptionInfo['consolidatedStatus'])) {
-            $status = $this->getFinancialStateName($subscriptionInfo['consolidatedStatus']);
+            $status = SolutionManager::getFinancialStateName($subscriptionInfo['consolidatedStatus'], $this);
         }
 
         try {
-            $this->updateOrderStateBasedOnFinancingStatus($order, $subscriptionInfo['consolidatedStatus']);
+            OrderUpdater::updateOrderStateBasedOnFinancingStatus($order, $subscriptionInfo['consolidatedStatus']);
         } catch (\Exception $e) {
             \PrestaShopLogger::addLog(
                 '[' . $this->name . '] Error while hookPaymentReturn: ' . $e->getMessage(),
@@ -951,7 +952,7 @@ class ScalexpertPlugin extends PaymentModule
         return $this->display(__FILE__, 'views/templates/hook/ps16/confirmation.tpl');
     }
 
-    public function hookDisplayAdminProductsExtra($params)
+    public function hookDisplayAdminProductsExtra($params): string
     {
         if (isset($params['id_product'])) {
             $idProduct = (int)$params['id_product'];
@@ -994,9 +995,8 @@ class ScalexpertPlugin extends PaymentModule
             return;
         }
 
-        $model = Tools::getValue('scalexpertplugin_model');
         $characteristics = Tools::getValue('scalexpertplugin_characteristics');
-
+        $model = Tools::getValue('scalexpertplugin_model');
         foreach ($model as $idLang => $valueModel) {
             ProductField::saveData(
                 $idProduct,
@@ -1012,7 +1012,7 @@ class ScalexpertPlugin extends PaymentModule
         InsuranceProcess::handleCartSave($params);
     }
 
-    public function hookDisplayAdminOrderTop($params)
+    public function hookDisplayAdminOrderTop($params): string
     {
         if (empty($params['id_order'])) {
             return '';
@@ -1034,15 +1034,15 @@ class ScalexpertPlugin extends PaymentModule
                     && !in_array($element['consolidatedStatus'], Financing::$finalFinancingStates, true)
                 ) {
                     $warning .= '<div class="alert alert-warning d-print-none" role="alert">
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true"><i class="material-icons">close</i></span>
-      </button>
-              <div class="alert-text">
-                      <p>';
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true"><i class="material-icons">close</i></span>
+                        </button>
+                        <div class="alert-text">
+                              <p>';
                     $warning .= $this->l('Order is paid but financing subscription is not in a finished state.');
                     $warning .= '</p>
-                  </div>
-          </div>';
+                          </div>
+                        </div>';
                 }
             }
         }
@@ -1050,13 +1050,12 @@ class ScalexpertPlugin extends PaymentModule
         return $warning;
     }
 
-    public function hookDisplayAdminOrder(array $params)
+    public function hookDisplayAdminOrder(array $params): string
     {
-        if (version_compare(_PS_VERSION_, '1.7.7.0', '>=')) {
-            return '';
-        }
-
-        if (empty($params['id_order'])) {
+        if (
+            version_compare(_PS_VERSION_, '1.7.7.0', '>=')
+            || empty($params['id_order'])
+        ) {
             return '';
         }
 
@@ -1087,13 +1086,21 @@ class ScalexpertPlugin extends PaymentModule
                 $element['buyerFinancedAmountDisplay'] = Tools::displayPrice(
                     $element['buyerFinancedAmount']
                 );
-                $element['consolidatedStatusDisplay'] = $this->getFinancialStateName($element['consolidatedStatus']);
+                $element['consolidatedStatusDisplay'] = SolutionManager::getFinancialStateLabel(
+                    $element['consolidatedStatus'],
+                    $this
+                );
+                $element['consolidatedSubStatusDisplay'] = SolutionManager::getFinancialSubStateName(
+                    $element['consolidatedSubstatus'],
+                    $this
+                );
                 $element['displayDeliveryConfirmation'] = $this->displayDeliveryConfirmation(
                     $element['solutionCode'],
-                    $trackingNumber
+                    (bool)$element['isDelivered']
                 );
-                $element['operators'] = $this->getOperators(
-                    $this->isDeutschLongFinancingSolution($element['solutionCode'])
+                $element['operators'] = SolutionManager::getOperators(
+                    $this,
+                    SolutionManager::isDeutschLongFinancingSolution($element['solutionCode'])
                 );
             }
 
@@ -1130,28 +1137,38 @@ class ScalexpertPlugin extends PaymentModule
                 $financialSubscriptions
             );
 
-            if (!empty($solutionCode)) {
+            if (
+                empty($solutionCode)
+                || (
+                    SolutionManager::isFrenchLongFinancingSolution($solutionCode)
+                    && empty($trackingNumber)
+                )
+            ) {
+                $this->context->controller->errors[] = $this->l('Financing is not accepted or tracking number is empty.');
+            } else {
                 $response = Financing::confirmDeliveryFinancingSubscription(
                     $creditSubscriptionId,
                     $trackingNumber,
                     Tools::getValue('operator'),
-                    $this->isFrenchLongFinancingSolution($solutionCode)
+                    SolutionManager::isFrenchLongFinancingSolution($solutionCode)
                 );
 
                 if ($response['hasError']) {
-                    $this->context->controller->errors[] = $this->l('An error occurred during delivery confirmation process.');
+                    if (409 === (int)$response['code']) {
+                        $this->context->controller->errors[] = $this->l('The application has been already delivered.');
+                    } else {
+                        $this->context->controller->errors[] = $this->l('An error occurred during delivery confirmation process.');
+                    }
                 } else {
                     $this->context->controller->success[] = $this->l('Your delivery confirmation request has been successfully sent.');
                 }
-            } else {
-                $this->context->controller->errors[] = $this->l('Financing is not accepted or tracking number is empty.');
             }
         }
 
         return $this->display(__FILE__, 'views/templates/admin/ps16/order-side.tpl');
     }
 
-    public function hookDisplayAdminOrderSide(array $params)
+    public function hookDisplayAdminOrderSide(array $params): string
     {
         if (empty($params['id_order'])) {
             return '';
@@ -1169,13 +1186,21 @@ class ScalexpertPlugin extends PaymentModule
                 $element['buyerFinancedAmountDisplay'] = Tools::displayPrice(
                     $element['buyerFinancedAmount']
                 );
-                $element['consolidatedStatusDisplay'] = $this->getFinancialStateName($element['consolidatedStatus']);
+                $element['consolidatedStatusDisplay'] = SolutionManager::getFinancialStateLabel(
+                    $element['consolidatedStatus'],
+                    $this
+                );
+                $element['consolidatedSubStatusDisplay'] = SolutionManager::getFinancialSubStateName(
+                    $element['consolidatedSubstatus'],
+                    $this
+                );
                 $element['displayDeliveryConfirmation'] = $this->displayDeliveryConfirmation(
                     $element['solutionCode'],
-                    $trackingNumber
+                    (bool)$element['isDelivered']
                 );
-                $element['operators'] = $this->getOperators(
-                    $this->isDeutschLongFinancingSolution($element['solutionCode'])
+                $element['operators'] = SolutionManager::getOperators(
+                    $this,
+                    SolutionManager::isDeutschLongFinancingSolution($element['solutionCode'])
                 );
             }
 
@@ -1218,30 +1243,43 @@ class ScalexpertPlugin extends PaymentModule
                 $financialSubscriptions
             );
 
-            if (!empty($solutionCode)) {
+            if (
+                empty($solutionCode)
+                || (
+                    SolutionManager::isFrenchLongFinancingSolution($solutionCode)
+                    && empty($trackingNumber)
+                )
+            ) {
+                $this->get('session')->getFlashBag()->add(
+                    'error',
+                    $this->l('Financing is not accepted or tracking number is empty.')
+                );
+            } else {
                 $response = Financing::confirmDeliveryFinancingSubscription(
                     $creditSubscriptionId,
                     $trackingNumber,
-                    Tools::getValue('operator'),
-                    $this->isFrenchLongFinancingSolution($solutionCode)
+                    Tools::getValue('operator', ''),
+                    SolutionManager::isFrenchLongFinancingSolution($solutionCode)
                 );
 
                 if ($response['hasError']) {
-                    $this->get('session')->getFlashBag()->add(
-                        'error',
-                        $this->l('An error occurred during delivery confirmation process.')
-                    );
+                    if (409 === (int)$response['code']) {
+                        $this->get('session')->getFlashBag()->add(
+                            'error',
+                            $this->l('The application has been already delivered.')
+                        );
+                    } else {
+                        $this->get('session')->getFlashBag()->add(
+                            'error',
+                            $this->l('An error occurred during delivery confirmation process.')
+                        );
+                    }
                 } else {
                     $this->get('session')->getFlashBag()->add(
                         'success',
                         $this->l('Your delivery confirmation request has been successfully sent.')
                     );
                 }
-            } else {
-                $this->get('session')->getFlashBag()->add(
-                    'error',
-                    $this->l('Financing is not accepted or tracking number is empty.')
-                );
             }
 
             Tools::redirectAdmin(
@@ -1261,60 +1299,63 @@ class ScalexpertPlugin extends PaymentModule
 
     private function getOrderSubscriptions($order)
     {
-        return Financing::getFinancingSubscriptionsByOrderReference($order->reference);
+        $response = Financing::getFinancingSubscriptionsByOrderReference($order->reference);
+        return (array_key_exists('hasError', $response) && $response['hasError']) ? [] : $response;
     }
 
-    private function getOrderInsurances($order)
+    private function getOrderInsurances($order): array
     {
         $cartInsurances = CartInsurance::getInsuranceByIdCart($order->id_cart);
+        if (empty($cartInsurances)) {
+            return [];
+        }
+
         $insuranceSubscriptionsByProduct = [];
-        if (!empty($cartInsurances)) {
-            foreach ($cartInsurances as $cartInsurance) {
-                $insuredProduct = new Product(
-                    $cartInsurance['id_product'],
-                    false,
-                    $this->context->language->id
-                );
-                $insuranceProduct = new Product(
-                    $cartInsurance['id_insurance_product'],
-                    false,
-                    $this->context->language->id
-                );
-                $subscriptions = CartInsurance::getInsuranceSubscriptions($cartInsurance['id_cart_insurance']);
-                $subscriptionsToAdd = [];
+        foreach ($cartInsurances as $cartInsurance) {
+            $insuredProduct = new Product(
+                $cartInsurance['id_product'],
+                false,
+                $this->context->language->id
+            );
+            $insuranceProduct = new Product(
+                $cartInsurance['id_insurance_product'],
+                false,
+                $this->context->language->id
+            );
+            $subscriptions = CartInsurance::getInsuranceSubscriptions($cartInsurance['id_cart_insurance']);
+            $subscriptionsToAdd = [];
 
-                if (!empty($subscriptions)) {
-                    foreach ($subscriptions as $subscriptionId) {
-                        $apiSubscription = Insurance::getInsuranceSubscriptionBySubscriptionId($subscriptionId);
-                        if (empty($apiSubscription)) {
-                            continue;
-                        }
-
-                        $subscriptionsToAdd[] = [
-                            'subscriptionId' => $subscriptionId ?? '',
-                            'consolidatedStatus' => $apiSubscription['consolidatedStatus'] ?
-                                $this->getInsuranceStateName($apiSubscription['consolidatedStatus']) : '',
-                            'duration' => $apiSubscription['duration'] ?? '',
-                            'producerQuoteInsurancePrice' => Tools::displayPrice(
-                                    $apiSubscription['producerQuoteInsurancePrice'],
-                                    $this->context->currency
-                                ) ?? '',
-                        ];
+            if (!empty($subscriptions)) {
+                foreach ($subscriptions as $subscriptionId) {
+                    $apiSubscription = Insurance::getInsuranceSubscriptionBySubscriptionId($subscriptionId);
+                    if (empty($apiSubscription)) {
+                        continue;
                     }
-                }
 
-                $insuranceSubscriptionsByProduct[] = [
-                    'productName' => $insuredProduct->name,
-                    'insuranceName' => $insuranceProduct->name,
-                    'subscriptions' => $subscriptionsToAdd,
-                ];
+                    $subscriptionsToAdd[] = [
+                        'subscriptionId' => $subscriptionId ?? '',
+                        'consolidatedStatus' => $apiSubscription['consolidatedStatus'] ?
+                            SolutionManager::getInsuranceStateName($apiSubscription['consolidatedStatus'], $this) : '',
+                        'duration' => $apiSubscription['duration'] ?? '',
+                        'producerQuoteInsurancePrice' => Tools::displayPrice(
+                                $apiSubscription['producerQuoteInsurancePrice'],
+                                $this->context->currency
+                            ) ?? '',
+                    ];
+                }
             }
+
+            $insuranceSubscriptionsByProduct[] = [
+                'productName' => $insuredProduct->name,
+                'insuranceName' => $insuranceProduct->name,
+                'subscriptions' => $subscriptionsToAdd,
+            ];
         }
 
         return $insuranceSubscriptionsByProduct;
     }
 
-    public function checkCurrency($cart)
+    public function checkCurrency($cart): bool
     {
         $currency_order = new Currency($cart->id_currency);
         $currencies_module = $this->getCurrency($cart->id_currency);
@@ -1326,197 +1367,6 @@ class ScalexpertPlugin extends PaymentModule
             }
         }
         return false;
-    }
-
-    public function getSolutionDisplayName($solutionCode)
-    {
-        $data = [
-            'SCFRSP-3XTS' => $this->l('Paiement en 3X sans frais (SCFRSP-3XTS)'),
-            'SCFRSP-3XPS' => $this->l('Paiement en 3X frais partagés (SCFRSP-3XPS)'),
-            'SCFRSP-4XTS' => $this->l('Paiement en 4X sans frais (SCFRSP-4XTS)'),
-            'SCFRSP-4XPS' => $this->l('Paiement en 4X frais partagés (SCFRSP-4XPS)'),
-            'SCDELT-DXTS' => $this->l('Crédit long frais partagés (SCDELT-DXTS)'),
-            'SCDELT-DXCO' => $this->l('Crédit long (SCDELT-DXCO)'),
-            'SCFRLT-TXPS' => $this->l('Crédit long frais partagés (SCFRLT-TXPS)'),
-            'SCFRLT-TXNO' => $this->l('Crédit long (SCFRLT-TXNO)'),
-            'CIFRWE-DXCO' => $this->l('Extention de garantie'),
-        ];
-
-        return $data[$solutionCode] ?? null;
-    }
-
-    public function getSolutionFlag($solutionCode)
-    {
-        $data = [
-            'SCFRSP-3XTS' => 'FR',
-            'SCFRSP-3XPS' => 'FR',
-            'SCFRSP-4XTS' => 'FR',
-            'SCFRSP-4XPS' => 'FR',
-            'SCDELT-DXTS' => 'DE',
-            'SCDELT-DXCO' => 'DE',
-            'SCFRLT-TXPS' => 'FR',
-            'SCFRLT-TXNO' => 'FR',
-            'CIFRWE-DXCO' => 'FR',
-        ];
-
-        return $data[$solutionCode] ?? null;
-    }
-
-    public function getMissingSolution($existingSolution, $type)
-    {
-        $solutionGrouped = [
-            'financials' => [
-                [
-                    'SCFRSP-3XTS',
-                    'SCFRSP-3XPS'
-                ],
-                [
-                    'SCFRSP-4XTS',
-                    'SCFRSP-4XPS'
-                ],
-                [
-                    'SCDELT-DXTS',
-                ],
-                [
-                    'SCDELT-DXCO',
-                ],
-                [
-                    'SCFRLT-TXPS',
-                ],
-                [
-                    'SCFRLT-TXNO',
-                ],
-            ],
-            'insurance' => [
-                [
-                    'CIFRWE-DXCO',
-                ],
-            ],
-        ];
-
-        if (!isset($solutionGrouped[$type])) {
-            return [];
-        }
-
-        $missingSolution = [];
-        foreach ($solutionGrouped[$type] as $solutionGroup) {
-            $found = false;
-            foreach ($solutionGroup as $solutionCode) {
-                if (in_array($solutionCode, $existingSolution)) {
-                    $found = true;
-                }
-            }
-            if (!$found) {
-                foreach ($solutionGroup as $element) {
-                    $missingSolution[] = $element;
-                }
-            }
-        }
-
-        return $missingSolution;
-    }
-
-    public function getNewContractUrlByLang(string $offerCode, string $isoCode)
-    {
-        $data = [
-            self::TYPES[0] => [
-                'en' => 'https://scalexpert.societegenerale.com/app/en/page/e-financing',
-                'fr' => 'https://scalexpert.societegenerale.com/app/fr/page/e-financement',
-            ],
-            self::TYPES[1] => [
-                'en' => 'https://scalexpert.societegenerale.com/app/en/page/warranty',
-                'fr' => 'https://scalexpert.societegenerale.com/app/fr/page/garantie',
-            ],
-        ];
-
-        return $data[strtolower($offerCode)][strtolower($isoCode)] ?? $data[self::TYPES[0]]['en'];
-    }
-
-    public function getFinancialStateName($idOrderState)
-    {
-        switch ($idOrderState) {
-            case 'ACCEPTED':
-                $status = $this->l('Financing request accepted');
-                break;
-            case 'INITIALIZED':
-                $status = $this->l('Financing request in progress');
-                break;
-            case 'REQUESTED':
-                $status = $this->l('Financing request requested');
-                break;
-            case 'PRE_ACCEPTED':
-                $status = $this->l('Financing request pre-accepted');
-                break;
-            case 'REJECTED':
-                $status = $this->l('Financing request rejected');
-                break;
-            case 'CANCELLED':
-                $status = $this->l('Financing request cancelled');
-                break;
-            case 'ABORTED':
-                $status = $this->l('Financing request aborted');
-                break;
-            default:
-                $status = $this->l('A technical error occurred during process, please retry.');
-                break;
-        }
-
-        return $status;
-    }
-
-    public function getInsuranceStateName($idOrderState)
-    {
-        switch ($idOrderState) {
-            case 'ACTIVATED':
-                $status = $this->l('Insurance subscription activated');
-                break;
-            case 'INITIALIZED':
-                $status = $this->l('Insurance subscription request in progress');
-                break;
-            case 'SUBSCRIBED':
-                $status = $this->l('Insurance subscribed');
-                break;
-            case 'REJECTED':
-                $status = $this->l('Insurance subscription rejected');
-                break;
-            case 'CANCELLED':
-                $status = $this->l('Insurance subscription cancelled');
-                break;
-            case 'TERMINATED':
-                $status = $this->l('Insurance subscription terminated');
-                break;
-            case 'ABORTED':
-                $status = $this->l('Insurance subscription aborted');
-                break;
-            default:
-                $status = $this->l('A technical error occurred during process, please retry.');
-                break;
-        }
-
-        return $status;
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function updateOrderStateBasedOnFinancingStatus($order, $status = '')
-    {
-        $orderStateMapping = json_decode(Configuration::get('SCALEXPERT_ORDER_STATE_MAPPING'), true);
-        if (
-            empty($status)
-            || empty($orderStateMapping)
-            || !Validate::isLoadedObject($order)
-        ) {
-            throw new PrestaShopModuleException('Invalid parameter data.');
-        }
-
-        $newOrderStateId = (!empty($orderStateMapping[$status])) ? $orderStateMapping[$status] : null;
-        if (
-            $newOrderStateId
-            && (int)$newOrderStateId !== (int)$order->current_state
-        ) {
-            $order->setCurrentState($newOrderStateId);
-        }
     }
 
     private function generateDefaultMapping()
@@ -1559,61 +1409,13 @@ class ScalexpertPlugin extends PaymentModule
         return Configuration::updateValue('SCALEXPERT_ORDER_STATE_MAPPING', json_encode($mapping));
     }
 
-    public function sortSolutionsByPosition(&$solutions)
+    private function displayDeliveryConfirmation($solutionCode, $isDelivered): bool
     {
-        uasort($solutions, function ($a, $b) {
-            return $a['position'] > $b['position'];
-        });
-    }
-
-    private function displayDeliveryConfirmation($solutionCode, $trackingNumber)
-    {
-        // Check tracking number is not empty for french long financing solutions
-        if (
-            !empty($trackingNumber)
-            && $this->isFrenchLongFinancingSolution($solutionCode)
-        ) {
-            return true;
-        }
-
-        // But it is not needed for deutsch long financing solutions
-        if ($this->isDeutschLongFinancingSolution($solutionCode)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    private function isFrenchLongFinancingSolution($solutionCode)
-    {
-        return in_array($solutionCode, [
-            'SCFRLT-TXPS',
-            'SCFRLT-TXNO',
-        ], true);
-    }
-
-    private function isDeutschLongFinancingSolution($solutionCode)
-    {
-        return in_array($solutionCode, [
-            'SCDELT-DXTS',
-            'SCDELT-DXCO',
-        ], true);
-    }
-
-    private function getOperators($isDeutsch = false)
-    {
-        return $isDeutsch ? [] : [
-            'UPS' => $this->l('UPS'),
-            'DHL' => $this->l('DHL'),
-            'CHRONOPOST' => $this->l('CHRONOPOST'),
-            'LA_POSTE' => $this->l('LA_POSTE'),
-            'DPD' => $this->l('DPD'),
-            'RELAIS_COLIS' => $this->l('RELAIS_COLIS'),
-            'MONDIAL_RELAY' => $this->l('MONDIAL_RELAY'),
-            'FEDEX' => $this->l('FEDEX'),
-            'GLS' => $this->l('GLS'),
-            'UNKNOWN' => $this->l('UNKNOWN'),
-        ];
+        return !$isDelivered
+            && (
+                SolutionManager::isFrenchLongFinancingSolution($solutionCode)
+                || SolutionManager::isDeutschLongFinancingSolution($solutionCode)
+            );
     }
 
     private function setTrackingNumberAndOperators($idCarrier)
@@ -1630,7 +1432,7 @@ class ScalexpertPlugin extends PaymentModule
     private function getSolutionCodeForCreditSubscriptionId(
         $creditSubscriptionId,
         $financialSubscriptions
-    )
+    ): string
     {
         $solutionCode = '';
 
@@ -1645,46 +1447,5 @@ class ScalexpertPlugin extends PaymentModule
         }
 
         return $solutionCode;
-    }
-
-    public function buildDesignData(
-        $eligibleSolutions,
-        $customizeProduct,
-        $isPayment = false
-    )
-    {
-        $solutionCodes = [];
-        $designSolutions = [];
-
-        foreach ($eligibleSolutions as $eligibleSolution) {
-            $solutionCode = $eligibleSolution['solutionCode'];
-
-            if (isset($customizeProduct[$solutionCode])) {
-                // Built available solution codes array
-                $solutionCodes[] = $solutionCode;
-
-                // Prepare design config variables for front
-                $designSolutions[$solutionCode] = $eligibleSolution['communicationKit'];
-                $designSolutions[$solutionCode]['position'] = $customizeProduct[$solutionCode]['position'];
-                if ($isPayment) {
-                    $designSolutions[$solutionCode]['displayLogo'] = $customizeProduct[$solutionCode]['logo_payment'];
-                    if (!empty($customizeProduct[$solutionCode]['title_payment'])) {
-                        $designSolutions[$solutionCode]['visualTitle'] = $customizeProduct[$solutionCode]['title_payment'];
-                    }
-                } else {
-                    $designSolutions[$solutionCode]['displayLogo'] = $customizeProduct[$solutionCode]['logo'];
-                    if (!empty($customizeProduct[$solutionCode]['title'])) {
-                        $designSolutions[$solutionCode]['visualTitle'] = $customizeProduct[$solutionCode]['title'];
-                    }
-                }
-
-                $designSolutions[$solutionCode]['custom'] = $customizeProduct[$solutionCode];
-            }
-        }
-
-        return [
-            'solutionCodes' => $solutionCodes,
-            'designSolutions' => $designSolutions
-        ];
     }
 }

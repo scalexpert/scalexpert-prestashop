@@ -15,21 +15,19 @@ class Hash
 {
     public static function encrypt($value)
     {
-        $cipherTool = self::getCipherTool();
-        return $cipherTool->encrypt($value);
+        return self::getCipherTool()->encrypt($value);
     }
 
     public static function decrypt($value)
     {
-        $cipherTool = self::getCipherTool();
-        return $cipherTool->decrypt($value);
+        return self::getCipherTool()->decrypt($value);
     }
 
     private static function getCipherTool()
     {
         if (version_compare(_PS_VERSION_, '1.7', '>=')) {
             $cipherTool = new \PhpEncryption(_NEW_COOKIE_KEY_);
-        } else if (
+        } elseif (
             !\Configuration::get('PS_CIPHER_ALGORITHM')
             || !defined('_RIJNDAEL_KEY_')
         ) {

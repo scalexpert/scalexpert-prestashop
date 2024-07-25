@@ -53,13 +53,13 @@ class CartInsuranceProductsService
         $this->handleInsuranceProductsFormSubmit($cart);
 
         if (\Tools::getIsset('delete')) {
-            $idProductDelete = (int) \Tools::getValue('id_product');
-            $idProductAttributeDelete = (int) \Tools::getValue('id_product_attribute');
+            $idProductDelete = (int)\Tools::getValue('id_product');
+            $idProductAttributeDelete = (int)\Tools::getValue('id_product_attribute');
 
             $insuranceProductsToDelete = $this->cartInsuranceRepository->findBy(
                 [
-                    'idCart' => (int) $cart->id,
-                    'idProduct' =>  $idProductDelete,
+                    'idCart' => (int)$cart->id,
+                    'idProduct' => $idProductDelete,
                     'idProductAttribute' => empty($idProductAttributeDelete) ? null : $idProductAttributeDelete,
                 ]
             );
@@ -74,7 +74,7 @@ class CartInsuranceProductsService
 
             $deletedInsuranceProduct = $this->cartInsuranceRepository->findBy(
                 [
-                    'idCart' => (int) $cart->id,
+                    'idCart' => (int)$cart->id,
                     'idInsuranceProduct' => $idProductDelete,
                 ]
             );
@@ -95,82 +95,45 @@ class CartInsuranceProductsService
     public function handleInsuranceProductsFormSubmit($cart)
     {
         $insurances = \Tools::getValue('insurances');
+        if (empty($insurances)) {
+            return;
+        }
 
-        if (!empty($insurances)) {
-            foreach ($insurances as $productElements => $insurance) {
-                $explodedProductElements = explode('|', $productElements);
+        foreach ($insurances as $productElements => $insurance) {
+            $explodedProductElements = explode('|', $productElements);
+            $idProduct = !empty($explodedProductElements[0]) ? (int)$explodedProductElements[0] : null;
+            $idProductAttribute = !empty($explodedProductElements[1]) ? (int)$explodedProductElements[1] : null;
 
-                $idProduct = !empty($explodedProductElements[0]) ? $explodedProductElements[0] : null;
-                $idProductAttribute = !empty($explodedProductElements[1]) ? $explodedProductElements[1] : null;
+            $explodedInsurance = explode('|', $insurance);
+            $solutionCode = $explodedInsurance[0] ?? '';
+            $idItem = $explodedInsurance[1] ?? '';
+            $idInsurance = $explodedInsurance[2] ?? '';
 
-                $explodedInsurance = explode('|', $insurance);
-                $solutionCode = $explodedInsurance[0] ?? '';
-                $idItem = $explodedInsurance[1] ?? '';
-                $idInsurance = $explodedInsurance[2] ?? '';
-
-                if (!empty($idProduct) && !empty($idItem) && isset($idInsurance)) {
-                    if (empty($idInsurance)) {
-                        $cartInsurancesToDelete = $this->cartInsuranceRepository->findBy([
-                            'idCart' => (int) $cart->id,
-                            'idProduct' => $idProduct,
-                            'idProductAttribute' => $idProductAttribute,
-                        ]);
-
-                        if (!empty($cartInsurancesToDelete)) {
-                            foreach ($cartInsurancesToDelete as $cartInsuranceToDelete) {
-                                $this->entityManager->remove($cartInsuranceToDelete);
-                            }
-
-                            $this->entityManager->flush();
-                        }
-                    } else {
-                        $availableInsuranceSolutions = $this->availableSolutions->getAvailableInsuranceSolutions($idProduct, $idProductAttribute);
-                        $invalidData = true;
-
-                        if (!empty($availableInsuranceSolutions)) {
-                            $availableSolution = reset($availableInsuranceSolutions);
-
-                            if (!empty($availableSolution['insurances'])) {
-                                foreach ($availableSolution['insurances'] as $solutionInsurance) {
-                                    if ($solutionInsurance['id'] == $idInsurance && $solutionInsurance['itemId'] == $idItem) {
-                                        $invalidData = false;
-                                    }
-                                }
-                            }
-                        }
-
-                        if ($invalidData) {
-                            continue;
-                        }
-
-                        $cartInsuranceToUpdate = $this->cartInsuranceRepository->findOneBy([
-                            'idCart' => (int) $cart->id,
-                            'idProduct' => $idProduct,
-                            'idProductAttribute' => $idProductAttribute,
-                        ]);
-
-                        if (empty($cartInsuranceToUpdate)) {
-                            $cartInsurance = new ScalexpertCartInsurance();
-                        } else {
-                            $cartInsurance = $cartInsuranceToUpdate;
-                        }
-
-                        $cartInsurance->setIdProduct((int) $idProduct);
-                        $cartInsurance->setIdProductAttribute(!empty($idProductAttribute) ? (int) $idProductAttribute : $idProductAttribute);
-                        $cartInsurance->setQuotations(null);
-                        $cartInsurance->setIdCart((int) $cart->id);
-                        $cartInsurance->setIdItem($idItem);
-                        $cartInsurance->setIdInsurance($idInsurance);
-                        $cartInsurance->setSolutionCode($solutionCode);
-
-                        $idInsuranceProduct = $this->createOrGetInsuranceProduct($cartInsurance);
-                        $cartInsurance->setIdInsuranceProduct($idInsuranceProduct);
-
-                        $this->entityManager->persist($cartInsurance);
-                        $this->entityManager->flush();
-                    }
-                }
+            if (
+                null === $idProduct
+                || empty($idItem)
+            ) {
+                continue;
             }
+
+            if (empty($idInsurance)) {
+                $this->removeCartInsurance(
+                    (int)$cart->id,
+                    $idProduct,
+                    $idProductAttribute
+                );
+            } else {
+                $this->addCartInsurance(
+                    (int)$cart->id,
+                    $idProduct,
+                    $idProductAttribute,
+                    $idInsurance,
+                    $idItem,
+                    $solutionCode
+                );
+            }
+
+            $this->entityManager->flush();
         }
     }
 
@@ -183,66 +146,16 @@ class CartInsuranceProductsService
         }
 
         $addAction = \Tools::getValue('add');
-        $qty = (int) \Tools::getValue('qty', 1);
-        $idProduct = \Tools::getValue('id_product', 0);
-        $cartInsurances = $this->cartInsuranceRepository->findBy(['idCart' => (int) $cart->id]);
+        $qty = (int)\Tools::getValue('qty', 1);
+        $idProduct = (int)\Tools::getValue('id_product', 0);
+        $cartInsurances = $this->cartInsuranceRepository->findBy(['idCart' => (int)$cart->id]);
 
-        if (!empty($cartProducts)) {
-            foreach ($cartProducts as $cartProduct) {
-                foreach ($cartInsurances as $cartInsurance) {
-                    $cartProductAttribute = empty($cartProduct['id_product_attribute']) ? null : $cartProduct['id_product_attribute'];
-
-                    if ($cartInsurance->getIdProduct() == $cartProduct['id_product'] && $cartInsurance->getIdProductAttribute() == $cartProductAttribute) {
-                        $insuranceProductQtyInCart = $cart->containsProduct($cartInsurance->getIdInsuranceProduct());
-
-                        if (empty($insuranceProductQtyInCart['quantity'])) {
-                            $cart->updateQty(
-                                $cartProduct['cart_quantity'],
-                                $cartInsurance->getIdInsuranceProduct(),
-                                null,
-                                false,
-                                'up'
-                            );
-                        } else {
-                            $qtyDiff = abs($cartProduct['cart_quantity'] - $insuranceProductQtyInCart['quantity']);
-
-                            if ($qtyDiff == 0) {
-                                continue;
-                            }
-
-                            if ($insuranceProductQtyInCart['quantity'] < $cartProduct['cart_quantity']) {
-                                $action = 'up';
-                            } else {
-                                $action = 'down';
-                            }
-
-                            $cart->updateQty(
-                                $qtyDiff,
-                                $cartInsurance->getIdInsuranceProduct(),
-                                null,
-                                false,
-                                $action
-                            );
-                        }
-                    }
-                }
-
-                if ($cartProduct['id_category_default'] == $this->configuration->get(self::CONFIGURATION_INSURANCE_PRODUCTS_CATEGORY)) {
-                    $linkedLine = $this->cartInsuranceRepository->findBy(
-                        [
-                            'idCart' => (int) $cart->id,
-                            'idInsuranceProduct' => $cartProduct['id_product'],
-                        ]
-                    );
-
-                    if (empty($linkedLine)) {
-                        $cart->deleteProduct($cartProduct['id_product']);
-                    }
-                }
-            }
-        } elseif (!empty($addAction) && !empty($idProduct) && !empty($qty)) {
+        if (
+            !empty($addAction)
+            && !empty($idProduct)
+        ) {
             foreach ($cartInsurances as $cartInsurance) {
-                if ($cartInsurance->getIdProduct() == $idProduct) {
+                if ($idProduct === $cartInsurance->getIdProduct()) {
                     $cart->updateQty(
                         $qty,
                         $cartInsurance->getIdInsuranceProduct(),
@@ -253,44 +166,119 @@ class CartInsuranceProductsService
                 }
             }
         }
-    }
 
-    public function handleQuotationsInCart($cart)
-    {
-        $quotationProducts = $this->cartInsuranceRepository->findBy(['idCart' => (int) $cart->id]);
-        $addAction = \Tools::getValue('add');
-        $qty = (int) \Tools::getValue('qty', 1);
-        $idProduct = \Tools::getValue('id_product', 0);
+        if (empty($cartProducts)) {
+            return;
+        }
 
-        if (!empty($quotationProducts)) {
-            foreach ($quotationProducts as $quotationProduct) {
-                $productInCart = $cart->containsProduct($quotationProduct->getIdProduct(), $quotationProduct->getIdProductAttribute());
+        foreach ($cartProducts as $cartProduct) {
+            foreach ($cartInsurances as $cartInsurance) {
+                /* @var ScalexpertCartInsurance $cartInsurance */
+                if (
+                    (int)$cartProduct['id_product'] === (int)$cartInsurance->getIdProduct()
+                    && (int)$cartProduct['id_product_attribute'] === (int)$cartInsurance->getIdProductAttribute()
+                ) {
+                    $insuranceProductInCart = $cart->containsProduct($cartInsurance->getIdInsuranceProduct());
+                    $insuranceProductQtyInCart = $insuranceProductInCart['quantity'] ?: 0;
 
-                if (empty($productInCart['quantity']) && !empty($addAction) && $idProduct == $quotationProduct->getIdProduct()) {
-                    $productInCart['quantity'] = $qty;
-                }
-
-                if (empty($productInCart['quantity'])) {
-                    $this->entityManager->remove($quotationProduct);
-                    $this->entityManager->flush();
-
-                    $cart->deleteProduct($quotationProduct->getIdProduct(), $quotationProduct->getIdProductAttribute());
-                } else if (empty($quotationProduct->getQuotations())) {
-                    $this->adjustQuotationsForCartInsurance($productInCart['quantity'], 'up', $quotationProduct);
-                } else {
-                    $quotationsCount = count($quotationProduct->getQuotations());
-
-                    if ($productInCart['quantity'] > $quotationsCount) {
-                        $this->adjustQuotationsForCartInsurance($productInCart['quantity'] - $quotationsCount, 'up', $quotationProduct);
-                    } elseif ($productInCart['quantity'] < $quotationsCount) {
-                        $this->adjustQuotationsForCartInsurance($quotationsCount - $productInCart['quantity'], 'down', $quotationProduct);
+                    $qtyDiff = abs($cartProduct['cart_quantity'] - $insuranceProductQtyInCart);
+                    if (0 === (int)$qtyDiff) {
+                        continue;
                     }
+
+                    if ($insuranceProductQtyInCart < $cartProduct['cart_quantity']) {
+                        $action = 'up';
+                    } else {
+                        $action = 'down';
+                    }
+
+                    $cart->updateQty(
+                        $qtyDiff,
+                        $cartInsurance->getIdInsuranceProduct(),
+                        null,
+                        false,
+                        $action
+                    );
+                }
+            }
+
+            if ((int)$cartProduct['id_category_default'] === (int)$this->configuration->get(self::CONFIGURATION_INSURANCE_PRODUCTS_CATEGORY)) {
+                $linkedLine = $this->cartInsuranceRepository->findBy(
+                    [
+                        'idCart' => (int)$cart->id,
+                        'idInsuranceProduct' => $cartProduct['id_product'],
+                    ]
+                );
+
+                if (empty($linkedLine)) {
+                    $cart->deleteProduct($cartProduct['id_product']);
                 }
             }
         }
     }
 
-    public function adjustQuotationsForCartInsurance($quotationsDiff, $operator, $cartInsuranceLine)
+    public function handleQuotationsInCart($cart)
+    {
+        $addAction = \Tools::getValue('add');
+        $qty = (int)\Tools::getValue('qty', 1);
+        $idProduct = \Tools::getValue('id_product', 0);
+
+        $quotationProducts = $this->cartInsuranceRepository->findBy(['idCart' => (int)$cart->id]);
+        if (empty($quotationProducts)) {
+            return;
+        }
+
+        foreach ($quotationProducts as $quotationProduct) {
+            /* @var ScalexpertCartInsurance $quotationProduct */
+            $productInCart = $cart->containsProduct(
+                $quotationProduct->getIdProduct(),
+                $quotationProduct->getIdProductAttribute()
+            );
+
+            if (
+                empty($productInCart['quantity'])
+                && !empty($addAction)
+                && (int)$idProduct === $quotationProduct->getIdProduct()
+            ) {
+                $productInCart['quantity'] = $qty;
+            }
+
+            if (empty($productInCart['quantity'])) {
+                $this->entityManager->remove($quotationProduct);
+                $this->entityManager->flush();
+
+                $cart->deleteProduct($quotationProduct->getIdProduct(), $quotationProduct->getIdProductAttribute());
+            } elseif (empty($quotationProduct->getQuotations())) {
+                $this->adjustQuotationsForCartInsurance(
+                    $productInCart['quantity'],
+                    'up',
+                    $quotationProduct
+                );
+            } else {
+                $quotationsCount = count($quotationProduct->getQuotations());
+
+                if ($productInCart['quantity'] > $quotationsCount) {
+                    $this->adjustQuotationsForCartInsurance(
+                        $productInCart['quantity'] - $quotationsCount,
+                        'up',
+                        $quotationProduct
+                    );
+                } elseif ($productInCart['quantity'] < $quotationsCount) {
+                    $this->adjustQuotationsForCartInsurance(
+                        $quotationsCount - $productInCart['quantity'],
+                        'down',
+                        $quotationProduct
+                    );
+                }
+            }
+        }
+    }
+
+    public function adjustQuotationsForCartInsurance(
+        $quotationsDiff,
+        $operator,
+        $cartInsuranceLine
+    )
     {
         $itemPrice = \Product::getPriceStatic(
             $cartInsuranceLine->getIdProduct(),
@@ -301,7 +289,7 @@ class CartInsuranceProductsService
 
         $quotations = $cartInsuranceLine->getQuotations();
 
-        if ($operator == 'up') {
+        if ('up' === $operator) {
             for ($quote = 0; $quote < $quotationsDiff; $quote++) {
 
                 $quoteData = $this->apiClient->createInsuranceQuotation(
@@ -324,12 +312,12 @@ class CartInsuranceProductsService
 
     public function createOrGetInsuranceProduct($cartInsurance): ?int
     {
-        $insuranceProductReference =  sprintf('%s|%s', $cartInsurance->getIdItem(), $cartInsurance->getIdInsurance());
-        $insuranceCategoryId = (int) $this->configuration->get(self::CONFIGURATION_INSURANCE_PRODUCTS_CATEGORY);
+        $insuranceProductReference = sprintf('%s|%s', $cartInsurance->getIdItem(), $cartInsurance->getIdInsurance());
+        $insuranceCategoryId = (int)$this->configuration->get(self::CONFIGURATION_INSURANCE_PRODUCTS_CATEGORY);
         $insuranceProductId = \Product::getIdByReference($insuranceProductReference);
 
         if (!empty($insuranceProductId)) {
-            $existingInsuranceProduct = new \Product((int) $insuranceProductId);
+            $existingInsuranceProduct = new \Product((int)$insuranceProductId);
 
             if (\Validate::isLoadedObject($existingInsuranceProduct)) {
                 if ($existingInsuranceProduct->id_category_default != $insuranceCategoryId) {
@@ -338,11 +326,16 @@ class CartInsuranceProductsService
                     $existingInsuranceProduct->save();
                 }
 
-                return (int) $insuranceProductId;
+                return (int)$insuranceProductId;
             }
         }
 
-        $productPrice = \Product::getPriceStatic($cartInsurance->getIdProduct(), true, $cartInsurance->getIdProductAttribute(), 2);
+        $productPrice = \Product::getPriceStatic(
+            $cartInsurance->getIdProduct(),
+            true,
+            $cartInsurance->getIdProductAttribute(),
+            2
+        );
 
         $insurances = $this->apiClient->getInsurancesByItemId(
             $cartInsurance->getSolutionCode(),
@@ -352,7 +345,7 @@ class CartInsuranceProductsService
 
         if (!empty($insurances)) {
             foreach ($insurances as $insurance) {
-                if ($insurance['id'] == $cartInsurance->getIdInsurance()) {
+                if ((int)$insurance['id'] === (int)$cartInsurance->getIdInsurance()) {
                     $currentInsurance = $insurance;
                 }
             }
@@ -377,7 +370,7 @@ class CartInsuranceProductsService
             $languages = \Language::getLanguages();
             $insuranceProductName = [];
 
-            $product = new \Product((int) $cartInsurance->getIdProduct());
+            $product = new \Product((int)$cartInsurance->getIdProduct());
 
             if (!empty($languages)) {
                 foreach ($languages as $language) {
@@ -392,7 +385,7 @@ class CartInsuranceProductsService
             $insuranceProduct->name = $insuranceProductName;
 
             if ($insuranceProduct->save()) {
-                \StockAvailable::setQuantity((int) $insuranceProduct->id, 0, 999999999);
+                \StockAvailable::setQuantity((int)$insuranceProduct->id, 0, 999999999);
 
                 $productDownload = new \ProductDownload();
                 $productDownload->id_product = $insuranceProduct->id;
@@ -402,10 +395,90 @@ class CartInsuranceProductsService
                     $insuranceProduct->addToCategories([$insuranceCategoryId]);
                 }
 
-                return (int) $insuranceProduct->id;
+                return (int)$insuranceProduct->id;
             }
         }
 
         return null;
+    }
+
+    private function removeCartInsurance(
+        $idCart,
+        $idProduct,
+        $idProductAttribute
+    ): void
+    {
+        $cartInsurancesToDelete = $this->cartInsuranceRepository->findBy([
+            'idCart' => $idCart,
+            'idProduct' => $idProduct,
+            'idProductAttribute' => $idProductAttribute,
+        ]);
+
+        if (empty($cartInsurancesToDelete)) {
+            return;
+        }
+
+        foreach ($cartInsurancesToDelete as $cartInsuranceToDelete) {
+            $this->entityManager->remove($cartInsuranceToDelete);
+        }
+    }
+
+    private function addCartInsurance(
+        $idCart,
+        $idProduct,
+        $idProductAttribute,
+        $idInsurance,
+        $idItem,
+        $solutionCode
+    ): void
+    {
+        $availableInsuranceSolutions = $this->availableSolutions->getAvailableInsuranceSolutions(
+            'cart',
+            $idProduct,
+            $idProductAttribute
+        );
+        if (empty($availableInsuranceSolutions)) {
+            return;
+        }
+
+        $invalidData = true;
+        $availableSolution = reset($availableInsuranceSolutions);
+        if (!empty($availableSolution['insurances'])) {
+            foreach ($availableSolution['insurances'] as $solutionInsurance) {
+                if (
+                    (string)$solutionInsurance['id'] === (string)$idInsurance
+                    && (string)$solutionInsurance['itemId'] === (string)$idItem
+                ) {
+                    $invalidData = false;
+                }
+            }
+        }
+
+        if ($invalidData) {
+            return;
+        }
+
+        $cartInsurance = $this->cartInsuranceRepository->findOneBy([
+            'idCart' => $idCart,
+            'idProduct' => $idProduct,
+            'idProductAttribute' => $idProductAttribute,
+        ]);
+
+        if (empty($cartInsurance)) {
+            $cartInsurance = new ScalexpertCartInsurance();
+        }
+
+        $cartInsurance->setIdProduct($idProduct);
+        $cartInsurance->setIdProductAttribute($idProductAttribute);
+        $cartInsurance->setQuotations(null);
+        $cartInsurance->setIdCart($idCart);
+        $cartInsurance->setIdItem($idItem);
+        $cartInsurance->setIdInsurance($idInsurance);
+        $cartInsurance->setSolutionCode($solutionCode);
+
+        $idInsuranceProduct = $this->createOrGetInsuranceProduct($cartInsurance);
+        $cartInsurance->setIdInsuranceProduct($idInsuranceProduct);
+
+        $this->entityManager->persist($cartInsurance);
     }
 }

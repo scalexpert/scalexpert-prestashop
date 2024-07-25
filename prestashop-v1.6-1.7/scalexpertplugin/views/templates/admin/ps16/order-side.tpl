@@ -72,6 +72,12 @@
                             {l s='Consolidated status' mod='scalexpertplugin'}
                             : {$financialSubscription.consolidatedStatusDisplay}
                         </div>
+                        {if !empty($financialSubscription.consolidatedSubStatusDisplay)}
+                        <div class="row">
+                            {l s='Consolidated substatus' mod='scalexpertplugin'}
+                            : {$financialSubscription.consolidatedSubStatusDisplay}
+                        </div>
+                        {/if}
                         <div class="row">
                             {l s='Buyer financed amount' mod='scalexpertplugin'}
                             : {$financialSubscription.buyerFinancedAmountDisplay}
@@ -120,6 +126,15 @@
                                         </button>
                                     </div>
                                 </form>
+                                {elseif $financialSubscription.isDelivered}
+                                    <br/>
+                                    <form action="#">
+                                        <div id="message" class="form-horizontal">
+                                            <button type="submit" disabled id="submitSubscriptionConfirmDeliveryRequest" class="btn btn-primary" name="submitSubscriptionConfirmDeliveryRequest">
+                                                {l s='Delivery done' mod='scalexpertplugin'}
+                                            </button>
+                                        </div>
+                                    </form>
                                 {/if}
                             </div>
                         {/if}

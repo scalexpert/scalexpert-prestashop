@@ -16,6 +16,8 @@ use ScalexpertPlugin\Helper\FinancingEligibility;
 use ScalexpertPlugin\Helper\InsuranceEligibility;
 use ScalexpertPlugin\Helper\InsuranceProcess;
 use ScalexpertPlugin\Helper\SimulationFormatter;
+use ScalexpertPlugin\Service\DataBuilder;
+use ScalexpertPlugin\Service\SolutionSorter;
 
 class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
 {
@@ -26,6 +28,7 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
             return;
         }
 
+        $content = '';
         if ('financial' === $type) {
             if ('FR' === strtoupper($this->context->language->iso_code)) {
                 $content = $this->_getSimulationForProduct();
@@ -68,7 +71,6 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
         $_POST['add'] = true;
 
         $result = InsuranceProcess::handleCartSave($params);
-
         $this->ajaxDie(\Tools::jsonEncode(array('hasError' => false, 'content' => $result)));
     }
 
@@ -77,15 +79,14 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
         $idProduct = (int)Tools::getValue('idProduct');
         $oProduct = new Product($idProduct);
         if (!Validate::isLoadedObject($oProduct)) {
-            return;
+            return '';
         }
 
         $customizeProduct = FinancingEligibility::getEligibleSolutionByProduct($idProduct);
         if (empty($customizeProduct)) {
-            return;
+            return '';
         }
 
-        $content = '';
         $eligibleSolutions = Financing::getEligibleSolutionsForFront(
             floor($oProduct->getPrice()),
             strtoupper($this->context->language->iso_code)
@@ -106,8 +107,9 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
         }
 
         // Sort products by position
-        $this->module->sortSolutionsByPosition($sortedSolutions);
+        SolutionSorter::sortSolutionsByPosition($sortedSolutions);
 
+        $content = '';
         foreach ($sortedSolutions as $sortedSolution) {
             $this->context->smarty->assign(
                 $this->module->name . '_productButtons',
@@ -206,7 +208,7 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
             strtoupper($this->context->language->iso_code)
         );
 
-        $designData = $this->module->buildDesignData($eligibleSolutions, $customizeProduct);
+        $designData = DataBuilder::buildDesignData($eligibleSolutions, $customizeProduct);
 
         $simulateResponse = Financing::simulateFinancing(
             $oProduct->getPrice(),

@@ -13,10 +13,10 @@ use ScalexpertPlugin\Api\Client;
 use ScalexpertPlugin\Api\Financing;
 use ScalexpertPlugin\Api\Insurance;
 use ScalexpertPlugin\Helper\Hash;
+use ScalexpertPlugin\Helper\SolutionManager;
 
 class AdminScalexpertAdministrationController extends ModuleAdminController
 {
-
     /**
      * @var ScalexpertPlugin
      */
@@ -34,36 +34,39 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
     public function postProcess()
     {
         if (Tools::isSubmit('submitAdminScalexpertAdministration')) {
-            // Tab Settings
-            Configuration::updateValue('SCALEXPERT_ENVIRONMENT', Tools::getValue('mode', 'test'));
-            Configuration::updateValue('SCALEXPERT_API_TEST_IDENTIFIER', Tools::getValue('apiTestIdentifier'));
-            Configuration::updateValue('SCALEXPERT_API_PRODUCTION_IDENTIFIER', Tools::getValue('apiProductionIdentifier'));
+            $config = [
+                'SCALEXPERT_ENVIRONMENT' => Tools::getValue('mode', 'test'),
+                'SCALEXPERT_API_TEST_IDENTIFIER' => Tools::getValue('apiTestIdentifier'),
+                'SCALEXPERT_API_PRODUCTION_IDENTIFIER' => Tools::getValue('apiProductionIdentifier'),
+                'SCALEXPERT_DEBUG_MODE' => Tools::getValue('debugMode'),
+                'SCALEXPERT_FINANCING_SOLUTIONS', '',
+                'SCALEXPERT_INSURANCE_SOLUTIONS', '',
+                'SCALEXPERT_GROUP_FINANCING_SOLUTIONS' => (int)Tools::getValue('groupFinancingSolutions'),
+            ];
 
+            // Tab Settings
             if ($apiTestKey = Tools::getValue('apiTestKey')) {
-                Configuration::updateValue('SCALEXPERT_API_TEST_KEY', Hash::encrypt($apiTestKey));
+                $config['SCALEXPERT_API_TEST_KEY'] = Hash::encrypt($apiTestKey);
             }
             if ($apiProductionKey = Tools::getValue('apiProductionKey')) {
-                Configuration::updateValue('SCALEXPERT_API_PRODUCTION_KEY', Hash::encrypt($apiProductionKey));
+                $config['SCALEXPERT_API_PRODUCTION_KEY'] = Hash::encrypt($apiProductionKey);
             }
-
-            Configuration::updateValue('SCALEXPERT_DEBUG_MODE', Tools::getValue('debugMode'));
 
             // Tab Enabled / Disabled
             if ($financingSolutions = Tools::getValue('financingSolutions')) {
-                Configuration::updateValue('SCALEXPERT_FINANCING_SOLUTIONS', json_encode($financingSolutions));
-            } else {
-                Configuration::updateValue('SCALEXPERT_FINANCING_SOLUTIONS', '');
+                $config['SCALEXPERT_FINANCING_SOLUTIONS'] = json_encode($financingSolutions);
             }
             if ($insuranceSolutions = Tools::getValue('insuranceSolutions')) {
-                Configuration::updateValue('SCALEXPERT_INSURANCE_SOLUTIONS', json_encode($insuranceSolutions));
-            } else {
-                Configuration::updateValue('SCALEXPERT_INSURANCE_SOLUTIONS', '');
+                $config['SCALEXPERT_INSURANCE_SOLUTIONS'] = json_encode($insuranceSolutions);
             }
-            Configuration::updateValue('SCALEXPERT_GROUP_FINANCING_SOLUTIONS', (int)Tools::getValue('groupFinancingSolutions'));
 
             // Tab Order State Mapping
             if ($orderStateMapping = Tools::getValue('orderStateMapping')) {
-                Configuration::updateValue('SCALEXPERT_ORDER_STATE_MAPPING', json_encode($orderStateMapping));
+                $config['SCALEXPERT_ORDER_STATE_MAPPING'] = json_encode($orderStateMapping);
+            }
+
+            foreach ($config as $k => $v) {
+                Configuration::updateValue($k, $v);
             }
 
             $this->confirmations[] = $this->_conf[4];
@@ -175,10 +178,9 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
                     'tab' => $tabName
                 ];
             }
-
         }
 
-        $this->_addMissingSolutionsByType($this->module::TYPES[0], $existingSolution, $tabName);
+        $this->_addMissingSolutionsByType(SolutionManager::TYPES[0], $existingSolution, $tabName);
 
         if (version_compare(_PS_VERSION_, '1.7', '>=')) {
             $this->_formInputs[] = [
@@ -219,7 +221,7 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
                 $this->_formInputs[] = [
                     'type' => 'switch',
                     'label' => $this->getImgForSolutionCode(
-                        $this->module->getSolutionFlag($insuranceSolution['solutionCode']),
+                        SolutionManager::getSolutionFlag($insuranceSolution['solutionCode']),
                         $insuranceSolution['solutionCode']
                     ),
                     'name' => 'insuranceSolutions[' . $insuranceSolution['solutionCode'] . ']',
@@ -241,18 +243,18 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
             }
         }
 
-        $this->_addMissingSolutionsByType($this->module::TYPES[1], $existingSolution, $tabName);
+        $this->_addMissingSolutionsByType(SolutionManager::TYPES[1], $existingSolution, $tabName);
     }
 
     private function _addMissingSolutionsByType($type, $existingSolution, $tabName)
     {
-        $missingSolution = $this->module->getMissingSolution($existingSolution, $type);
+        $missingSolution = SolutionManager::getMissingSolution($existingSolution, $type);
 
         foreach ($missingSolution as $missingSolutionCode) {
             $this->_formInputs[] = [
                 'type' => 'switch',
                 'label' => $this->getImgForSolutionCode(
-                    $this->module->getSolutionFlag($missingSolutionCode),
+                    SolutionManager::getSolutionFlag($missingSolutionCode),
                     $missingSolutionCode
                 ),
                 'name' => 'DISABLE_' . $missingSolutionCode,
@@ -269,7 +271,7 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
                         'label' => $this->l('Disabled')
                     ]
                 ],
-                'desc' => $this->l('This option is not available in your contract.') . '<br/>' . '<a href="' . $this->module->getNewContractUrlByLang($type, $this->context->language->iso_code) . '" target="_blank">' . $this->l('Subscribe to this offer.') . '</a>',
+                'desc' => $this->l('This option is not available in your contract.') . '<br/>' . '<a href="' . SolutionManager::getNewContractUrlByLang($type, $this->context->language->iso_code) . '" target="_blank">' . $this->l('Subscribe to this offer.') . '</a>',
                 'tab' => $tabName
             ];
         }
@@ -289,7 +291,6 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
     {
         $tabName = 'tabDebug';
         $this->_formTabs[$tabName] = $this->l('Debug Mode');
-
         $this->fields_value['debugMode'] = (int)Configuration::get('SCALEXPERT_DEBUG_MODE');
 
         if (!$this->_keysExist()) {
@@ -443,7 +444,7 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
             }
 
             $this->_formInputs[] = [
-                'label' => $this->getLabelByStatus($state),
+                'label' => SolutionManager::getFinancialStateLabel($state, $this->module, true),
                 'type' => 'select',
                 'name' => 'orderStateMapping[' . $state . ']',
                 'options' => [
@@ -476,13 +477,13 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
 
     private function _keysExist()
     {
-        if ((Configuration::get('SCALEXPERT_API_TEST_IDENTIFIER') && Configuration::get('SCALEXPERT_API_TEST_KEY'))
-            || (Configuration::get('SCALEXPERT_API_PRODUCTION_IDENTIFIER') && Configuration::get('SCALEXPERT_API_PRODUCTION_KEY'))
-        ) {
-            return true;
-        }
-
-        return false;
+        return (
+                Configuration::get('SCALEXPERT_API_TEST_IDENTIFIER')
+                && Configuration::get('SCALEXPERT_API_TEST_KEY')
+            ) || (
+                Configuration::get('SCALEXPERT_API_PRODUCTION_IDENTIFIER')
+                && Configuration::get('SCALEXPERT_API_PRODUCTION_KEY')
+            );
     }
 
     public function ajaxProcessCheckKeys()
@@ -498,39 +499,10 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
         $this->ajaxDie(Tools::jsonEncode($return));
     }
 
-    private function getLabelByStatus($status)
-    {
-        switch ($status) {
-            case 'INITIALIZED':
-                $status = $this->l('Credit subscription is initialized (INITIALIZED)');
-                break;
-            case 'PRE_ACCEPTED':
-                $status = $this->l('Credit subscription is completed, awaiting a final decision from the financial institution (PRE_ACCEPTED)');
-                break;
-            case 'ACCEPTED':
-                $status = $this->l('Credit subscription is accepted (ACCEPTED)');
-                break;
-            case 'REJECTED':
-                $status = $this->l('Credit subscription is refused (REJECTED)');
-                break;
-            case 'ABORTED':
-                $status = $this->l('Credit subscription is aborted by the customer or due to technical issue (ABORTED)');
-                break;
-            case 'CANCELLED':
-                $status = $this->l('Credit subscription is cancelled (CANCELLED)');
-                break;
-            default:
-                $status = '';
-                break;
-        }
-
-        return $status;
-    }
-
-    private function getImgForSolutionCode($imgName, $solutionCode)
+    private function getImgForSolutionCode($imgName, $solutionCode): string
     {
         return '<img src="' . __PS_BASE_URI__ . 'modules/' . $this->module->name . '/views/img/flags/' .
             strtolower($imgName) . '.jpg" /> ' .
-            $this->module->getSolutionDisplayName($solutionCode);
+            SolutionManager::getSolutionDisplayName($solutionCode, $this->module);
     }
 }

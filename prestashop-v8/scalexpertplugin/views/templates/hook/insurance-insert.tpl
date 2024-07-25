@@ -125,7 +125,7 @@
             {/if}
         {else}
             <div class="sep_insuranceSolution-condition">
-                {$insuranceSolution.visualDescription|default:''}
+                {$insuranceSolution.visualDescription|default:'' nofilter}
             </div>
 
             {if !empty($insuranceSolution.visualInformationNoticeURL) ||

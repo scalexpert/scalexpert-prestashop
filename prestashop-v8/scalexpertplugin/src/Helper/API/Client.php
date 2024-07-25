@@ -16,9 +16,11 @@ use PrestaShop\PrestaShop\Core\ConfigurationInterface;
 use ScalexpertPlugin\Entity\ScalexpertCartInsurance;
 use ScalexpertPlugin\Entity\ScalexpertProductCustomField;
 use ScalexpertPlugin\Form\Configuration\KeysConfigurationFormDataConfiguration;
+use ScalexpertPlugin\Formatter\BasketFormatter;
 use ScalexpertPlugin\Formatter\BuyerFormatter;
 use ScalexpertPlugin\Handler\HashHandler;
 use ScalexpertPlugin\Handler\LogsHandler;
+use ScalexpertPlugin\Helper\SolutionFormatter;
 use Symfony\Component\Dotenv\Dotenv;
 use Tools;
 
@@ -35,7 +37,6 @@ class Client
 
     private $doctrineEntityManager;
 
-    private $hashHandler;
 
     private $_appIdentifier;
     private $_appKey;
@@ -43,47 +44,35 @@ class Client
     private $_type;
 
     private $_appBearer;
+    private $solutionFormatter;
 
     public function __construct(
         ConfigurationInterface $configuration,
-        $guzzleClient,
-        LogsHandler $logsHandler,
-        $doctrineEntityManager,
-        HashHandler $hashHandler
+                               $guzzleClient,
+        LogsHandler            $logsHandler,
+                               $doctrineEntityManager,
+        HashHandler            $hashHandler,
+        SolutionFormatter      $solutionFormatter
     )
     {
         $this->configuration = $configuration;
         $this->guzzleClient = $guzzleClient;
         $this->logsHandler = $logsHandler;
         $this->doctrineEntityManager = $doctrineEntityManager;
-        $this->hashHandler = $hashHandler;
+        $this->solutionFormatter = $solutionFormatter;
 
         $this->_type = $this->configuration->get(KeysConfigurationFormDataConfiguration::SCALEXPERT_KEYS_TYPE);
-        if ('production' == $this->_type) {
-            $this->_appIdentifier = $this->configuration->get(KeysConfigurationFormDataConfiguration::SCALEXPERT_KEYS_ID_PROD);
-            $this->_appKey = $this->hashHandler->decrypt($this->configuration->get(KeysConfigurationFormDataConfiguration::SCALEXPERT_KEYS_SECRET_PROD));
+        if ('production' === $this->_type) {
+            $keyId = KeysConfigurationFormDataConfiguration::SCALEXPERT_KEYS_ID_PROD;
+            $keySecret = KeysConfigurationFormDataConfiguration::SCALEXPERT_KEYS_SECRET_PROD;
         } else {
-            $this->_appIdentifier = $this->configuration->get(KeysConfigurationFormDataConfiguration::SCALEXPERT_KEYS_ID_TEST);
-            $this->_appKey = $this->hashHandler->decrypt($this->configuration->get(KeysConfigurationFormDataConfiguration::SCALEXPERT_KEYS_SECRET_TEST));
+            $keyId = KeysConfigurationFormDataConfiguration::SCALEXPERT_KEYS_ID_TEST;
+            $keySecret = KeysConfigurationFormDataConfiguration::SCALEXPERT_KEYS_SECRET_TEST;
         }
+        $this->_appIdentifier = $this->configuration->get($keyId);
+        $this->_appKey = $hashHandler->decrypt($this->configuration->get($keySecret));
 
         $this->getBearer(sprintf('%s %s', self::SCOPE_FINANCING, self::SCOPE_INSURANCE));
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getAppBearer(): ?string
-    {
-        return $this->_appBearer;
-    }
-
-    /**
-     * @param string|null $appBearer
-     */
-    public function setAppBearer(?string $appBearer): void
-    {
-        $this->_appBearer = $appBearer;
     }
 
     public function setCredentials($appIdentifier, $appKey, $type): void
@@ -105,12 +94,15 @@ class Client
         return getenv('SCALEXPERT_API_TEST_URL');
     }
 
-    public function debug(): void
-    {
-        dump($this->_appIdentifier, $this->_appKey, $this->_appBearer);
-    }
-
-    public function sendRequest($method, $endpoint, $formParams = [], $query = [], $headers = [], $json = [], $isBearerToken = false)
+    public function sendRequest(
+        $method,
+        $endpoint,
+        $formParams = [],
+        $query = [],
+        $headers = [],
+        $json = [],
+        $isBearerToken = false
+    ): array
     {
         if (!$isBearerToken && empty($this->_appBearer)) {
             $this->getBearer(sprintf('%s %s', self::SCOPE_FINANCING, self::SCOPE_INSURANCE));
@@ -127,7 +119,7 @@ class Client
         if (!empty($headers)) {
             $options['headers'] = $headers;
         } else {
-            $options['headers'] = ['Authorization' => 'Bearer ' . $this->getAppBearer()];
+            $options['headers'] = ['Authorization' => 'Bearer ' . $this->_appBearer];
         }
 
         if (!empty($json)) {
@@ -135,7 +127,7 @@ class Client
         }
 
         $response = [];
-        $uniqueId = uniqid();
+        $uniqueId = uniqid('', true);
 
         try {
             $temporaryOptions = $options;
@@ -209,7 +201,10 @@ class Client
         return false;
     }
 
-    public function getFinancialSolutions($price, $buyerBillingCountry): array
+    public function getFinancialSolutions(
+        $price,
+        string $buyerBillingCountry
+    ): array
     {
         $response = $this->sendRequest(
             'GET',
@@ -225,7 +220,7 @@ class Client
 
         if (!empty($response['contentsDecoded']['solutions'])) {
             foreach ($response['contentsDecoded']['solutions'] as $solution) {
-                $financialSolutions[$solution['solutionCode']] = $this->formatSolution(
+                $financialSolutions[$solution['solutionCode']] = $this->solutionFormatter->formatSolution(
                     $solution,
                     $buyerBillingCountry,
                     'financial'
@@ -258,30 +253,14 @@ class Client
         ];
 
         $financialSolutions = [];
-
         foreach ($financialSolutionsToRequest as $financialSolution) {
-            $response = $this->sendRequest(
-                'GET',
-                '/e-financing/api/v1/eligible-solutions',
-                [],
-                [
-                    'financedAmount' => $financialSolution['financedAmount'],
-                    'buyerBillingCountry' => $financialSolution['buyerBillingCountry'],
-                ]
+            $financialSolutions[] = $this->getFinancialSolutions(
+                $financialSolution['financedAmount'],
+                $financialSolution['buyerBillingCountry']
             );
-
-            if (!empty($response['contentsDecoded']['solutions'])) {
-                foreach ($response['contentsDecoded']['solutions'] as $solution) {
-                    $financialSolutions[$solution['solutionCode']] = $this->formatSolution(
-                        $solution,
-                        $financialSolution['buyerBillingCountry'],
-                        'financial'
-                    );
-                }
-            }
         }
 
-        return $financialSolutions;
+        return array_merge([], ...$financialSolutions);
     }
 
     public function getInsuranceSolutionsByBuyerBillingCountry($buyerBillingCountry): array
@@ -299,7 +278,7 @@ class Client
 
         if (!empty($response['contentsDecoded']['solutions'])) {
             foreach ($response['contentsDecoded']['solutions'] as $solution) {
-                $insuranceSolutions[$solution['solutionCode']] = $this->formatSolution(
+                $insuranceSolutions[$solution['solutionCode']] = $this->solutionFormatter->formatSolution(
                     $solution,
                     $buyerBillingCountry,
                     'insurance'
@@ -322,36 +301,20 @@ class Client
         ];
 
         $insuranceSolutions = [];
-
         foreach ($insuranceSolutionsToRequest as $insuranceSolution) {
-            $response = $this->sendRequest(
-                'GET',
-                '/insurance/api/v1/eligible-solutions',
-                [],
-                [
-                    'buyerBillingCountry' => $insuranceSolution['buyerBillingCountry'],
-                ]
+            $insuranceSolutions[] = $this->getInsuranceSolutionsByBuyerBillingCountry(
+                $insuranceSolution['buyerBillingCountry']
             );
-
-            if (!empty($response['contentsDecoded']['solutions'])) {
-                foreach ($response['contentsDecoded']['solutions'] as $solution) {
-                    $insuranceSolutions[$solution['solutionCode']] = $this->formatSolution(
-                        $solution,
-                        $insuranceSolution['buyerBillingCountry'],
-                        'insurance'
-                    );
-                }
-            }
         }
 
-        return $insuranceSolutions;
+        return array_merge([], ...$insuranceSolutions);
     }
 
     public function createItem($solutionCode, $productID): string
     {
         $itemId = '';
-        $defaultLang = \Configuration::get('PS_LANG_DEFAULT');
-        $product = new \Product((int) $productID, false, $defaultLang);
+        $defaultLang = $this->configuration->get('PS_LANG_DEFAULT');
+        $product = new \Product((int)$productID, false, $defaultLang);
 
         // Get category name
         if (!empty($product->id_category_default)) {
@@ -386,11 +349,12 @@ class Client
             [
                 'solutionCode' => $solutionCode,
                 'sku' => !empty($product->ean13) ? (string)$product->ean13 : 'NC',
-                'merchantItemId' => (string) $product->reference,
+                'merchantItemId' => (string)$product->reference,
                 'brand' => !empty($manufacturerName) ? $manufacturerName : 'NC',
                 'model' => !empty($model) ? $model : 'NC',
                 'title' => !empty($product->name) ? $product->name : 'NC',
-                'description' => !empty($product->description) ? substr(strip_tags($product->description), 0, 255) : 'NC',
+                'description' => !empty($product->description) ?
+                    substr(strip_tags($product->description), 0, 255) : 'NC',
                 'characteristics' => !empty($characteristics) ? $characteristics : 'NC',
                 'category' => !empty($categoryName) ? $categoryName : 'NC',
             ]
@@ -418,39 +382,42 @@ class Client
             ]
         );
 
+        if (empty($response['contentsDecoded']['insurances'])) {
+            return [];
+        }
+
         $insurances = [];
+        $context = \Context::getContext();
 
-        if (!empty($response['contentsDecoded']['insurances'])) {
-            $context = \Context::getContext();
+        foreach ($response['contentsDecoded']['insurances'] as $insurance) {
+            $insuranceData = $insurance;
 
-            foreach ($response['contentsDecoded']['insurances'] as $insurance) {
-                $insuranceData = $insurance;
-
-                if (isset($insuranceData['price'])) {
-                    $insuranceData['formattedPrice'] = \Tools::displayPrice($insuranceData['price']);
-                }
-
-                if (!empty($context) && !empty($context->cart)) {
-                    $cartInsuranceRepository = $this->doctrineEntityManager->getRepository(ScalexpertCartInsurance::class);
-
-                    $selectedInsuranceItem = $cartInsuranceRepository->findBy([
-                        'idCart' => (int) $context->cart->id,
-                        'idItem' => $itemId,
-                        'idInsurance' => $insuranceData['id'],
-                    ]);
-
-                    if (!empty($selectedInsuranceItem)) {
-                        $insuranceData['selected'] = true;
-                    }
-                }
-
-                if (empty($insuranceData['selected'])) {
-                    $insuranceData['selected'] = false;
-                }
-
-                $insuranceData['itemId'] = $itemId;
-                $insurances[] = $insuranceData;
+            if (null !== $context && isset($insuranceData['price'])) {
+                $insuranceData['formattedPrice'] = $context->getCurrentLocale()->formatPrice(
+                    (float)$insuranceData['price'],
+                    $context->currency->iso_code
+                );
             }
+
+            if (null !== $context && !empty($context->cart)) {
+                $cartInsuranceRepository = $this->doctrineEntityManager->getRepository(ScalexpertCartInsurance::class);
+                $selectedInsuranceItem = $cartInsuranceRepository->findBy([
+                    'idCart' => (int)$context->cart->id,
+                    'idItem' => $itemId,
+                    'idInsurance' => $insuranceData['id'],
+                ]);
+
+                if (!empty($selectedInsuranceItem)) {
+                    $insuranceData['selected'] = true;
+                }
+            }
+
+            if (empty($insuranceData['selected'])) {
+                $insuranceData['selected'] = false;
+            }
+
+            $insuranceData['itemId'] = $itemId;
+            $insurances[] = $insuranceData;
         }
 
         return $insurances;
@@ -515,6 +482,9 @@ class Client
                     'merchantGlobalOrderId' => $financialSubscription['merchantGlobalOrderId'] ?? '',
                     'buyerFinancedAmount' => $financialSubscription['buyerFinancedAmount'] ?? '',
                     'consolidatedStatus' => $financialSubscription['consolidatedStatus'] ?? '',
+                    'consolidatedSubstatus' => $financialSubscription['consolidatedSubstatus'] ?? '',
+                    'isReturned' => isset($financialSubscription['isReturned']) ? (bool)$financialSubscription['isReturned'] : false,
+                    'isDelivered' => isset($financialSubscription['isDelivered']) ? (bool)$financialSubscription['isDelivered'] : false,
                 ];
             }
         }
@@ -543,48 +513,11 @@ class Client
             '/e-financing/api/v1/subscriptions/' . $subscriptionId
         );
 
-        $financingSubscriptionData = [];
-
         if (!empty($response['contentsDecoded'])) {
-            $financingSubscriptionData = $response['contentsDecoded'];
+            return $response['contentsDecoded'];
         }
 
-        return $financingSubscriptionData;
-    }
-
-    public function getInsuranceSubscriptionsByCartId($merchantBasketId): array
-    {
-        $response = $this->sendRequest(
-            'GET',
-            '/insurance/api/v1/subscriptions',
-            [],
-            [
-                'merchantBasketId' => $merchantBasketId,
-            ]
-        );
-
-        $insuranceSubscriptionsData = [];
-
-        if (!empty($response['contentsDecoded']['subscriptions'])) {
-            foreach ($response['contentsDecoded']['subscriptions'] as $insuranceSubscription) {
-                $insuranceSubscriptionsData[] = [
-                    'insuranceSubscriptionId' => $insuranceSubscription['insuranceSubscriptionId'] ?? '',
-                    'registrationTimestamp' => $insuranceSubscription['registrationTimestamp'] ?? '',
-                    'lastUpdateTimestamp' => $insuranceSubscription['lastUpdateTimestamp'] ?? '',
-                    'solutionCode' => $insuranceSubscription['solutionCode'] ?? '',
-                    'marketTypeCode' => $insuranceSubscription['marketTypeCode'] ?? '',
-                    'duration' => $insuranceSubscription['duration'] ?? '',
-                    'merchantBasketId' => $insuranceSubscription['merchantBasketId'] ?? '',
-                    'consolidatedStatus' => $insuranceSubscription['consolidatedStatus'] ?? '',
-                    'insuredItemPrice' => $insuranceSubscription['insuredItemPrice'] ?? '',
-                    'insuredItemCategory' => $insuranceSubscription['insuredItemCategory'] ?? '',
-                    'producerQuoteInsurancePrice' => $insuranceSubscription['producerQuoteInsurancePrice'] ?? '',
-                    'merchantCommission' => $insuranceSubscription['merchantCommission'] ?? '',
-                ];
-            }
-        }
-
-        return $insuranceSubscriptionsData;
+        return [];
     }
 
     public function getInsuranceSubscriptionBySubscriptionId($subscriptionId): array
@@ -601,9 +534,15 @@ class Client
         return [];
     }
 
-    public function createInsuranceSubscription($quoteData, $cartInsurancesProduct, $cart, $order, $customer): ?array
+    public function createInsuranceSubscription(
+        $quoteData,
+        ScalexpertCartInsurance $cartInsurancesProduct,
+        $cart,
+        $order,
+        \Customer $customer
+    ): ?array
     {
-        $address = new \Address((int) $order->id_address_invoice);
+        $address = new \Address((int)$order->id_address_invoice);
         $defaultLang = \Configuration::get('PS_LANG_DEFAULT');
         $product = new \Product($cartInsurancesProduct->getIdProduct(), false, $defaultLang);
 
@@ -629,20 +568,7 @@ class Client
             true
         );
         $productPrice = \Tools::ps_round($productPrice, 2);
-
-        $orderCurrency = \Currency::getIsoCodeById((int) $order->id_currency);
-
-        $mobilePhoneNumber = !empty($address->phone_mobile) ? $address->phone_mobile : $address->phone;
-
-        if (strpos($mobilePhoneNumber, '+') === false) {
-            $addressCountry = new \Country($address->id_country);
-
-            if (!empty($addressCountry->call_prefix)) {
-                $mobilePhoneNumber = sprintf('+%s%s', $addressCountry->call_prefix, substr($mobilePhoneNumber, 1));
-            } else {
-                $mobilePhoneNumber = sprintf('+33%s', substr($mobilePhoneNumber, 1));
-            }
-        }
+        $orderCurrency = \Currency::getIsoCodeById((int)$order->id_currency);
 
         $response = $this->sendRequest(
             'POST',
@@ -655,63 +581,40 @@ class Client
                 'quoteId' => $quoteData['quoteId'],
                 'insuranceId' => $cartInsurancesProduct->getIdInsurance(),
                 'merchantGlobalOrderId' => (string)$order->reference,
-                'merchantBasketId' => (string) $cart->id,
-                'merchantBuyerId' => (string) $customer->id,
-                'producerQuoteExpirationDate' => preg_replace('/^(\d{4}-\d{2}-\d{2}).*$/', '$1', $quoteData['expirationDate']),
+                'merchantBasketId' => (string)$cart->id,
+                'merchantBuyerId' => (string)$customer->id,
+                'producerQuoteExpirationDate' => preg_replace(
+                    '/^(\d{4}-\d{2}-\d{2}).*$/',
+                    '$1',
+                    $quoteData['expirationDate']
+                ),
                 'producerQuoteInsurancePrice' => $quoteData['insurancePrice'],
-                'buyer' => [
-                    'contact' => [
-                        'lastName' => $customer->lastname ?: '',
-                        'firstName' => $customer->firstname ?: '',
-                        'email' => $customer->email ?: '',
-                        'mobilePhoneNumber' => $mobilePhoneNumber,
-                        'phoneNumber' => $mobilePhoneNumber,
-                    ],
-                    'address' => [
-                        'streetNumber' => 0,
-                        'streetNumberSuffix' => '',
-                        'streetName' => (string) $address->address1 ?: '',
-                        'streetNameComplement' => (string) $address->address2 ?: '',
-                        'zipCode' => (string) $address->postcode ?: 'NC',
-                        'cityName' => (string) $address->city ?: 'NC',
-                        'regionName' => (string) $address->id_state ?: 'NC',
-                        'countryCode' => \Country::getIsoById($address->id_country) ?: 'NC',
-                    ]
-                ],
+                'buyer' => BuyerFormatter::normalizeBuyer($customer, $address),
                 'insuredItem' => [
-                    'id' => (string) $cartInsurancesProduct->getIdItem() ?: 'NC',
+                    'id' => (string)$cartInsurancesProduct->getIdItem() ?: 'NC',
                     'label' => trim(strip_tags(substr($product->name, 0, 30))) ?: 'NC',
                     'brandName' => $manufacturerName ?? 'NC',
                     'price' => $productPrice,
                     'currencyCode' => $orderCurrency ?: 'NC',
-                    'orderId' => (string) $order->reference,
+                    'orderId' => (string)$order->reference,
                     'category' => !empty($categoryName) ? substr($categoryName, 0, 20) : 'NC',
-                    'sku' => (string) $product->reference ?: 'NC',
+                    'sku' => (string)$product->reference ?: 'NC',
                     'insurancePrice' => $quoteData['insurancePrice'],
                 ]
             ]
         );
 
-        $insuranceSubscriptionData = [];
-
-        if (!empty($response['contentsDecoded']['insuranceSubscriptionId'])) {
-            $insuranceSubscriptionData['insuranceSubscriptionId'] = $response['contentsDecoded']['insuranceSubscriptionId'];
-        }
-
-        if (!empty($response['contentsDecoded']['consolidatedStatus'])) {
-            $insuranceSubscriptionData['consolidatedStatus'] = $response['contentsDecoded']['consolidatedStatus'];
-        }
-
-        return $insuranceSubscriptionData;
+        return [
+            'insuranceSubscriptionId' => $response['contentsDecoded']['insuranceSubscriptionId'] ?? '',
+            'consolidatedStatus' => $response['contentsDecoded']['consolidatedStatus'] ?? '',
+        ];
     }
 
     public function createFinancingSubscription($order, $solutionCode): array
     {
-        $customer = new \Customer((int) $order->id_customer);
-        $shippingAddress = new \Address((int) $order->id_address_delivery);
-        $billingAddress = new \Address((int) $order->id_address_invoice);
-        $orderCurrency = \Currency::getIsoCodeById((int) $order->id_currency);
-        $languageDefault = \Configuration::get('PS_LANG_DEFAULT');
+        $customer = new \Customer((int)$order->id_customer);
+        $shippingAddress = new \Address((int)$order->id_address_delivery);
+        $billingAddress = new \Address((int)$order->id_address_invoice);
 
         $orderShipping = $order->getShipping();
         if (
@@ -721,64 +624,30 @@ class Client
             $carrierName = reset($orderShipping)['carrier_name'];
         }
 
-        $lastOrders = \Order::getCustomerOrders($customer->id);
-        if (
-            !empty($lastOrders)
-            && is_array($lastOrders)
-            && isset($lastOrders[1]['date_add'])
-        ) {
-            $lastDatePurchase = preg_replace(
-                '/^(\d{4}-\d{2}-\d{2}).*$/',
-                '$1',
-                $lastOrders[1]['date_add']
-            );
-        }
-
         $basketItems = [];
-        $orderProducts = $order->getProducts();
-        if (!empty($orderProducts)) {
-            $repository = $this->doctrineEntityManager->getRepository(ScalexpertProductCustomField::class);
+        $repository = $this->doctrineEntityManager->getRepository(ScalexpertProductCustomField::class);
 
-            foreach ($orderProducts as $orderProduct) {
-                // Get category name
-                if (!empty($orderProduct['id_category_default'])) {
-                    $defaultCategory = new \Category($orderProduct['id_category_default']);
+        foreach ($order->getProducts() as $orderProduct) {
+            $defaultCategory = new \Category($orderProduct['id_category_default'], $customer->id_lang);
+            $manufacturerName = \Manufacturer::getNameById($orderProduct['id_manufacturer']);
 
-                    if (\Validate::isLoadedObject($defaultCategory)) {
-                        $categoryName = $defaultCategory->getName($languageDefault);
-                    }
-                }
-
-                if (!empty($repository)) {
-                    $productCustomFields = $repository->find($orderProduct['id_product']);
-
-                    if (!empty($productCustomFields)) {
-                        $model = $productCustomFields->getModel();
-                        $characteristics = $productCustomFields->getCharacteristics();
-                    }
-                }
-
-                if (!empty($orderProduct['id_manufacturer'])) {
-                    $manufacturerName = \Manufacturer::getNameById($orderProduct['id_manufacturer']);
-                }
-
-                $basketItems[] = [
-                    'id' => (string) $orderProduct['id_product'] ?: 'NC',
-                    'quantity' => (int) $orderProduct['product_quantity'] ?: 1,
-                    'model' => !empty($model) ? $model : 'NC',
-                    'label' => trim(strip_tags(substr($orderProduct['product_name'], 0, 30))) ?: 'NC',
-                    'price' => (float) \Tools::ps_round($orderProduct['unit_price_tax_incl'], 2) ?: 0,
-                    'currencyCode' => $orderCurrency ?: 'NC',
-                    'orderId' => (string) $order->reference,
-                    'brandName' => $manufacturerName ?? 'NC',
-                    'description' => !empty($orderProduct['description']) ?
-                        substr(strip_tags($orderProduct['description']), 0, 255) : 'NC',
-                    'specifications' => !empty($characteristics) ? $characteristics : 'NC',
-                    'category' => !empty($categoryName) ? substr($categoryName, 0, 20) : 'NC',
-                    'sku' => (string) $orderProduct['product_reference'] ?: 'NC',
-                    'isFinanced' => true,
-                ];
+            /* @var ScalexpertProductCustomField $productCustomFields */
+            $productCustomFields = $repository->find($orderProduct['id_product']);
+            $model = '';
+            $characteristics = '';
+            if (null !== $productCustomFields) {
+                $model = $productCustomFields->getModel();
+                $characteristics = $productCustomFields->getCharacteristics();
             }
+
+            $basketItems[] = BasketFormatter::normalizeItem(
+                $orderProduct,
+                $model,
+                $characteristics,
+                $defaultCategory,
+                $manufacturerName,
+                $order
+            );
         }
 
         $redirectURL = \Context::getContext()->link->getModuleLink(
@@ -793,10 +662,10 @@ class Client
 
         $data = [
             'solutionCode' => $solutionCode,
-            'merchantBasketId' => (string) $order->id_cart,
-            'merchantGlobalOrderId' => (string) $order->reference,
-            'merchantBuyerId' => (string) $customer->id,
-            'financedAmount' => (float) \Tools::ps_round($order->total_paid, 2),
+            'merchantBasketId' => (string)$order->id_cart,
+            'merchantGlobalOrderId' => (string)$order->reference,
+            'merchantBuyerId' => (string)$customer->id,
+            'financedAmount' => \Tools::ps_round($order->total_paid, 2),
             'merchantUrls' => [
                 'confirmation' => $redirectURL,
             ],
@@ -808,12 +677,11 @@ class Client
                     'deliveryAddress' => BuyerFormatter::normalizeAddress($shippingAddress, 'DELIVERY_ADDRESS'),
                     'contact' => BuyerFormatter::normalizeContact($shippingAddress, $customer),
                     'contactAddress' => BuyerFormatter::normalizeAddress($shippingAddress, 'MAIN_ADDRESS'),
+                    'deliveryMethod' => $carrierName ?? 'NC',
                     'birthName' => !empty($customer->lastname) ? $customer->lastname : '',
                     'birthDate' => (!empty($customer->birthday) && '0000-00-00' !== $customer->birthday) ?
-                        $customer->birthday : '',
+                        $customer->birthday : '1970-01-01',
                     'birthCityName' => '',
-                    'deliveryMethod' => $carrierName ?? 'NC',
-                    'lastDatePurchase' => $lastDatePurchase ?? '',
                     'vip' => false,
                 ],
             ],
@@ -831,32 +699,25 @@ class Client
             $data
         );
 
-        $financingSubscriptionData = [];
-
-        if (!empty($response['contentsDecoded']['id'])) {
-            $financingSubscriptionData['id'] = $response['contentsDecoded']['id'];
-        }
-
-        if (!empty($response['contentsDecoded']['redirect'])) {
-            $financingSubscriptionData['redirect'] = [
-                'type' => $response['contentsDecoded']['redirect']['type'],
-                'value' => $response['contentsDecoded']['redirect']['value']
-            ];
-        }
-
-        return $financingSubscriptionData;
+        return [
+            'id' => $response['contentsDecoded']['id'] ?? '',
+            'redirect' => [
+                'type' => $response['contentsDecoded']['redirect']['type'] ?? '',
+                'value' => $response['contentsDecoded']['redirect']['value'] ?? ''
+            ],
+        ];
     }
 
-    public function cancelFinancialSubscription($insuranceId, $amount)
+    public function cancelFinancialSubscription($insuranceId, $amount): array
     {
         $response = $this->sendRequest(
             'POST',
-            '/e-financing/api/v1/subscriptions/'.$insuranceId.'/_cancel',
+            '/e-financing/api/v1/subscriptions/' . $insuranceId . '/_cancel',
             [],
             [],
             [],
             [
-                'cancelledAmount' => (float)Tools::ps_round($amount, 2),
+                'cancelledAmount' => Tools::ps_round($amount, 2),
             ]
         );
 
@@ -867,25 +728,6 @@ class Client
         }
 
         return $responseData;
-    }
-
-    public function formatSolution($solution, $buyerBillingCountry, $solutionType): array
-    {
-        return [
-            'solutionCode' => $solution['solutionCode'] ?? '',
-            'visualTitle' =>  $solution['communicationKit']['visualTitle'] ?? '',
-            'visualDescription' =>  $solution['communicationKit']['visualDescription'] ?? '',
-            'visualInformationIcon' => $solution['communicationKit']['visualInformationIcon'] ?? '',
-            'visualAdditionalInformation' => $solution['communicationKit']['visualAdditionalInformation'] ?? '',
-            'visualLegalText' => $solution['communicationKit']['visualLegalText'] ?? '',
-            'visualTableImage' => $solution['communicationKit']['visualTableImage'] ?? '',
-            'visualLogo' => $solution['communicationKit']['visualLogo'] ?? '',
-            'visualInformationNoticeURL' => $solution['communicationKit']['visualInformationNoticeURL'] ?? '',
-            'visualProductTermsURL' => $solution['communicationKit']['visualProductTermsURL'] ?? '',
-            'buyerBillingCountry' => $buyerBillingCountry,
-            'countryFlag' => sprintf('/img/flags/%s.jpg', strtolower($buyerBillingCountry)),
-            'type' => $solutionType,
-        ];
     }
 
     public function confirmDeliveryFinancingSubscription(
@@ -909,7 +751,7 @@ class Client
 
         return $this->sendRequest(
             'POST',
-            '/e-financing/api/v1/subscriptions/'.$creditSubscriptionId.'/_confirmDelivery',
+            '/e-financing/api/v1/subscriptions/' . $creditSubscriptionId . '/_confirmDelivery',
             [],
             [],
             [],

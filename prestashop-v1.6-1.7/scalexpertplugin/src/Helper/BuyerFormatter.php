@@ -114,7 +114,7 @@ class BuyerFormatter
     {
         if (
             !empty($phoneNumber)
-            && strpos($phoneNumber, '+') === false
+            && false === strpos($phoneNumber, '+')
         ) {
             $addressCountry = new \Country($idCountry);
 

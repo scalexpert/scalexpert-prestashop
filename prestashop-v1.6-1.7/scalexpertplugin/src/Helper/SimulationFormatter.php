@@ -11,6 +11,8 @@
 
 namespace ScalexpertPlugin\Helper;
 
+use ScalexpertPlugin\Service\SolutionSorter;
+
 class SimulationFormatter
 {
     public static function normalizeSimulations(
@@ -20,11 +22,9 @@ class SimulationFormatter
         $sortBySolutionCode = false
     ): array
     {
-        $simulationsFullData = [];
-
         $solutionSimulations = $simulateResponse['solutionSimulations'];
         if (empty($solutionSimulations)) {
-            return $simulationsFullData;
+            return [];
         }
 
         foreach ($solutionSimulations as $k => $solutionSimulation) {
@@ -35,8 +35,8 @@ class SimulationFormatter
             }
 
             // Add context data
-            $solutionSimulations[$k]['isLongFinancingSolution'] = static::isLongFinancingSolution($solutionCode);
-            $solutionSimulations[$k]['hasFeesSolution'] = static::hasFeesFinancingSolution($solutionCode);
+            $solutionSimulations[$k]['isLongFinancingSolution'] = SolutionManager::isLongFinancingSolution($solutionCode);
+            $solutionSimulations[$k]['hasFeesSolution'] = SolutionManager::hasFeesFinancingSolution($solutionCode);
             $solutionSimulations[$k]['hasFeesOnFirstInstallment'] =
                 $solutionSimulations[$k]['hasFeesSolution']
                 && 0 < $solutionSimulations[$k]['simulations'][0]['feesAmount']
@@ -67,6 +67,7 @@ class SimulationFormatter
             }
         }
 
+        $simulationsFullData = [];
         if ($groupSolutions) {
             // Group financing solutions by having fees or not
             foreach ($solutionSimulations as $solutionSimulation) {
@@ -83,17 +84,16 @@ class SimulationFormatter
                     } else {
                         $simulationsFullData['all'][] = $simulation;
                     }
-
                 }
             }
 
             // Sort by duration
             if ($sortBySolutionCode) {
                 foreach ($simulationsFullData as $simulationsFullDatum) {
-                    static::sortSolutionsByDuration($simulationsFullDatum);
+                    SolutionSorter::sortSolutionsByDuration($simulationsFullDatum);
                 }
             } else {
-                static::sortSolutionsByDuration($simulationsFullData['all']);
+                SolutionSorter::sortSolutionsByDuration($simulationsFullData['all']);
             }
         } else {
             foreach ($solutionSimulations as $solutionSimulation) {
@@ -106,45 +106,5 @@ class SimulationFormatter
         }
 
         return $simulationsFullData;
-    }
-
-    public static function isFrenchLongFinancingSolution($solutionCode)
-    {
-        return in_array($solutionCode, [
-            'SCFRLT-TXPS',
-            'SCFRLT-TXNO',
-        ], true);
-    }
-
-    public static function isDeutschLongFinancingSolution($solutionCode)
-    {
-        return in_array($solutionCode, [
-            'SCDELT-DXTS',
-            'SCDELT-DXCO',
-        ], true);
-    }
-
-    public static function isLongFinancingSolution(string $solutionCode): bool
-    {
-        return
-            static::isFrenchLongFinancingSolution($solutionCode)
-            || static::isDeutschLongFinancingSolution($solutionCode)
-        ;
-    }
-
-    public static function hasFeesFinancingSolution(string $solutionCode): bool
-    {
-        return in_array($solutionCode, [
-            'SCFRSP-3XPS',
-            'SCFRSP-4XPS',
-            'SCFRLT-TXPS',
-        ], true);
-    }
-
-    private static function sortSolutionsByDuration(&$solutions)
-    {
-        uasort($solutions, function ($a, $b) {
-            return $a['duration'] > $b['duration'];
-        });
     }
 }

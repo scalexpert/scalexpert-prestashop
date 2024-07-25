@@ -40,8 +40,8 @@ class InsuranceProcess
         self::handleInsuranceProductsFormSubmit($oCart);
 
         if (\Tools::getIsset('delete')) {
-            $idProductDelete = (int) \Tools::getValue('id_product');
-            $idProductAttributeDelete = (int) \Tools::getValue('id_product_attribute');
+            $idProductDelete = (int)\Tools::getValue('id_product');
+            $idProductAttributeDelete = (int)\Tools::getValue('id_product_attribute');
 
             $insuranceProductsToDelete = CartInsurance::getInsuranceLine(
                 $oCart->id,
@@ -68,93 +68,116 @@ class InsuranceProcess
     private static function handleInsuranceProductsFormSubmit($oCart)
     {
         $insurances = Tools::getValue('insurances');
+        if (empty($insurances)) {
+            return;
+        }
 
-        if (!empty($insurances)) {
-            foreach ($insurances as $productElements => $insurance) {
-                $explodedProductElements = explode('|', $productElements);
+        foreach ($insurances as $productElements => $insurance) {
+            $explodedProductElements = explode('|', $productElements);
 
-                $idProduct = isset($explodedProductElements[0]) ? $explodedProductElements[0] : null;
-                $idProductAttribute = isset($explodedProductElements[1]) ? $explodedProductElements[1] : null;
+            $idProduct = $explodedProductElements[0] ?? null;
+            $idProductAttribute = $explodedProductElements[1] ?? null;
 
-                $explodedInsurance = explode('|', $insurance);
-                $solutionCode = $explodedInsurance[0] ?? '';
-                $idItem = $explodedInsurance[1] ?? '';
-                $idInsurance = $explodedInsurance[2] ?? '';
+            $explodedInsurance = explode('|', $insurance);
+            $solutionCode = $explodedInsurance[0] ?? '';
+            $idItem = $explodedInsurance[1] ?? '';
+            $idInsurance = $explodedInsurance[2] ?? '';
 
-                if (!empty($idProduct) && !empty($idItem) && isset($idInsurance)) {
-                    if (empty($idInsurance)) {
-                        // Select no insurance choice > delete insurance line if existing.
-                        CartInsurance::removeInsuranceLine($oCart->id, $idProduct, $idProductAttribute);
-                    } else {
-                        $availableInsuranceSolutions = AvailableSolutionsChecker::getAvailableInsuranceSolutions(
-                            $idProduct,
-                            $idProductAttribute
-                        );
-                        $invalidData = true;
+            if (
+                empty($idProduct)
+                || empty($idItem)
+            ) {
+                return;
+            }
 
-                        if (!empty($availableInsuranceSolutions)) {
-                            $availableSolution = reset($availableInsuranceSolutions);
+            if (empty($idInsurance)) {
+                // Select no insurance choice > delete insurance line if existing.
+                CartInsurance::removeInsuranceLine($oCart->id, $idProduct, $idProductAttribute);
+                continue;
+            }
 
-                            if (!empty($availableSolution['insurances']['insurances'])) {
-                                foreach ($availableSolution['insurances']['insurances'] as $solutionInsurance) {
-                                    if (
-                                        $solutionInsurance['id'] == $idInsurance
-                                        && $solutionInsurance['itemId'] == $idItem
-                                    ) {
-                                        $invalidData = false;
-                                    }
-                                }
-                            }
-                        }
+            $availableInsuranceSolutions = AvailableSolutionsChecker::getAvailableInsuranceSolutions(
+                $idProduct,
+                $idProductAttribute
+            );
+            if (static::checkInsuranceValidData(
+                $availableInsuranceSolutions,
+                (int)$idInsurance,
+                (int)$idItem
+            )) {
+                continue;
+            }
 
-                        if ($invalidData) {
-                            continue;
-                        }
+            $idInsuranceProduct = static::createOrGetInsuranceProduct(
+                $idProduct,
+                $idProductAttribute,
+                $idItem,
+                $idInsurance,
+                $solutionCode
+            );
+            if (!$idInsuranceProduct) {
+                continue;
+            }
 
-                        $cartInsuranceToUpdate = CartInsurance::getInsuranceLine(
-                            $oCart->id,
-                            $idProduct,
-                            $idProductAttribute
-                        );
-
-                        $idInsuranceProduct = static::createOrGetInsuranceProduct(
-                            $idProduct,
-                            $idProductAttribute,
-                            $idItem,
-                            $idInsurance,
-                            $solutionCode
-                        );
-                        if (!$idInsuranceProduct) {
-                            continue;
-                        }
-
-                        if (empty($cartInsuranceToUpdate)) {
-                            CartInsurance::addInsuranceLine(
-                                $oCart->id,
-                                $idProduct,
-                                $idProductAttribute,
-                                $idItem,
-                                $idInsurance,
-                                $solutionCode,
-                                $idInsuranceProduct
-                            );
-                        } else {
-                            CartInsurance::updateInsuranceLine(
-                                $cartInsuranceToUpdate['id_cart_insurance'],
-                                $oCart->id,
-                                $idProduct,
-                                $idProductAttribute,
-                                $idItem,
-                                $idInsurance,
-                                $solutionCode,
-                                $idInsuranceProduct,
-                                null
-                            );
-                        }
-                    }
-                }
+            $cartInsuranceToUpdate = CartInsurance::getInsuranceLine(
+                $oCart->id,
+                $idProduct,
+                $idProductAttribute
+            );
+            if (empty($cartInsuranceToUpdate)) {
+                CartInsurance::addInsuranceLine(
+                    [
+                        'idCart' => $oCart->id,
+                        'idProduct' => $idProduct,
+                        'idProductAttribute' => $idProductAttribute,
+                        'idItem' => $idItem,
+                        'idInsurance' => $idInsurance,
+                        'solutionCode' => $solutionCode,
+                        'idInsuranceProduct' => $idInsuranceProduct
+                    ]
+                );
+            } else {
+                CartInsurance::updateInsuranceLine(
+                    $cartInsuranceToUpdate['id_cart_insurance'],
+                    [
+                        'idCart' => $oCart->id,
+                        'idProduct' => $idProduct,
+                        'idProductAttribute' => $idProductAttribute,
+                        'idItem' => $idItem,
+                        'idInsurance' => $idInsurance,
+                        'solutionCode' => $solutionCode,
+                        'idInsuranceProduct' => $idInsuranceProduct
+                    ]
+                );
             }
         }
+    }
+
+    private static function checkInsuranceValidData(
+        $availableInsuranceSolutions,
+        $insuranceId,
+        $itemId
+    ): bool
+    {
+        if (empty($availableInsuranceSolutions)) {
+            return false;
+        }
+
+        $availableSolution = reset($availableInsuranceSolutions);
+        if (empty($availableSolution['insurances']['insurances'])) {
+            return false;
+        }
+
+        foreach ($availableSolution['insurances']['insurances'] as $solutionInsurance) {
+            if (
+                (int)$solutionInsurance['id'] === $insuranceId
+                && (int)$solutionInsurance['itemId'] === $itemId
+            ) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static function createOrGetInsuranceProduct(
@@ -163,109 +186,110 @@ class InsuranceProcess
         $idItem,
         $idInsurance,
         $solutionCode
-    ) {
+    )
+    {
         $insuranceProductReference = sprintf('%s|%s', substr($idItem, 0, 18), $idInsurance);
-
-        $productPrice = \Product::getPriceStatic($idProduct, true, $idProductAttribute, 2);
-        $insurances = Insurance::searchInsurances($solutionCode, $idItem, $productPrice);
-
-        if (!empty($insurances['insurances'])) {
-            foreach ($insurances['insurances'] as $insurance) {
-                if (
-                    !empty($insurance['id'])
-                    && $insurance['id'] == $idInsurance
-                ) {
-                    $currentInsurance = $insurance;
-                }
-            }
-        }
 
         $query = new DbQuery();
         $query->select('p.id_product');
         $query->from('product', 'p');
-        $query->where('p.reference = \''.pSQL($insuranceProductReference).'\'');
-        $insuranceProductId = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
+        $query->where('p.reference = \'' . pSQL($insuranceProductReference) . '\'');
 
+        $insuranceProductId = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
         if ($insuranceProductId) {
             return (int)$insuranceProductId;
         }
 
-        if (!empty($currentInsurance)) {
-            $insuranceProduct = new \Product();
-            $insuranceProduct->reference = $insuranceProductReference;
-            $insuranceProduct->is_virtual = true;
-            $insuranceProduct->active = true;
-            $insuranceProduct->visibility = 'none';
-            $insuranceProduct->available_for_order = true;
-            if (version_compare(_PS_VERSION_, '1.7', '>=')) {
-                $insuranceProduct->delivery_out_stock = true;
-            } else {
-                $insuranceProduct->out_of_stock = 1;
-            }
-            $insuranceProduct->price = (float)$currentInsurance['price'];
-            $insuranceCategoryId = (int)Configuration::get(static::INSURANCE_CATEGORY_CONFIG_NAME);
-
-            if (!empty($insuranceCategoryId)) {
-                $insuranceProduct->id_category_default = $insuranceCategoryId;
-            }
-
-            $languages = \Language::getLanguages();
-            $insuranceProductName = [];
-            $insuranceProductLink = [];
-
-            if (!empty($languages)) {
-                foreach ($languages as $language) {
-                    $name = sprintf(
-                        '%s - %s',
-                        \Product::getProductName($idProduct, $idProductAttribute, $language['id_lang']),
-                        $currentInsurance['description']
-                    );
-                    $insuranceProductName[$language['id_lang']] = $name;
-                    $insuranceProductLink[$language['id_lang']] = Tools::str2url($name);
-                }
-            }
-            $insuranceProduct->name = $insuranceProductName;
-            $insuranceProduct->link_rewrite = $insuranceProductLink;
-
-            if ($insuranceProduct->save()) {
-                if (!version_compare(_PS_VERSION_, '1.7', '>=')) {
-                    // Update price by removing taxe
-                    $address = \Address::initialize(null);
-                    $id_tax_rules = (int)\Product::getIdTaxRulesGroupByIdProduct(
-                        $insuranceProduct->id,
-                        \Context::getContext()
-                    );
-                    $tax_manager = \TaxManagerFactory::getManager($address, $id_tax_rules);
-                    $tax_calculator = $tax_manager->getTaxCalculator();
-
-                    $newPrice = $tax_calculator->removeTaxes($insuranceProduct->price);
-                    $insuranceProduct->price = Tools::ps_round((float)$newPrice, 5);
-                    $insuranceProduct->update();
-                }
-
-                $productDownload = new \ProductDownload();
-                $productDownload->id_product = $insuranceProduct->id;
-                $productDownload->save();
-
-                \StockAvailable::setQuantity((int) $insuranceProduct->id, 0, 999999999);
-
-                if (!empty($insuranceCategoryId)) {
-                    $insuranceProduct->addToCategories([$insuranceCategoryId]);
-                }
-
-                return (int)$insuranceProduct->id;
-            }
+        $productPrice = \Product::getPriceStatic($idProduct, true, $idProductAttribute, 2);
+        $insurances = Insurance::searchInsurances($solutionCode, $idItem, $productPrice);
+        if (empty($insurances['insurances'])) {
+            return null;
         }
 
-        return null;
+        foreach ($insurances['insurances'] as $insurance) {
+            if (
+                !empty($insurance['id'])
+                && (int)$insurance['id'] === (int)$idInsurance
+            ) {
+                $currentInsurance = $insurance;
+            }
+        }
+        if (empty($currentInsurance)) {
+            return null;
+        }
+
+        $insuranceProduct = new \Product();
+        $insuranceProduct->reference = $insuranceProductReference;
+        $insuranceProduct->is_virtual = true;
+        $insuranceProduct->active = true;
+        $insuranceProduct->visibility = 'none';
+        $insuranceProduct->available_for_order = true;
+        if (version_compare(_PS_VERSION_, '1.7', '>=')) {
+            $insuranceProduct->delivery_out_stock = true;
+        } else {
+            $insuranceProduct->out_of_stock = 1;
+        }
+        $insuranceProduct->price = (float)$currentInsurance['price'];
+        $insuranceCategoryId = (int)Configuration::get(static::INSURANCE_CATEGORY_CONFIG_NAME);
+        $insuranceProduct->id_category_default = $insuranceCategoryId;
+
+        $insuranceProductName = [];
+        $insuranceProductLink = [];
+        $languages = \Language::getLanguages();
+        foreach ($languages as $language) {
+            $name = sprintf(
+                '%s - %s',
+                \Product::getProductName($idProduct, $idProductAttribute, $language['id_lang']),
+                $currentInsurance['description']
+            );
+            $insuranceProductName[$language['id_lang']] = $name;
+            $insuranceProductLink[$language['id_lang']] = Tools::str2url($name);
+        }
+        $insuranceProduct->name = $insuranceProductName;
+        $insuranceProduct->link_rewrite = $insuranceProductLink;
+
+        try {
+            $insuranceProduct->save();
+            $insuranceProduct->addToCategories([$insuranceCategoryId]);
+            \StockAvailable::setQuantity((int)$insuranceProduct->id, 0, 999999999);
+        } catch (\Exception $e) {
+            \PrestaShopLogger::addLog($e->getMessage());
+            return null;
+        }
+
+        if (!version_compare(_PS_VERSION_, '1.7', '>=')) {
+            // Update price by removing taxe
+            $address = \Address::initialize(null);
+            $id_tax_rules = (int)\Product::getIdTaxRulesGroupByIdProduct(
+                $insuranceProduct->id,
+                \Context::getContext()
+            );
+            $tax_manager = \TaxManagerFactory::getManager($address, $id_tax_rules);
+            $tax_calculator = $tax_manager->getTaxCalculator();
+
+            $newPrice = $tax_calculator->removeTaxes($insuranceProduct->price);
+            $insuranceProduct->price = Tools::ps_round((float)$newPrice, 5);
+            $insuranceProduct->update();
+        }
+
+        // Create ProductDownload linked to InsuranceProduct in order to make it virtual product
+        $productDownload = new \ProductDownload();
+        $productDownload->id_product = $insuranceProduct->id;
+        try {
+            $productDownload->save();
+        } catch (\Exception $e) {
+            \PrestaShopLogger::addLog($e->getMessage());
+        }
+
+        return (int)$insuranceProduct->id;
     }
 
     public static function isInsuranceProduct($idProduct)
     {
         $query = (new DbQuery())->select('id_product')
             ->from('cart_product')
-            ->where('id_product = '.(int)$idProduct)
-            ->where('id_category = '.(int)Configuration::get(static::INSURANCE_CATEGORY_CONFIG_NAME));
+            ->where('id_product = ' . (int)$idProduct)
+            ->where('id_category = ' . (int)Configuration::get(static::INSURANCE_CATEGORY_CONFIG_NAME));
 
         if (\Db::getInstance()->getRow($query)) {
             return true;
@@ -276,89 +300,88 @@ class InsuranceProcess
     public static function createOrderInsurancesSubscriptions($hookParams)
     {
         $order = new \Order($hookParams['id_order']);
-        if (!\Validate::isLoadedObject($order)) {
+        if (
+            !\Validate::isLoadedObject($order)
+            || !\Validate::isLoadedObject($hookParams['newOrderStatus'])
+            || !$hookParams['newOrderStatus']->paid
+        ) {
             return;
         }
 
-        if (!\Validate::isLoadedObject($hookParams['newOrderStatus'])) {
+        $cartInsurancesProducts = CartInsurance::getInsuranceByIdCart($order->id_cart);
+        $cart = new \Cart($order->id_cart);
+        $customer = new \Customer($order->id_customer);
+        if (
+            !\Validate::isLoadedObject($cart)
+            || !\Validate::isLoadedObject($customer)
+            || empty($cartInsurancesProducts)
+        ) {
             return;
         }
 
-        if ($hookParams['newOrderStatus']->paid) {
-            $cartInsurancesProducts = CartInsurance::getInsuranceByIdCart($order->id_cart);
-            $cart = new \Cart($order->id_cart);
-            $customer = new \Customer($order->id_customer);
-            if (
-                !\Validate::isLoadedObject($cart)
-                || !\Validate::isLoadedObject($customer)
-            ) {
-                return;
+        $cartInsuranceSubscriptions = [];
+        foreach ($cartInsurancesProducts as $cartInsurancesProduct) {
+            if ('1' === $cartInsurancesProduct['subscriptions_processed']) {
+                continue;
             }
 
-            if (!empty($cartInsurancesProducts)) {
-                $cartInsuranceSubscriptions = [];
-                foreach ($cartInsurancesProducts as $cartInsurancesProduct) {
-                    if ('1' === $cartInsurancesProduct['subscriptions_processed']) {
-                        continue;
-                    }
+            $quotations = CartInsurance::getInsuranceQuotations($cartInsurancesProduct['id_cart_insurance']);
+            if (empty($quotations)) {
+                continue;
+            }
 
-                    $quotations = CartInsurance::getInsuranceQuotations($cartInsurancesProduct['id_cart_insurance']);
-                    if (!empty($quotations)) {
-                        foreach ($quotations as $quoteData) {
-                            $insuranceSubscription = Insurance::createInsuranceSubscription(
-                                $quoteData,
-                                $cartInsurancesProduct,
-                                $cart,
-                                $order,
-                                $customer
-                            );
+            foreach ($quotations as $quoteData) {
+                $insuranceSubscription = Insurance::createInsuranceSubscription(
+                    $quoteData,
+                    $cartInsurancesProduct,
+                    $cart,
+                    $order,
+                    $customer
+                );
 
-                            if (!empty($insuranceSubscription['insuranceSubscriptionId'])) {
-                                $cartInsuranceSubscriptions[] = $insuranceSubscription['insuranceSubscriptionId'];
-                            }
-                        }
-
-                        CartInsurance::updateSubscriptionsProcessed(
-                            $cartInsurancesProduct['id_cart_insurance'],
-                            true
-                        );
-
-                        if (!empty($cartInsuranceSubscriptions)) {
-                            CartInsurance::updateInsuranceSubscriptions(
-                                $cartInsurancesProduct['id_cart_insurance'],
-                                $cartInsuranceSubscriptions
-                            );
-                        }
-                    }
+                if (!empty($insuranceSubscription['insuranceSubscriptionId'])) {
+                    $cartInsuranceSubscriptions[] = $insuranceSubscription['insuranceSubscriptionId'];
                 }
+            }
+
+            CartInsurance::updateSubscriptionsProcessed(
+                $cartInsurancesProduct['id_cart_insurance'],
+                true
+            );
+
+            if (!empty($cartInsuranceSubscriptions)) {
+                CartInsurance::updateInsuranceSubscriptions(
+                    $cartInsurancesProduct['id_cart_insurance'],
+                    $cartInsuranceSubscriptions
+                );
             }
         }
     }
 
     protected static function handleCartQty($cart)
     {
+        $addAction = \Tools::getValue('add');
+        $qty = (int)\Tools::getValue('qty', 1);
+        $idProduct = (int)\Tools::getValue('id_product', 0);
+
+        $cartInsurances = CartInsurance::getInsuranceByIdCart($cart->id);
         try {
             $cartProducts = $cart->getProducts();
         } catch (\Exception $exception) {
             $cartProducts = [];
         }
 
-        $addAction = \Tools::getValue('add');
-        $qty = (int) \Tools::getValue('qty', 1);
-        $idProduct = \Tools::getValue('id_product', 0);
-        $cartInsurances = CartInsurance::getInsuranceByIdCart($cart->id);
-
         if (!empty($cartProducts)) {
             foreach ($cartProducts as $cartProduct) {
                 foreach ($cartInsurances as $cartInsurance) {
                     $cartProductAttribute = (
                         isset($cartProduct['id_product_attribute'])
-                        && $cartProduct['id_product_attribute'] != 0
-                    ) ? $cartProduct['id_product_attribute'] : 0;
+                        && (int)$cartProduct['id_product_attribute'] !== 0
+                    ) ? (int)$cartProduct['id_product_attribute'] : 0;
 
                     if (
-                        $cartInsurance['id_product'] == $cartProduct['id_product']
-                        && $cartInsurance['id_product_attribute'] == $cartProductAttribute
+                        (int)$cartInsurance['id_product'] === (int)$cartProduct['id_product']
+                        && (int)$cartInsurance['id_product_attribute'] === $cartProductAttribute
                     ) {
                         $insuranceProductQtyInCart = $cart->containsProduct($cartInsurance['id_insurance_product']);
 
@@ -373,7 +396,7 @@ class InsuranceProcess
                         } else {
                             $qtyDiff = abs($cartProduct['cart_quantity'] - $insuranceProductQtyInCart['quantity']);
 
-                            if ($qtyDiff == 0) {
+                            if ((int)$qtyDiff === 0) {
                                 continue;
                             }
 
@@ -394,20 +417,28 @@ class InsuranceProcess
                     }
                 }
 
-                if ($cartProduct['id_category_default'] == \Configuration::get(self::INSURANCE_CATEGORY_CONFIG_NAME)) {
+                if ((int)$cartProduct['id_category_default'] === (int)\Configuration::get(self::INSURANCE_CATEGORY_CONFIG_NAME)) {
                     $linkedLine = CartInsurance::getInsuranceLineByCartAndInsuranceId(
                         $cart->id,
                         $cartProduct['id_product']
                     );
 
                     if (empty($linkedLine)) {
-                        $cart->deleteProduct($cartProduct['id_product']);
+                        $cart->deleteProduct($cartProduct['id_product'], $cartProduct['id_product_attribute']);
                     }
                 }
             }
-        } elseif (!empty($addAction) && !empty($idProduct) && !empty($qty)) {
+
+            return;
+        }
+
+        if (
+            !empty($addAction)
+            && !empty($idProduct)
+            && !empty($qty)
+        ) {
             foreach ($cartInsurances as $cartInsurance) {
-                if ($cartInsurance['id_product'] == $idProduct) {
+                if ((int)$cartInsurance['id_product'] === $idProduct) {
                     $cart->updateQty(
                         $qty,
                         $cartInsurance['id_insurance_product'],
@@ -422,61 +453,63 @@ class InsuranceProcess
 
     protected static function handleQuotationsInCart($cart)
     {
-        $quotationProducts = CartInsurance::getInsuranceByIdCart($cart->id);
         $addAction = \Tools::getValue('add');
-        $qty = (int) \Tools::getValue('qty', 1);
-        $idProduct = \Tools::getValue('id_product', 0);
+        $qty = (int)\Tools::getValue('qty', 1);
+        $idProduct = (int)\Tools::getValue('id_product', 0);
 
-        if (!empty($quotationProducts)) {
-            foreach ($quotationProducts as $quotationProduct) {
-                $productInCart = $cart->containsProduct(
+        $quotationProducts = CartInsurance::getInsuranceByIdCart($cart->id);
+        if (empty($quotationProducts)) {
+            return;
+        }
+
+        foreach ($quotationProducts as $quotationProduct) {
+            $productInCart = $cart->containsProduct(
+                $quotationProduct['id_product'],
+                $quotationProduct['id_product_attribute']
+            );
+
+            if (
+                empty($productInCart['quantity'])
+                && !empty($addAction)
+                && $idProduct == $quotationProduct['id_product']
+            ) {
+                $productInCart['quantity'] = $qty;
+            }
+
+            $quotations = CartInsurance::getInsuranceQuotations($quotationProduct['id_cart_insurance']);
+
+            if (empty($productInCart['quantity'])) {
+                CartInsurance::removeInsuranceLine(
+                    $quotationProduct['id_cart'],
                     $quotationProduct['id_product'],
                     $quotationProduct['id_product_attribute']
                 );
 
-                if (
-                    empty($productInCart['quantity'])
-                    && !empty($addAction)
-                    && $idProduct == $quotationProduct['id_product']
-                ) {
-                    $productInCart['quantity'] = $qty;
-                }
+                $cart->deleteProduct(
+                    $quotationProduct['id_product'],
+                    $quotationProduct['id_product_attribute']
+                );
+            } elseif (empty($quotations)) {
+                static::adjustQuotationsForCartInsurance(
+                    $productInCart['quantity'],
+                    'up',
+                    $quotationProduct
+                );
+            } else {
+                $quotationsCount = count($quotations);
 
-                $quotations = CartInsurance::getInsuranceQuotations($quotationProduct['id_cart_insurance']);
-
-                if (empty($productInCart['quantity'])) {
-                    CartInsurance::removeInsuranceLine(
-                        $quotationProduct['id_cart'],
-                        $quotationProduct['id_product'],
-                        $quotationProduct['id_product_attribute']
-                    );
-
-                    $cart->deleteProduct(
-                        $quotationProduct['id_product'],
-                        $quotationProduct['id_product_attribute']
-                    );
-                } elseif (empty($quotations)) {
+                if ($productInCart['quantity'] > $quotationsCount) {
                     static::adjustQuotationsForCartInsurance(
-                        $productInCart['quantity'],
+                        $productInCart['quantity'] - $quotationsCount,
                         'up',
                         $quotationProduct
                     );
-                } else {
-                    $quotationsCount = count($quotations);
-
-                    if ($productInCart['quantity'] > $quotationsCount) {
-                        static::adjustQuotationsForCartInsurance(
-                            $productInCart['quantity'] - $quotationsCount,
-                            'up',
-                            $quotationProduct
-                        );
-                    } elseif ($productInCart['quantity'] < $quotationsCount) {
-                        static::adjustQuotationsForCartInsurance(
-                            $quotationsCount - $productInCart['quantity'],
-                            'down',
-                            $quotationProduct
-                        );
-                    }
+                } elseif ($productInCart['quantity'] < $quotationsCount) {
+                    static::adjustQuotationsForCartInsurance(
+                        $quotationsCount - $productInCart['quantity'],
+                        'down',
+                        $quotationProduct
+                    );
                 }
             }
         }
@@ -486,7 +519,8 @@ class InsuranceProcess
         $quotationsDiff,
         $operator,
         $cartInsuranceLine
-    ) {
+    )
+    {
         $itemPrice = \Product::getPriceStatic(
             $cartInsuranceLine['id_product'],
             true,
@@ -496,7 +530,7 @@ class InsuranceProcess
 
         $quotations = CartInsurance::getInsuranceQuotations($cartInsuranceLine['id_cart_insurance']);
 
-        if ('up' == $operator) {
+        if ('up' === $operator) {
             for ($quote = 0; $quote < $quotationsDiff; $quote++) {
 
                 $quoteData = Insurance::createInsuranceQuotation(

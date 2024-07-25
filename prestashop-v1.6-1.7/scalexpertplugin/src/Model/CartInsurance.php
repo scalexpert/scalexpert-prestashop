@@ -18,9 +18,9 @@ class CartInsurance
 {
     const TABLE = 'scalexpertplugin_cart_insurance';
 
-    public static function createTable()
+    public static function createTable(): bool
     {
-        $sql = "CREATE TABLE IF NOT EXISTS  `"._DB_PREFIX_.self::TABLE."` (
+        $sql = "CREATE TABLE IF NOT EXISTS  `" . _DB_PREFIX_ . self::TABLE . "` (
             `id_cart_insurance` INT AUTO_INCREMENT,
             `id_product` INT,
             `id_product_attribute` INT,
@@ -34,67 +34,71 @@ class CartInsurance
             `subscriptions_processed` BOOLEAN DEFAULT FALSE NULL,
             PRIMARY KEY (`id_cart_insurance`)
         )
-        COLLATE='utf8mb4_general_ci'
-        ;";
+        COLLATE='utf8mb4_general_ci';";
 
         return \Db::getInstance()->execute($sql);
     }
 
-    public static function deleteTable()
+    public static function deleteTable(): bool
     {
-        $sql = "DROP TABLE "._DB_PREFIX_.self::TABLE;
+        $sql = "DROP TABLE " . _DB_PREFIX_ . self::TABLE;
         return \Db::getInstance()->execute($sql);
     }
 
-    public static function addInsuranceLine(
-        $idCart,
-        $idProduct,
-        $idProductAttribute,
-        $idItem,
-        $idInsurance,
-        $solutionCode,
-        $idInsuranceProduct
-    ) {
+    public static function addInsuranceLine($params): bool
+    {
+        $params = static::formatParams($params);
+
         return Db::getInstance()->insert(static::TABLE, [
-            'id_cart' => $idCart,
-            'id_product' => $idProduct,
-            'id_product_attribute' => $idProductAttribute,
-            'id_item' => $idItem,
-            'id_insurance' => $idInsurance,
-            'solution_code' => $solutionCode,
-            'id_insurance_product' => $idInsuranceProduct
+            'id_cart' => $params['idCart'],
+            'id_product' => $params['idProduct'],
+            'id_product_attribute' => $params['idProductAttribute'],
+            'id_item' => $params['idItem'],
+            'id_insurance' => $params['idInsurance'],
+            'solution_code' => $params['solutionCode'],
+            'id_insurance_product' => $params['idInsuranceProduct']
         ]);
     }
 
-    public static function updateInsuranceLine(
-        $idCartInsurance,
-        $idCart,
-        $idProduct,
-        $idProductAttribute,
-        $idItem,
-        $idInsurance,
-        $solutionCode,
-        $idInsuranceProduct,
-        $quotes
-    ) {
+    public static function updateInsuranceLine($idCartInsurance, $params): bool
+    {
+        $params = static::formatParams($params);
+
         return Db::getInstance()->update(static::TABLE, [
-            'id_cart' => $idCart,
-            'id_product' => $idProduct,
-            'id_product_attribute' => $idProductAttribute,
-            'id_item' => $idItem,
-            'id_insurance' => $idInsurance,
-            'solution_code' => $solutionCode,
-            'id_insurance_product' => $idInsuranceProduct,
-            'quotations' => $quotes,
-        ], 'id_cart_insurance = '.(int)$idCartInsurance);
+            'id_cart' => $params['idCart'],
+            'id_product' => $params['idProduct'],
+            'id_product_attribute' => $params['idProductAttribute'],
+            'id_item' => $params['idItem'],
+            'id_insurance' => $params['idInsurance'],
+            'solution_code' => $params['solutionCode'],
+            'id_insurance_product' => $params['idInsuranceProduct'],
+            'quotations' => $params['quotes'],
+        ], 'id_cart_insurance = ' . (int)$idCartInsurance);
     }
 
-    public static function removeInsuranceLine($idCart, $idProduct, $idProductAttribute)
+    private static function formatParams($params): array
+    {
+        return array_merge(
+            [
+                'idCart' => '',
+                'idProduct' => '',
+                'idProductAttribute' => '',
+                'idItem' => '',
+                'idInsurance' => '',
+                'solutionCode' => '',
+                'idInsuranceProduct' => '',
+                'quotes' => null,
+            ],
+            $params
+        );
+    }
+
+    public static function removeInsuranceLine($idCart, $idProduct, $idProductAttribute): bool
     {
         return Db::getInstance()->delete(static::TABLE,
-            'id_cart = '.(int)$idCart
-            .' AND id_product = '.(int)$idProduct
-            .' AND id_product_attribute = '.(int)$idProductAttribute
+            'id_cart = ' . (int)$idCart
+            . ' AND id_product = ' . (int)$idProduct
+            . ' AND id_product_attribute = ' . (int)$idProductAttribute
         );
     }
 
@@ -102,11 +106,11 @@ class CartInsurance
     {
         $query = (new DbQuery())->select('*')
             ->from(self::TABLE)
-            ->where('id_cart = '.(int)$idCart)
-            ->where('id_product = '.(int)$idProduct);
+            ->where('id_cart = ' . (int)$idCart)
+            ->where('id_product = ' . (int)$idProduct);
 
         if (null !== $idProductAttribute) {
-            $query->where('id_product_attribute = '.(int)$idProductAttribute);
+            $query->where('id_product_attribute = ' . (int)$idProductAttribute);
         }
 
         $results = \Db::getInstance()->getRow($query);
@@ -121,8 +125,8 @@ class CartInsurance
     {
         $query = (new DbQuery())->select('*')
             ->from(self::TABLE)
-            ->where('id_cart = '.(int)$idCart)
-            ->where('id_insurance_product = '.(int)$idInsuranceProduct);
+            ->where('id_cart = ' . (int)$idCart)
+            ->where('id_insurance_product = ' . (int)$idInsuranceProduct);
 
         $results = \Db::getInstance()->getRow($query);
         if (!$results) {
@@ -136,10 +140,9 @@ class CartInsurance
     {
         $query = (new DbQuery())->select('*')
             ->from(self::TABLE)
-            ->where('id_cart = '.(int)$idCart)
-            ->where('id_item = "'.$idItem.'"')
-            ->where('id_insurance = '.(int)$idInsurance)
-        ;
+            ->where('id_cart = ' . (int)$idCart)
+            ->where('id_item = "' . $idItem . '"')
+            ->where('id_insurance = ' . (int)$idInsurance);
 
         $results = \Db::getInstance()->getRow($query);
         if (!$results) {
@@ -153,8 +156,7 @@ class CartInsurance
     {
         $query = (new DbQuery())->select('*')
             ->from(self::TABLE)
-            ->where('id_cart = '.(int)$idCart)
-        ;
+            ->where('id_cart = ' . (int)$idCart);
 
         $results = \Db::getInstance()->executeS($query);
         if (!$results) {
@@ -164,47 +166,50 @@ class CartInsurance
         return $results;
     }
 
-    public static function updateSubscriptionsProcessed($idCartInsurance, $processsed) {
+    public static function updateSubscriptionsProcessed($idCartInsurance, $processed): bool
+    {
         return Db::getInstance()->update(static::TABLE, [
-            'subscriptions_processed' => (bool) $processsed,
-        ], 'id_cart_insurance = '.(int)$idCartInsurance);
+            'subscriptions_processed' => (bool)$processed,
+        ], 'id_cart_insurance = ' . (int)$idCartInsurance);
     }
 
-    public static function updateInsuranceQuotations($idCartInsurance, $quotations) {
+    public static function updateInsuranceQuotations($idCartInsurance, $quotations): bool
+    {
         if (is_array($quotations)) {
             $quotations = json_encode($quotations);
         }
 
         return Db::getInstance()->update(static::TABLE, [
-            'quotations' => (string) $quotations,
-        ], 'id_cart_insurance = '.(int)$idCartInsurance);
+            'quotations' => (string)$quotations,
+        ], 'id_cart_insurance = ' . (int)$idCartInsurance);
     }
 
-    public static function getInsuranceQuotations($idCartInsurance) {
+    public static function getInsuranceQuotations($idCartInsurance)
+    {
         $query = (new DbQuery())->select('quotations')
             ->from(self::TABLE)
-            ->where('id_cart_insurance = '.(int)$idCartInsurance)
-        ;
+            ->where('id_cart_insurance = ' . (int)$idCartInsurance);
 
         $results = \Db::getInstance()->getValue($query);
         return !empty($results) ? json_decode($results, true) : [];
     }
 
-    public static function updateInsuranceSubscriptions($idCartInsurance, $subscriptions) {
+    public static function updateInsuranceSubscriptions($idCartInsurance, $subscriptions): bool
+    {
         if (is_array($subscriptions)) {
             $subscriptions = json_encode($subscriptions);
         }
 
         return Db::getInstance()->update(static::TABLE, [
-            'subscriptions' => (string) $subscriptions,
-        ], 'id_cart_insurance = '.(int)$idCartInsurance);
+            'subscriptions' => (string)$subscriptions,
+        ], 'id_cart_insurance = ' . (int)$idCartInsurance);
     }
 
-    public static function getInsuranceSubscriptions($idCartInsurance) {
+    public static function getInsuranceSubscriptions($idCartInsurance)
+    {
         $query = (new DbQuery())->select('subscriptions')
             ->from(self::TABLE)
-            ->where('id_cart_insurance = '.(int)$idCartInsurance)
-        ;
+            ->where('id_cart_insurance = ' . (int)$idCartInsurance);
 
         $results = \Db::getInstance()->getValue($query);
         return !empty($results) ? json_decode($results, true) : [];

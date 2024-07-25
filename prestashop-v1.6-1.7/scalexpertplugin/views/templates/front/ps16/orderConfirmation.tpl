@@ -17,7 +17,9 @@
 
 {include file="$tpl_dir./errors.tpl"}
 
-{$HOOK_ORDER_CONFIRMATION}
+{if !empty($HOOK_ORDER_CONFIRMATION)}
+	{$HOOK_ORDER_CONFIRMATION}
+{/if}
 
 <div class="box order-confirmation">
 	<h3 class="page-subheading">{$subscription_status_title|escape:'html':'UTF-8'|default:''}</h3>
@@ -25,7 +27,11 @@
 		{$subscription_status_subtitle|escape:'html':'UTF-8'|default:''}
 	</p>
 
-	{if !empty($subscription_status) && $subscription_status == 'REJECTED'}
+	{if
+		!empty($subscription_status)
+		&& in_array($subscription_status, ['REJECTED', 'ABORTED'])
+		&& !$is_guest
+	}
 		<div class="button-reorder">
 			{if isset($opc) && $opc}
 				<a class="link-button button btn btn-default button-medium"

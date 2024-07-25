@@ -26,6 +26,7 @@ services:
       - '@scalexpert.handler.logs'
       - '@doctrine.orm.default_entity_manager'
       - '@scalexpert.handler.hash'
+      - '@scalexpert.conf.solution_formatter'
 
   # Commands
   scalexpert.command.update_orders_states:
@@ -38,6 +39,9 @@ services:
     class: ScalexpertPlugin\Helper\ConfigChecker
     arguments:
       - '@prestashop.adapter.legacy.configuration'
+
+  scalexpert.conf.solution_formatter:
+    class: ScalexpertPlugin\Helper\SolutionFormatter
 
   # Services
   scalexpert.service.available_solutions:
@@ -66,6 +70,23 @@ services:
     arguments:
       - '@prestashop.adapter.legacy.configuration'
       - '@prestashop.adapter.legacy.context'
+
+  scalexpert.service.solution_sorter:
+    class: ScalexpertPlugin\Service\SolutionSorterService
+
+  scalexpert.service.mapping_generator:
+    class: ScalexpertPlugin\Service\MappingGenerator
+
+  scalexpert.service.subscription_canceler:
+    class: ScalexpertPlugin\Service\SubscriptionCanceler
+    arguments:
+      - '@scalexpert.api.client'
+
+  scalexpert.service.subscription_deliverer:
+    class: ScalexpertPlugin\Service\SubscriptionDeliverer
+    arguments:
+      - '@scalexpert.api.client'
+      - '@scalexpert.service.available_solutions'
 
   # Keys configuration form
   scalexpert.form.type.keys_configuration_form:
@@ -237,6 +258,8 @@ services:
     class: 'ScalexpertPlugin\Form\Configuration\MappingConfigurationFormType'
     parent: 'form.type.translatable.aware'
     public: true
+    arguments:
+      $solutionNameHandler: '@scalexpert.handler.solution_name'
     tags:
       - { name: form.type }
 

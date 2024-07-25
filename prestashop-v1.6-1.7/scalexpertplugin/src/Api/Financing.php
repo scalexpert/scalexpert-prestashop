@@ -58,12 +58,14 @@ class Financing extends Entity
             }
         }
 
-        if ($eligibleSolutions) {
-            $financingSolutions = json_decode(\Configuration::get('SCALEXPERT_FINANCING_SOLUTIONS'), true);
-            foreach ($eligibleSolutions as $key => $eligibleSolution) {
-                if (empty($financingSolutions[$eligibleSolution['solutionCode']])) {
-                    unset($eligibleSolutions[$key]);
-                }
+        if (empty($eligibleSolutions)) {
+            return [];
+        }
+
+        $financingSolutions = json_decode(\Configuration::get('SCALEXPERT_FINANCING_SOLUTIONS'), true);
+        foreach ($eligibleSolutions as $key => $eligibleSolution) {
+            if (empty($financingSolutions[$eligibleSolution['solutionCode']])) {
+                unset($eligibleSolutions[$key]);
             }
         }
 
@@ -122,7 +124,6 @@ class Financing extends Entity
             \Tools::redirect('index.php?controller=order&step=1');
         }
 
-        /* @var \Customer $customer */
         $customer = new \Customer((int)$order->id_customer);
         if (!\Validate::isLoadedObject($customer)) {
             \Tools::redirect('index.php?controller=order&step=1');
@@ -136,25 +137,16 @@ class Financing extends Entity
 
         $orderItems = [];
         foreach ($order->getProducts() as $item) {
-            $manufacturer = new \Manufacturer((int)$item['id_manufacturer']);
-            $category = new \Category((int)$item['id_category_default'], 1);
+            $manufacturer = new \Manufacturer((int)$item['id_manufacturer'], $customer->id_lang);
+            $category = new \Category((int)$item['id_category_default'], $customer->id_lang);
 
-            $itemData = [
-                "id" => isset($item['product_id']) ? (string)$item['product_id'] : 'NC',
-                "quantity" => isset($item['product_quantity']) ? (int)$item['product_quantity'] : 1,
-                "model" => !empty($item['reference']) ? (string)$item['reference'] : 'NC',
-                "label" => !empty($item['product_name']) ? trim(strip_tags(substr($item['product_name'], 0, 30))) : 'NC',
-                "price" => isset($item['total_price_tax_incl']) ? (float)$item['total_price_tax_incl'] : 0,
-                "currencyCode" => $currency->iso_code,
-                "orderId" => (string)$order->reference,
-                "brandName" => $manufacturer->name ?: 'NC',
-                "description" => !empty($item['description']) ? trim(strip_tags($item['description'])) : 'NC',
-                "specifications" => !empty($item['short_description']) ? trim(strip_tags($item['short_description'])) : 'NC',
-                "category" => (string)substr(trim($category->name), 0, 20) ?: 'NC',
-                "isFinanced" => true,
-                "sku" => 'NC',
-            ];
-            $orderItems[] = $itemData;
+            $orderItems[] = self::prepareItem(
+                $item,
+                (string)$currency->iso_code,
+                (string)$order->reference,
+                (string)$manufacturer->name,
+                (string)$category->name
+            );
         }
 
         $params = [
@@ -162,7 +154,7 @@ class Financing extends Entity
             'merchantBasketId' => (string)$order->id_cart,
             'merchantGlobalOrderId' => (string)$order->reference,
             'merchantBuyerId' => (string)$customer->id,
-            'financedAmount' => (float) \Tools::ps_round($order->total_paid, 2),
+            'financedAmount' => \Tools::ps_round($order->total_paid, 2),
             'merchantUrls' => [
                 'confirmation' => \Context::getContext()->link->getModuleLink('scalexpertplugin', 'confirmation', [
                     'order_ref' => $order->reference,
@@ -177,7 +169,7 @@ class Financing extends Entity
                     'deliveryAddress' => BuyerFormatter::normalizeAddress($shippingAddress, 'DELIVERY_ADDRESS'),
                     'contact' => BuyerFormatter::normalizeContact($shippingAddress, $customer),
                     'contactAddress' => BuyerFormatter::normalizeAddress($shippingAddress, 'MAIN_ADDRESS'),
-                    "deliveryMethod" => $carrier->name ?: '',
+                    "deliveryMethod" => $carrier->name ?: 'NC',
                     "birthName" => !empty($customer->lastname) ? $customer->lastname : '',
                     "birthDate" => (!empty($customer->birthday) && '0000-00-00' !== $customer->birthday) ?
                         $customer->birthday : '1970-01-01',
@@ -192,6 +184,31 @@ class Financing extends Entity
 
         $apiUrl = static::$scope . '/api/v1/subscriptions';
         return Client::post($apiUrl, $params);
+    }
+
+    private static function prepareItem(
+        $item,
+        string $currencyCode,
+        string $orderReference,
+        string $manufacturerName,
+        string $categoryName
+    ): array
+    {
+        return [
+            "id" => isset($item['product_id']) ? (string)$item['product_id'] : 'NC',
+            "quantity" => isset($item['product_quantity']) ? (int)$item['product_quantity'] : 1,
+            "model" => !empty($item['reference']) ? (string)$item['reference'] : 'NC',
+            "label" => !empty($item['product_name']) ? trim(strip_tags(substr($item['product_name'], 0, 30))) : 'NC',
+            "price" => isset($item['total_price_tax_incl']) ? (float)$item['total_price_tax_incl'] : 0,
+            "currencyCode" => $currencyCode,
+            "orderId" => $orderReference,
+            "brandName" => $manufacturerName ?: 'NC',
+            "description" => !empty($item['description']) ? trim(strip_tags($item['description'])) : 'NC',
+            "specifications" => !empty($item['short_description']) ? trim(strip_tags($item['short_description'])) : 'NC',
+            "category" => substr(trim($categoryName), 0, 20) ?: 'NC',
+            "isFinanced" => true,
+            "sku" => 'NC',
+        ];
     }
 
     public static function cancelFinancingSubscription(
@@ -210,10 +227,10 @@ class Financing extends Entity
             return [];
         }
 
-        $addreses = $customer->getAddresses($customer->id_lang);
-        $address = end($addreses);
+        $addresses = $customer->getAddresses($customer->id_lang);
+        $address = end($addresses);
         $oAddress = isset($address['id_address']) ? new \Address((int) $address['id_address']) : null;
-        if (!\Validate::isLoadedObject($oAddress)) {
+        if (null === $oAddress || !\Validate::isLoadedObject($oAddress)) {
             return [];
         }
 

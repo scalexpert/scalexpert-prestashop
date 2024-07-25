@@ -169,18 +169,18 @@ class Client
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         $content = curl_exec($ch);
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
         $errorMessage = null;
-        if (200 !== $httpcode) {
-            $errorMessage = 'Error ' . $httpcode;
+        if (200 !== $httpCode) {
+            $errorMessage = 'Error ' . $httpCode;
         }
 
         $data = json_decode($content, true);
 
         if (null !== $errorMessage) {
             $client->logger->logError('['.$uniqId.']API RESPONSE ERROR: '. json_encode([
-                    'http_code' => $httpcode,
+                    'http_code' => $httpCode,
                     'error_message' => $errorMessage,
                     'response_data' => $data
                 ])
@@ -193,7 +193,7 @@ class Client
         }
 
         $client->logger->logInfo("[".$uniqId."]API RESPONSE : ". json_encode([
-                'http_code' => $httpcode,
+                'http_code' => $httpCode,
                 'response_data' => $data
             ])
         );
@@ -260,7 +260,8 @@ class Client
 
             return [
                 'hasError' => true,
-                'error' => $errorMessage
+                'error' => $errorMessage,
+                'code' => $httpcode
             ];
         }
 

@@ -9,45 +9,50 @@
  */
 
 use ScalexpertPlugin\Service\AvailableSolutionsService;
+use ScalexpertPlugin\Service\SolutionSorterService;
 
 class ScalexpertpluginAjaxModuleFrontController extends ModuleFrontController
 {
-    public function displayAjaxGetFinancingSimulationInsertOnProduct()
+    public function displayAjaxGetFinancingSimulationInsertOnProduct(): void
     {
         $productID = Tools::getValue('id_product', null);
         $productAttributeID = Tools::getValue('id_product_attribute', null);
 
-        if (!empty($productID)) {
-            /* @var AvailableSolutionsService $availableSolutionsService */
-            $availableSolutionsService = $this->get('scalexpert.service.available_solutions');
-            $buyerBillingCountry = $availableSolutionsService->getContextBuyerBillingCountry();
+        if (empty($productID)) {
+            return;
+        }
 
-            if ('fr' === $buyerBillingCountry) {
-                $simulationInsert = $this->_getSimulationInsert(
-                    $availableSolutionsService,
-                    $productID,
-                    $productAttributeID
-                );
-                $this->ajaxDie(json_encode(['simulationInsert' => $simulationInsert]));
-            } else {
-                $financialInserts = $this->_getFinancialInserts(
-                    $availableSolutionsService,
-                    $productID
-                );
-                $this->ajaxDie(json_encode(['financialInserts' => $financialInserts]));
-            }
+        /* @var AvailableSolutionsService $availableSolutionsService */
+        /* @var SolutionSorterService $solutionSorterService */
+        $availableSolutionsService = $this->get('scalexpert.service.available_solutions');
+        $solutionSorterService = $this->get('scalexpert.service.solution_sorter');
+        $buyerBillingCountry = $availableSolutionsService->getContextBuyerBillingCountry();
+
+        if ('fr' === $buyerBillingCountry) {
+            $simulationInsert = $this->getSimulationInsert(
+                $availableSolutionsService,
+                $solutionSorterService,
+                $productID,
+                $productAttributeID
+            );
+            $this->ajaxDie(json_encode(['simulationInsert' => $simulationInsert]));
+        } else {
+            $financialInserts = $this->getFinancialInserts(
+                $availableSolutionsService,
+                $solutionSorterService,
+                $productID
+            );
+            $this->ajaxDie(json_encode(['financialInserts' => $financialInserts]));
         }
     }
 
-    public function displayAjaxGetInsuranceInserts()
+    public function displayAjaxGetInsuranceInserts(): void
     {
-        $insuranceInserts = [];
         $productID = Tools::getValue('id_product', null);
         $productIDAttribute = Tools::getValue('id_product_attribute', null);
-
         $combinationGroupsData = Tools::getValue('combination_groups');
         if (!empty($combinationGroupsData)) {
-            $productIDAttribute = (int) Product::getIdProductAttributeByIdAttributes(
+            $productIDAttribute = (int)Product::getIdProductAttributeByIdAttributes(
                 $productID,
                 $combinationGroupsData,
                 true
@@ -63,184 +68,210 @@ class ScalexpertpluginAjaxModuleFrontController extends ModuleFrontController
         /* @var AvailableSolutionsService $availableSolutionsService */
         $availableSolutionsService = $this->get('scalexpert.service.available_solutions');
         $availableInsuranceSolutions = $availableSolutionsService->getAvailableInsuranceSolutions(
+            $pageContext,
             $productID,
             $productIDAttribute
         );
-
-        if (!empty($availableInsuranceSolutions)) {
-            foreach ($availableInsuranceSolutions as $availableInsuranceSolution) {
-                $insuranceSolutionData = $availableInsuranceSolution;
-                $insuranceSolutionData['id_product'] = $productID;
-                $insuranceSolutionData['id_product_attribute'] = $productIDAttribute;
-
-                if (!empty($insuranceSolutionData['designConfiguration'])) {
-                    if (
-                        isset($insuranceSolutionData['designConfiguration'][$pageContext . '_display'])
-                        && !$insuranceSolutionData['designConfiguration'][$pageContext . '_display']
-                    ) {
-                        continue;
-                    }
-
-                    if (isset($insuranceSolutionData['designConfiguration'][$pageContext . '_display_logo'])) {
-                        $insuranceSolutionData['displayLogo'] =
-                            $insuranceSolutionData['designConfiguration'][$pageContext . '_display_logo'];
-                    }
-
-                    if (isset($insuranceSolutionData['designConfiguration'][$pageContext . '_position'])) {
-                        $insuranceSolutionData['position'] =
-                            $insuranceSolutionData['designConfiguration'][$pageContext . '_position'];
-                    }
-
-                    if (isset($insuranceSolutionData['designConfiguration'][$pageContext . '_title'])) {
-                        $insuranceSolutionData['visualTitle'] =
-                            $insuranceSolutionData['designConfiguration'][$pageContext . '_title'];
-                    }
-                }
-
-                $this->context->smarty->assign(['insuranceSolution' => $insuranceSolutionData]);
-
-                $formattedInsert = $this->context->smarty->fetch(
-                    'module:' . $this->module->name . '/views/templates/hook/insurance-insert.tpl'
-                );
-
-                if (empty($insuranceSolutionData[$pageContext . '_position'])) {
-                    if ($pageContext === 'cart') {
-                        $insuranceSolutionData[$pageContext . '_position'] = 'displayShoppingCartFooter';
-                    } else {
-                        $insuranceSolutionData[$pageContext . '_position'] = 'displayProductAdditionalInfo';
-                    }
-                }
-
-                $insuranceInserts[] = [
-                    'formattedInsert' => $formattedInsert,
-                    'position' => $insuranceSolutionData[$pageContext . '_position'],
-                ];
-            }
-        }
+        $insuranceInserts = $this->getInsuranceInserts(
+            $availableInsuranceSolutions,
+            $productID,
+            $productIDAttribute,
+            $pageContext
+        );
 
         $this->ajaxRender(json_encode(['insuranceInserts' => $insuranceInserts]));
     }
 
-    private function _getSimulationInsert(
+    private function getSimulationInsert(
         AvailableSolutionsService $availableSolutionsService,
-        $productID,
-        $productAttributeID
+        SolutionSorterService     $solutionSorterService,
+                                  $productID,
+                                  $productAttributeID
     ): string
     {
-        $simulationInsert = '';
         $availableSimulation = $availableSolutionsService->getSimulationForAvailableFinancialSolutions(
             $productID,
             $productAttributeID
         );
-
         if (
-            !empty($availableSimulation)
-            && isset($availableSimulation['solutionSimulations'])
+            empty($availableSimulation)
+            || !isset($availableSimulation['solutionSimulations'])
         ) {
-            // Group financing solutions by having fees or not
-            $groupedSolutionSimulations = [];
-            foreach ($availableSimulation['solutionSimulations'] as $solutionSimulation) {
-                foreach ($solutionSimulation['simulations'] as $simulation) {
-                    $simulation['designConfiguration'] = $solutionSimulation['designConfiguration'];
-                    $simulation['isLongFinancingSolution'] = $solutionSimulation['isLongFinancingSolution'];
-                    $simulation['hasFeesOnFirstInstallment'] =
-                        $solutionSimulation['hasFeesSolution']
-                        && 0 < $simulation['feesAmount']
-                    ;
-
-                    $groupedSolutionSimulations['all'][] = $simulation;
-                }
-            }
-
-            // Sort by duration
-            if (!empty($groupedSolutionSimulations)) {
-                $this->sortSolutionsByDuration($groupedSolutionSimulations['all']);
-            }
-
-            $this->context->smarty->assign([
-                'solutionSimulations' => $groupedSolutionSimulations,
-                'financedAmount' => $availableSimulation['financedAmount'] ?? '',
-                'financedAmountFormatted' => $availableSimulation['financedAmountFormatted'] ?? '',
-            ]);
-
-            $simulationInsert = $this->context->smarty->fetch(
-                'module:' . $this->module->name . '/views/templates/hook/simulation-insert.tpl'
-            );
+            return '';
         }
 
-        return $simulationInsert;
+        // Group financing solutions by having fees or not
+        $groupedSolutionSimulations = [];
+        foreach ($availableSimulation['solutionSimulations'] as $solutionSimulation) {
+            foreach ($solutionSimulation['simulations'] as $simulation) {
+                $simulation['designConfiguration'] = $solutionSimulation['designConfiguration'];
+                $simulation['isLongFinancingSolution'] = $solutionSimulation['isLongFinancingSolution'];
+                $simulation['hasFeesOnFirstInstallment'] =
+                    $solutionSimulation['hasFeesSolution']
+                    && 0 < $simulation['feesAmount'];
+
+                $groupedSolutionSimulations['all'][] = $simulation;
+            }
+        }
+
+        // Sort by duration
+        if (!empty($groupedSolutionSimulations)) {
+            $solutionSorterService->sortSolutionsByDuration($groupedSolutionSimulations['all']);
+        }
+
+        $this->context->smarty->assign([
+            'solutionSimulations' => $groupedSolutionSimulations,
+            'financedAmount' => $availableSimulation['financedAmount'] ?? '',
+            'financedAmountFormatted' => $availableSimulation['financedAmountFormatted'] ?? '',
+        ]);
+
+        return $this->context->smarty->fetch(
+            'module:' . $this->module->name . '/views/templates/hook/simulation-insert.tpl'
+        );
     }
 
-    private function _getFinancialInserts(
+    private function getFinancialInserts(
         AvailableSolutionsService $availableSolutionsService,
-        $productID
+        SolutionSorterService     $solutionSorterService,
+                                  $productID
     ): array
     {
-        $financialInserts = [];
         $availableFinancialSolutions = $availableSolutionsService->getAvailableFinancialSolutions($productID);
+        if (empty($availableFinancialSolutions)) {
+            return [];
+        }
 
-        if (!empty($availableFinancialSolutions)) {
-            $sortedSolutions = [];
-            foreach ($availableFinancialSolutions as $availableFinancialSolution) {
-                $financialSolutionData = $availableFinancialSolution;
+        $sortedSolutions = [];
+        foreach ($availableFinancialSolutions as $availableFinancialSolution) {
+            $financialSolutionData = $availableFinancialSolution;
 
-                if (!empty($financialSolutionData['designConfiguration'])) {
-                    if (
-                        isset($financialSolutionData['designConfiguration']['productDisplay'])
-                        && !$financialSolutionData['designConfiguration']['productDisplay']
-                    ) {
-                        continue;
-                    }
-
-                    if (isset($financialSolutionData['designConfiguration']['productDisplayLogo'])) {
-                        $financialSolutionData['displayLogo'] =
-                            $financialSolutionData['designConfiguration']['productDisplayLogo'];
-                    }
-
-                    if (isset($financialSolutionData['designConfiguration']['productPosition'])) {
-                        $financialSolutionData['position'] =
-                            $financialSolutionData['designConfiguration']['productPosition'];
-                    }
-
-                    if (isset($financialSolutionData['designConfiguration']['productTitle'])) {
-                        $financialSolutionData['visualTitle'] =
-                            $financialSolutionData['designConfiguration']['productTitle'];
-                    }
-
-                    if (isset($financialSolutionData['designConfiguration']['position'])) {
-                        $financialSolutionData['position'] = $financialSolutionData['designConfiguration']['position'];
-                    }
+            if (!empty($financialSolutionData['designConfiguration'])) {
+                if (
+                    isset($financialSolutionData['designConfiguration']['productDisplay'])
+                    && !$financialSolutionData['designConfiguration']['productDisplay']
+                ) {
+                    continue;
                 }
 
-                $sortedSolutions[] = $financialSolutionData;
+                $financialSolutionData = $this->mergeDesignConfigurationToFinancialSolutionData($financialSolutionData);
             }
 
-            $this->module->sortSolutionsByPosition($sortedSolutions);
+            $sortedSolutions[] = $financialSolutionData;
+        }
+        $solutionSorterService->sortSolutionsByPosition($sortedSolutions);
 
-            foreach ($sortedSolutions as $sortedSolution) {
-                $this->context->smarty->assign(['financialSolution' => $sortedSolution]);
-                $formattedInsert = $this->context->smarty->fetch(
-                    'module:' . $this->module->name . '/views/templates/hook/financial-insert.tpl'
-                );
+        $financialInserts = [];
+        foreach ($sortedSolutions as $sortedSolution) {
+            $this->context->smarty->assign(['financialSolution' => $sortedSolution]);
+            $formattedInsert = $this->context->smarty->fetch(
+                'module:' . $this->module->name . '/views/templates/hook/financial-insert.tpl'
+            );
 
-                if (empty($sortedSolution['productPosition'])) {
-                    $sortedSolution['productPosition'] = 'displayProductAdditionalInfo';
-                }
-
-                $financialInserts[] = [
-                    'formattedInsert' => $formattedInsert,
-                    'hook' => $sortedSolution['productPosition'],
-                ];
+            if (empty($sortedSolution['productPosition'])) {
+                $sortedSolution['productPosition'] = 'displayProductAdditionalInfo';
             }
+
+            $financialInserts[] = [
+                'formattedInsert' => $formattedInsert,
+                'hook' => $sortedSolution['productPosition'],
+            ];
         }
 
         return $financialInserts;
     }
 
-    private function sortSolutionsByDuration(&$solutions): void
+    private function getInsuranceInserts(
+        array $availableInsuranceSolutions,
+              $productID,
+              $productIDAttribute,
+              $pageContext
+    ): array
     {
-        uasort($solutions, function ($a, $b) {
-            return $a['duration'] > $b['duration'];
-        });
+        if (empty($availableInsuranceSolutions)) {
+            return [];
+        }
+
+        $insuranceInserts = [];
+        foreach ($availableInsuranceSolutions as $availableInsuranceSolution) {
+            $insuranceSolutionData = $availableInsuranceSolution;
+            $insuranceSolutionData['id_product'] = $productID;
+            $insuranceSolutionData['id_product_attribute'] = $productIDAttribute;
+
+            if (!empty($insuranceSolutionData['designConfiguration'])) {
+                if (
+                    isset($insuranceSolutionData['designConfiguration'][$pageContext . '_display'])
+                    && !$insuranceSolutionData['designConfiguration'][$pageContext . '_display']
+                ) {
+                    continue;
+                }
+
+                $insuranceSolutionData = $this->mergeDesignConfigurationToInsuranceSolutionData(
+                    $insuranceSolutionData,
+                    $pageContext
+                );
+            }
+
+            $this->context->smarty->assign(['insuranceSolution' => $insuranceSolutionData]);
+
+            $formattedInsert = $this->context->smarty->fetch(
+                'module:' . $this->module->name . '/views/templates/hook/insurance-insert.tpl'
+            );
+
+            if (empty($insuranceSolutionData[$pageContext . '_position'])) {
+                if ('cart' === $pageContext) {
+                    $insuranceSolutionData[$pageContext . '_position'] = 'displayShoppingCartFooter';
+                } else {
+                    $insuranceSolutionData[$pageContext . '_position'] = 'displayProductAdditionalInfo';
+                }
+            }
+
+            $insuranceInserts[] = [
+                'formattedInsert' => $formattedInsert,
+                'position' => $insuranceSolutionData[$pageContext . '_position'],
+            ];
+        }
+
+        return $insuranceInserts;
+    }
+
+    private function mergeDesignConfigurationToFinancialSolutionData(array $solutionData): array
+    {
+        if (isset($solutionData['designConfiguration']['productDisplayLogo'])) {
+            $solutionData['displayLogo'] = $solutionData['designConfiguration']['productDisplayLogo'];
+        }
+
+        if (isset($solutionData['designConfiguration']['productPosition'])) {
+            $solutionData['position'] = $solutionData['designConfiguration']['productPosition'];
+        }
+
+        if (isset($solutionData['designConfiguration']['productTitle'])) {
+            $solutionData['visualTitle'] = $solutionData['designConfiguration']['productTitle'];
+        }
+
+        if (isset($solutionData['designConfiguration']['position'])) {
+            $solutionData['position'] = $solutionData['designConfiguration']['position'];
+        }
+
+        return $solutionData;
+    }
+
+    private function mergeDesignConfigurationToInsuranceSolutionData(
+        array $solutionData,
+        string $pageContext
+    ): array
+    {
+        if (isset($solutionData['designConfiguration'][$pageContext . '_display_logo'])) {
+            $solutionData['displayLogo'] = $solutionData['designConfiguration'][$pageContext . '_display_logo'];
+        }
+
+        if (isset($solutionData['designConfiguration'][$pageContext . '_position'])) {
+            $solutionData['position'] = $solutionData['designConfiguration'][$pageContext . '_position'];
+        }
+
+        if (isset($solutionData['designConfiguration'][$pageContext . '_title'])) {
+            $solutionData['visualTitle'] = $solutionData['designConfiguration'][$pageContext . '_title'];
+        }
+
+        return $solutionData;
     }
 }

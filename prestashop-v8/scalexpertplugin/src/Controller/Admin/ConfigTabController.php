@@ -36,25 +36,21 @@ class ConfigTabController extends FrameworkBundleAdminController
             );
         }
 
+        $isoCode = 'en';
         $context = \Context::getContext();
-
-        if (!empty($context->language) && \Validate::isLoadedObject($context->language)) {
+        if (\Validate::isLoadedObject($context->language)) {
             $isoCode = strtolower($context->language->iso_code);
-        } else {
-            $isoCode = 'en';
         }
 
+        /** @var Handler $regroupPaymentsFormDataHandler */
         $regroupPaymentsFormDataHandler = $this->get('scalexpert.form.regroup_payments_configuration_form_data_handler');
-
         $regroupPaymentsForm = $regroupPaymentsFormDataHandler->getForm();
         $regroupPaymentsForm->handleRequest($request);
 
         if ($regroupPaymentsForm->isSubmitted() && $regroupPaymentsForm->isValid()) {
             $errors = $regroupPaymentsFormDataHandler->save($regroupPaymentsForm->getData());
-
             if (empty($errors)) {
                 $this->addFlash('success', $this->trans('Successful update.', 'Admin.Notifications.Success'));
-
                 return $this->redirectToRoute('scalexpert_controller_tabs_admin_active');
             }
 
@@ -63,42 +59,35 @@ class ConfigTabController extends FrameworkBundleAdminController
 
         /** @var Handler $financingFormDataHandler */
         $financingFormDataHandler = $this->get('scalexpert.form.financing_configuration_form_data_handler');
-
         $financingForm = $financingFormDataHandler->getForm();
         $financingForm->handleRequest($request);
 
         if ($financingForm->isSubmitted() && $financingForm->isValid()) {
             $errors = $financingFormDataHandler->save($financingForm->getData());
-
             if (empty($errors)) {
                 $this->addFlash('success', $this->trans('Successful update.', 'Admin.Notifications.Success'));
-
                 return $this->redirectToRoute('scalexpert_controller_tabs_admin_active');
             }
 
             $this->flashErrors($errors);
         }
 
+        /** @var Handler $insuranceFormDataHandler */
         $insuranceFormDataHandler = $this->get('scalexpert.form.insurance_configuration_form_data_handler');
-
         $insuranceForm = $insuranceFormDataHandler->getForm();
         $insuranceForm->handleRequest($request);
 
         if ($insuranceForm->isSubmitted() && $insuranceForm->isValid()) {
             $errors = $insuranceFormDataHandler->save($insuranceForm->getData());
-
             if (empty($errors)) {
                 $this->addFlash('success', $this->trans('Successful update.', 'Admin.Notifications.Success'));
-
                 return $this->redirectToRoute('scalexpert_controller_tabs_admin_active');
             }
 
             $this->flashErrors($errors);
         }
 
-
         $hasMissingFinancialSolutions = false;
-
         foreach ($financingForm->all() as $fieldName => $data) {
             if (str_contains($fieldName, 'DISABLE')) {
                 $hasMissingFinancialSolutions = true;
@@ -106,7 +95,6 @@ class ConfigTabController extends FrameworkBundleAdminController
         }
 
         $hasMissingInsuranceSolutions = false;
-
         foreach ($insuranceForm->all() as $fieldName => $data) {
             if (str_contains($fieldName, 'DISABLE')) {
                 $hasMissingInsuranceSolutions = true;

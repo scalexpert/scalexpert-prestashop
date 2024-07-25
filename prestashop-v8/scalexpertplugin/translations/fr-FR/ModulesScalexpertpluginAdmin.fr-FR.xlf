@@ -17,9 +17,19 @@
         <target>Exclusion de produits</target>
         <note>Line: </note>
       </trans-unit>
+      <trans-unit id="6653a4eea25cb40a36c139f3041a4091">
+        <source>By selecting excluded products, you are choosing not to display the plugin on those products.</source>
+        <target>En sélectionnant des produits à exclure, l'encart ne sera pas affiché pour ces produits.</target>
+        <note>Line: </note>
+      </trans-unit>
       <trans-unit id="52f5e0bc3859bc5f5e25130b6c7e8881">
         <source>Position</source>
         <target>Ordre</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="34fb575acb46a4b9ef2e06cbacffa01a">
+        <source>Set the order in which solutions are displayed.</source>
+        <target>Définir l'ordre dans lequel les solutions sont affichées.</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="b9987a246a537f4fe86f1f2e3d10dbdb">
@@ -82,36 +92,6 @@
         <target>Pas de statut</target>
         <note>Line: </note>
       </trans-unit>
-      <trans-unit id="a3ba0479cc3dd6daa25ab18508013cd7">
-        <source>Credit subscription is initialized (INITIALIZED)</source>
-        <target>Demande de financement initiée (INITIALIZED)</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="6074ade93e704db355f83e14528e680d">
-        <source>Credit subscription is completed, awaiting a final decision from the financial institution (PRE_ACCEPTED)</source>
-        <target>Demande de financement transmise à l’organisme prêteur et en attente de décision (PRE_ACCEPTED)</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="c4f485c0dc368fd3021a472d97c2db05">
-        <source>Credit subscription is accepted (ACCEPTED)</source>
-        <target>Demande de financement acceptée (ACCEPTED)</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="ece5a5e921b34cd112c0be2494b60188">
-        <source>Credit subscription is refused (REJECTED)</source>
-        <target>Demande de financement refusée (REJECTED)</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="f087c5db6f34240109dd3405009fdb01">
-        <source>Credit subscription is aborted by the customer or due to technical issue (ABORTED)</source>
-        <target>Demande de financement abandonnée par le client ou suite à un incident technique (ABORTED)</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="40277210f32bc79352fabd7f10d079f7">
-        <source>Credit subscription is cancelled (CANCELLED)</source>
-        <target>Demande de financement annulée (CANCELLED)</target>
-        <note>Line: </note>
-      </trans-unit>
       <trans-unit id="ec3028a12402ab7f43962a6f3a667b6e">
         <source>Debug mode</source>
         <target>Mode débug</target>
@@ -162,39 +142,9 @@
         <target>Vérifier ma clé</target>
         <note>Line: </note>
       </trans-unit>
-      <trans-unit id="5bde8a801e5a31607c800b7bc1e87cea">
-        <source>Scalexpert</source>
-        <target>Scalexpert</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="4500c8d97d551921c5a55799bac2d98c">
-        <source>Description of Scalexpert module.</source>
-        <target>Scalexpert module.</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="876f23178c29dc2552c0b48bf23cd9bd">
-        <source>Are you sure you want to uninstall?</source>
-        <target>êtes vous sur de vouloir désinstaller le module ?</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="a02758d758e8bec77a33d7f392eb3f8a">
-        <source>No currency has been set for this module.</source>
-        <target>Aucune devise n'a été paramétrée pour ce module.</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="afeeca91f5628333240726a255defce9">
-        <source>Pay your purchase by installments</source>
-        <target>Payez votre achat en plusieurs fois</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="ce0091654cada6f7aa7e55c50ce311ea">
-        <source>Cancellation success.</source>
-        <target>Annulation réalisée avec succès.</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="cd9408e59e84a5f9a0241356f5572b05">
-        <source>An Error occurred during cancellation process.</source>
-        <target>Une erreur s'est produit pendant l'annulation.</target>
+      <trans-unit id="bee5ea38ebd1e4b3bbb62d72434c7d41">
+        <source>Financing is not accepted or tracking number is empty.</source>
+        <target>Votre financement n'a pas encore été accepté ou le numéro de suivi est vide.</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="011baa1ea3a6632a526fdbdbe9c0eec8">
@@ -202,19 +152,14 @@
         <target>Confirmation de livraison envoyée avec succès.</target>
         <note>Line: </note>
       </trans-unit>
+      <trans-unit id="34cee893af2c32ca034eca655f54ca83">
+        <source>The application has been already delivered.</source>
+        <target>La confirmation de livraison a déjà été réalisée.</target>
+        <note>Line: </note>
+      </trans-unit>
       <trans-unit id="32a821aee1916ca101fe6932dc5759ef">
         <source>An Error occurred during delivery confirmation process.</source>
         <target>Une erreur est survenue pendant la confirmation de livraison.</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="bee5ea38ebd1e4b3bbb62d72434c7d41">
-        <source>Financing is not accepted or tracking number is empty.</source>
-        <target>Votre financement n'a pas encore été accepté ou le numéro de suivi est vide.</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="637a6ff995a0c4b7881a481c7bc7194a">
-        <source>Order is paid but financing subscription is not in a finished state.</source>
-        <target>La commande a été réglée mais le financement n'est pas dans un statut final.</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="0e60ac85bc39f1e221d66a048ff164da">
@@ -264,7 +209,47 @@
       </trans-unit>
       <trans-unit id="696b031073e74bf2cb98e5ef201d4aa3">
         <source>UNKNOWN</source>
-        <target>Autre</target>
+        <target>Inconnu</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="ce0091654cada6f7aa7e55c50ce311ea">
+        <source>Cancellation success.</source>
+        <target>Annulation réalisée avec succès.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="cd9408e59e84a5f9a0241356f5572b05">
+        <source>An Error occurred during cancellation process.</source>
+        <target>Une erreur s'est produit pendant l'annulation.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="5bde8a801e5a31607c800b7bc1e87cea">
+        <source>Scalexpert</source>
+        <target>Scalexpert</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="4500c8d97d551921c5a55799bac2d98c">
+        <source>Description of Scalexpert module.</source>
+        <target>Scalexpert module.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="876f23178c29dc2552c0b48bf23cd9bd">
+        <source>Are you sure you want to uninstall?</source>
+        <target>êtes vous sur de vouloir désinstaller le module ?</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="a02758d758e8bec77a33d7f392eb3f8a">
+        <source>No currency has been set for this module.</source>
+        <target>Aucune devise n'a été paramétrée pour ce module.</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="afeeca91f5628333240726a255defce9">
+        <source>Pay your purchase by installments</source>
+        <target>Payez votre achat en plusieurs fois</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="637a6ff995a0c4b7881a481c7bc7194a">
+        <source>Order is paid but financing subscription is not in a finished state.</source>
+        <target>La commande a été réglée mais le financement n'est pas dans un statut final.</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="a603905470e2a5b8c13e96b579ef0dba">
@@ -407,6 +392,11 @@
         <target>Statut du financement</target>
         <note>Line: </note>
       </trans-unit>
+      <trans-unit id="f731a0ea32551dde8159e882430e6017">
+        <source>Consolidated substatus</source>
+        <target>Sous-statut du financement</target>
+        <note>Line: </note>
+      </trans-unit>
       <trans-unit id="41967a8b8b5075eddc7d5d8c25ca9fc8">
         <source>Buyer financed amount</source>
         <target>Montant financé</target>
@@ -440,6 +430,11 @@
       <trans-unit id="d1acb5b386273848a636704bb5ac688c">
         <source>Confirmer la livraison</source>
         <target>Confirmer la livraison</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="3db9be6d319802a2a9fc85cc205a4baf">
+        <source>Delivery done</source>
+        <target>Livraison terminée</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="871c67d1e4a0d783813f6696ee204e7c">

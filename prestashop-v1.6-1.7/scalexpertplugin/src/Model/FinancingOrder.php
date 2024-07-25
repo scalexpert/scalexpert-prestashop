@@ -18,9 +18,9 @@ class FinancingOrder
 {
     const TABLE = 'scalexpert_order_financing';
 
-    public static function createTable()
+    public static function createTable(): bool
     {
-        $sql = "CREATE TABLE IF NOT EXISTS  `"._DB_PREFIX_.self::TABLE."` (
+        $sql = "CREATE TABLE IF NOT EXISTS  `" . _DB_PREFIX_ . self::TABLE . "` (
             `id_order` INT(10) UNSIGNED NOT NULL,
             `id_subscription` VARCHAR(255) NULL,
             PRIMARY KEY (`id_order`)
@@ -29,7 +29,7 @@ class FinancingOrder
         return \Db::getInstance()->execute($sql);
     }
 
-    public static function save($idOrder, $idSubscription)
+    public static function save($idOrder, $idSubscription): bool
     {
         return Db::getInstance()->insert(self::TABLE, [
             'id_order' => (int)$idOrder,
@@ -41,14 +41,14 @@ class FinancingOrder
     {
         $query = (new DbQuery())->select('id_subscription')
             ->from(self::TABLE)
-            ->where('id_order = '.(int)$idOrder);
+            ->where('id_order = ' . (int)$idOrder);
 
         return Db::getInstance()->getValue($query);
     }
 
-    public static function deleteTable()
+    public static function deleteTable(): bool
     {
-        $sql = "DROP TABLE "._DB_PREFIX_.self::TABLE;
+        $sql = "DROP TABLE " . _DB_PREFIX_ . self::TABLE;
         return \Db::getInstance()->execute($sql);
     }
 }
