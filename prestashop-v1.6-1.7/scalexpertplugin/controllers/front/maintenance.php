@@ -11,6 +11,7 @@
 
 use ScalexpertPlugin\Api\Financing;
 use ScalexpertPlugin\Log\Logger;
+use ScalexpertPlugin\Service\OrderUpdater;
 
 /**
  * Copyright © Scalexpert.
@@ -75,27 +76,33 @@ class ScalexpertPluginMaintenanceModuleFrontController extends ModuleFrontContro
             $this->logAndPrint("Order #$order->reference in progress<br>");
 
             $previousOrderStateList = $order->getHistory(Context::getContext()->language->id);
-            $orderStateAlreadyOnOrder = false;
-            if (isset($this->mappingOrderState[$consolidatedStatus])) {
-                foreach ($previousOrderStateList as $previousOrderState) {
-                    if ((int)$previousOrderState['id_order_state'] == (int)$this->mappingOrderState[$consolidatedStatus]) {
-                        $orderStateAlreadyOnOrder = true;
-                    }
-                }
-            }
+            $orderStateAlreadyOnOrder = $this->checkOrderHistory($consolidatedStatus, $previousOrderStateList);
             if ($orderStateAlreadyOnOrder) {
                 $this->logAndPrint("Order state is already on order for #$order->reference:<br>");
                 return;
             }
 
             try {
-                $this->module->updateOrderStateBasedOnFinancingStatus($order, $consolidatedStatus);
+                OrderUpdater::updateOrderStateBasedOnFinancingStatus($order, $consolidatedStatus);
                 $this->logAndPrint("Successfull order state update for #$order->reference<br>");
             } catch (\Exception $e) {
                 $this->logAndPrint("Error during order state update for #$order->reference:<br>");
                 $this->logAndPrint($e->getMessage());
             }
         }
+    }
+
+    private function checkOrderHistory($status, $previousOrderStateList): bool
+    {
+        if (isset($this->mappingOrderState[$status])) {
+            foreach ($previousOrderStateList as $previousOrderState) {
+                if ((int)$previousOrderState['id_order_state'] === (int)$this->mappingOrderState[$status]) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private function logAndPrint($message) {

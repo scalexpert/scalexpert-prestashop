@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.4.0] - 2024-06-25
+### New features
+- Use the “isDelivered” boolean to display or not the delivery confirmation request button on the order details page in the back office
+- Display order sub-status on order detail page in back office (“consolidatedSubstatus” string)
+- Display reorder button for aborted financing subscriptions on order confirmation page
+- Hide reorder button for guest account
+- Display order status on confirmation page
+- Add new financing solution SCFRLT-TXTS
+
 ## [1.3.3] - 2024-06-25
 ### Bugfix
 - Fix displaying of html in simulator box

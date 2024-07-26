@@ -9,7 +9,7 @@
  */
 
 
-include_once(__DIR__ . '/../../../config/config.inc.php');
+include_once __DIR__ . '/../../../config/config.inc.php';
 
 $query = Tools::getValue('q', false);
 if (empty($query)) {
@@ -28,7 +28,7 @@ if ($pos = strpos($query, ' (ref:')) {
 }
 
 $excludeIds = pSQL(Tools::getValue('excludeIds'));
-if ($excludeIds && $excludeIds != 'NaN') {
+if ($excludeIds && $excludeIds !== 'NaN') {
     $excludeIds = implode(',', array_map('intval', explode(',', $excludeIds)));
 } else {
     $excludeIds = '';
@@ -103,7 +103,7 @@ if ($items && ($excludeIds !== false)) {
                     'ref' => (!empty($item['reference']) ? $item['reference'] : ''),
                     'image' => str_replace('http://', Tools::getShopProtocol(), $context->link->getImageLink($item['link_rewrite'], $item['id_image'], 'home_default')),
                 );
-                array_push($results, $product);
+                $results[] = $product;
             }
         } else {
             $product = array(
@@ -112,7 +112,7 @@ if ($items && ($excludeIds !== false)) {
                 'ref' => (!empty($item['reference']) ? $item['reference'] : ''),
                 'image' => str_replace('http://', Tools::getShopProtocol(), $context->link->getImageLink($item['link_rewrite'], $item['id_image'], 'home_default')),
             );
-            array_push($results, $product);
+            $results[] = $product;
         }
     }
     $results = array_values($results);

@@ -17,9 +17,9 @@ class ProductField
 {
     const TABLE = 'scalexpertplugin_product_field';
 
-    public static function createTable()
+    public static function createTable(): bool
     {
-        $sql = "CREATE TABLE IF NOT EXISTS `"._DB_PREFIX_.self::TABLE."` (
+        $sql = "CREATE TABLE IF NOT EXISTS `" . _DB_PREFIX_ . self::TABLE . "` (
             `id_product` INT NOT NULL,
             `id_lang` INT NOT NULL,
             `model` TEXT NOT NULL,
@@ -32,13 +32,13 @@ class ProductField
         return \Db::getInstance()->execute($sql);
     }
 
-    public static function deleteTable()
+    public static function deleteTable(): bool
     {
-        $sql = "DROP TABLE "._DB_PREFIX_.self::TABLE;
+        $sql = "DROP TABLE " . _DB_PREFIX_ . self::TABLE;
         return \Db::getInstance()->execute($sql);
     }
 
-    public static function saveData($idProduct, $idLang, $model, $characteristics)
+    public static function saveData($idProduct, $idLang, $model, $characteristics): bool
     {
         return \Db::getInstance()->insert(self::TABLE, [
             'id_product' => (int)$idProduct,
@@ -52,7 +52,7 @@ class ProductField
     {
         $query = (new DbQuery())->select('*')
             ->from(self::TABLE)
-            ->where('id_product = '.(int)$idProduct);
+            ->where('id_product = ' . (int)$idProduct);
 
         $results = \Db::getInstance()->executeS($query);
         if (!$results) {
@@ -66,8 +66,8 @@ class ProductField
     {
         $query = (new DbQuery())->select('*')
             ->from(self::TABLE)
-            ->where('id_product = '.(int)$idProduct)
-            ->where('id_lang = '.(int)$idLang);
+            ->where('id_product = ' . (int)$idProduct)
+            ->where('id_lang = ' . (int)$idLang);
 
         $results = \Db::getInstance()->getRow($query);
         if (!$results) {

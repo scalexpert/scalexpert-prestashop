@@ -29,8 +29,9 @@
                         {/if}
                     {/block}
 
-                    {if !empty($subscriptionStatus) && $subscriptionStatus == 'REJECTED' &&
-                        !empty($displayReorder) && $reorderUrl
+                    {if
+                        !empty($displayReorder)
+                        && $reorderUrl
                     }
                         <div class="button-reorder">
                             <a class="btn btn-primary"

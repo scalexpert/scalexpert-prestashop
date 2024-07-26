@@ -10,7 +10,9 @@
 
 
 use ScalexpertPlugin\Api\Financing;
+use ScalexpertPlugin\Helper\SolutionManager;
 use ScalexpertPlugin\Model\FinancingOrder;
+use ScalexpertPlugin\Service\OrderUpdater;
 
 class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontController
 {
@@ -27,9 +29,6 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
         parent::initContent();
 
         if (version_compare(_PS_VERSION_, '1.7', '>=')) {
-            /*$this->context->smarty->assign(array(
-                'register_form' => (new CustomerForm())->getProxy()
-            ));*/
             $this->setTemplate('module:scalexpertplugin/views/templates/front/ps17/orderConfirmation.tpl');
         } else {
             $this->setTemplate('ps16/orderConfirmation.tpl');
@@ -49,32 +48,15 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
 
         $order_ref = Tools::getValue('order_ref');
         $secure_key = Tools::getValue('secure_key');
-        if (
-            false === $order_ref
-            || false === $secure_key
-        ) {
-            $this->handleError($this->module->l('Some parameters are missing.'));
-        }
-
-        $orders = Order::getByReference($order_ref);
-        if (1 > $orders->count()) {
-            $this->handleError($this->module->l('No order found for this reference.'));
-        }
-
+        $orders = $this->prepareOrders($order_ref, $secure_key);
         $order = $orders->getFirst();
-        if (
-            !Validate::isLoadedObject($order)
-            || $secure_key !== $order->secure_key
-        ) {
-            $this->handleError($this->module->l('No order found for this reference.'));
-        }
 
         $customer = \Context::getContext()->customer;
         if (
             !Validate::isLoadedObject($customer)
             || !$customer->isLogged()
         ) {
-            $customer = $this->authenticateCustomerById((int) $order->id_customer);
+            $customer = $this->authenticateCustomerById((int)$order->id_customer);
         }
 
         if (!Validate::isLoadedObject($customer)) {
@@ -85,44 +67,48 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
         $this->reference = $order->reference;
         $this->id_module = $this->module->id;
 
-        if ($secure_key === $customer->secure_key) {
+        sleep(2);
 
-            sleep(2);
+        /**
+         * The order has been placed, so we redirect the customer on the confirmation page.
+         */
+        $idSubscription = FinancingOrder::get($this->id_order);
+        $subscriptionInfo = Financing::getSubscriptionInfo($idSubscription);
 
-            /**
-             * The order has been placed, so we redirect the customer on the confirmation page.
-             */
-            $idSubscription = FinancingOrder::get($this->id_order);
-            $subscriptionInfo = Financing::getSubscriptionInfo($idSubscription);
+        if (
+            $secure_key === $customer->secure_key
+            && isset($subscriptionInfo['consolidatedStatus'])
+            && $this->updateOrderState($orders, $subscriptionInfo['consolidatedStatus'])
+        ) {
+            $status = SolutionManager::getFinancialStateName(
+                $subscriptionInfo['consolidatedStatus'],
+                $this->module
+            );
 
-            if (
-                isset($subscriptionInfo['consolidatedStatus'])
-                && $this->updateOrderState($orders, $subscriptionInfo['consolidatedStatus'])
-            ) {
-                $status = $this->module->getFinancialStateName($subscriptionInfo['consolidatedStatus']);
-
-                switch ($subscriptionInfo['consolidatedStatus']) {
-                    case 'ACCEPTED':
-                        $title = $this->module->l('Your orders is paid');
-                        $subtitle = $this->module->l('Your financing request has been accepted. A confirmation mail has been sent to you.');
-                        break;
-                    case 'PRE_ACCEPTED':
-                    case 'INITIALIZED':
-                    case 'REQUESTED':
-                        $title = $this->module->l('Your orders are awaiting financing');
-                        $subtitle = $this->module->l('Your financing request has been sent to the lending organization and is being studied. You will soon receive an email informing you of the decision regarding this request.');
-                        break;
-                    default:
-                        $title = $this->module->l('Your orders is canceled');
-                        $subtitle = $this->module->l('We\'re sorry, your financing request was not accepted or a technical error occurred. We invite you to try again or place a new order by choosing another payment method.');
-                        break;
-                }
-            } else {
-                $status = $this->module->getFinancialStateName('');
-                $title = $this->module->l('Your orders is canceled');
-                $subtitle = $this->module->l('We\'re sorry, your financing request was not accepted or a technical error occurred. We invite you to try again or place a new order by choosing another payment method.');
+            switch ($subscriptionInfo['consolidatedStatus']) {
+                case 'ACCEPTED':
+                    $subtitle = $this->module->l('Your financing request has been accepted. A confirmation mail has been sent to you.');
+                    break;
+                case 'PRE_ACCEPTED':
+                case 'INITIALIZED':
+                case 'REQUESTED':
+                    $subtitle = $this->module->l('Your financing request has been sent to the lending organization and is being studied. You will soon receive an email informing you of the decision regarding this request.');
+                    break;
+                default:
+                    $subtitle = $this->module->l('We\'re sorry, your financing request was not accepted or a technical error occurred. We invite you to try again or place a new order by choosing another payment method.');
+                    break;
             }
+        } else {
+            $status = SolutionManager::getFinancialStateName('', $this->module);
+            $subtitle = $this->module->l('We\'re sorry, your financing request was not accepted or a technical error occurred. We invite you to try again or place a new order by choosing another payment method.');
         }
+
+        $orderState = $order->getCurrentOrderState();
+        $title = sprintf(
+            '%s %s',
+            $this->module->l('Your order is'),
+            $orderState ? $orderState->name[$this->context->language->id] : $this->module->l('unknown')
+        );
 
         if (version_compare(_PS_VERSION_, '1.7', '>=')) {
             $orderPresenter = new PrestaShop\PrestaShop\Adapter\Order\OrderPresenter();
@@ -142,6 +128,7 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
             'subscription_status_subtitle' => $subtitle ?? '',
             'is_guest' => $this->context->customer->is_guest,
         ));
+
         if (version_compare(_PS_VERSION_, '1.7', '>=')) {
             $this->context->smarty->assign(array(
                 'register_form' => $registerForm,
@@ -163,14 +150,15 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
      */
     public function displayPaymentReturn()
     {
-        if (Validate::isUnsignedId($this->id_order) && Validate::isUnsignedId($this->id_module))
-        {
+        if (
+            Validate::isUnsignedId($this->id_order)
+            && Validate::isUnsignedId($this->id_module)
+        ) {
             $params = array();
             $order = new Order($this->id_order);
             $currency = new Currency($order->id_currency);
 
-            if (Validate::isLoadedObject($order))
-            {
+            if (Validate::isLoadedObject($order)) {
                 $params['total_to_pay'] = $order->getOrdersTotalPaid();
                 $params['currency'] = $currency->sign;
                 $params['objOrder'] = $order;
@@ -187,14 +175,12 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
      */
     public function displayOrderConfirmation()
     {
-        if (Validate::isUnsignedId($this->id_order))
-        {
+        if (Validate::isUnsignedId($this->id_order)) {
             $params = array();
             $order = new Order($this->id_order);
             $currency = new Currency($order->id_currency);
 
-            if (Validate::isLoadedObject($order))
-            {
+            if (Validate::isLoadedObject($order)) {
                 $params['total_to_pay'] = $order->getOrdersTotalPaid();
                 $params['currency'] = $currency->sign;
                 $params['objOrder'] = $order;
@@ -223,7 +209,7 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
 
     protected function authenticateCustomerById($idCustomer)
     {
-        $customer = new Customer((int) $idCustomer);
+        $customer = new Customer((int)$idCustomer);
 
         if (version_compare(_PS_VERSION_, '1.7', '>=')) {
             $this->context->updateCustomer($customer);
@@ -284,12 +270,37 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
             }
 
             try {
-                $this->module->updateOrderStateBasedOnFinancingStatus($order, $consolidatedStatus);
+                OrderUpdater::updateOrderStateBasedOnFinancingStatus($order, $consolidatedStatus);
             } catch (\Exception $e) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    private function prepareOrders($orderReference, $secureKey)
+    {
+        if (
+            false === $orderReference
+            || false === $secureKey
+        ) {
+            $this->handleError($this->module->l('Some parameters are missing.'));
+        }
+
+        $orders = Order::getByReference($orderReference);
+        if (1 > $orders->count()) {
+            $this->handleError($this->module->l('No order found for this reference.'));
+        }
+
+        $order = $orders->getFirst();
+        if (
+            !Validate::isLoadedObject($order)
+            || $secureKey !== $order->secure_key
+        ) {
+            $this->handleError($this->module->l('No order found for this reference.'));
+        }
+
+        return $orders;
     }
 }

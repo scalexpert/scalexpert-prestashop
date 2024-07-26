@@ -15,56 +15,15 @@ class ScalexpertpluginValidationModuleFrontController extends ModuleFrontControl
 {
     public function postProcess()
     {
-        if (!($this->module instanceof ScalexpertPlugin)) {
-            Tools::redirect('index.php?controller=order&step=1');
-            return;
-        }
-
         $cart = $this->context->cart;
-
-        if (
-            $cart->id_customer == 0
-            || $cart->id_address_delivery == 0
-            || $cart->id_address_invoice == 0
-            || !$this->module->active
-        ) {
-            Tools::redirect('index.php?controller=order&step=1');
-            return;
-        }
-
-        // Check that this payment option is still available in case the customer changed his address just before the end of the checkout process
-        $authorized = false;
-        foreach (Module::getPaymentModules() as $module) {
-            if ('scalexpertplugin' === $module['name']) {
-                $authorized = true;
-                break;
-            }
-        }
-
-        if (!$authorized) {
-            $this->errors[] = $this->trans('This payment method is not available.', [], 'Modules.Scalexpertplugin.Shop');
-            $this->redirectWithNotifications(
-                $this->context->link->getPageLink('cart', null, null, ['action' => 'show'])
-            );
-        }
-
         $customer = new Customer($cart->id_customer);
-        if (!Validate::isLoadedObject($customer)) {
-            Tools::redirect('index.php?controller=order&step=1');
-            return;
-        }
 
-        $address = new Address((int) $cart->id_address_delivery);
-        if (Validate::isLoadedObject($address)) {
-            $phone = !empty($address->phone_mobile) ? $address->phone_mobile : $address->phone;
-            if (!preg_match('/^\+?(?:[0-9] ?){6,14}[0-9]$/', $phone)) {
-                $this->errors[] = $this->trans('Please provide a valid phone number to select this payment method', [], 'Modules.Scalexpertplugin.Shop');
-                $this->redirectWithNotifications($this->context->link->getPageLink('order'));
-            }
+        if (!$this->checkBeforeValidation($cart, $customer)) {
+            return;
         }
 
         $currency = $this->context->currency;
-        $total = (float) $cart->getOrderTotal();
+        $total = (float)$cart->getOrderTotal();
 
         $solutionCode = Tools::getValue('solutionCode');
         $availableSolutionsService = $this->get('scalexpert.service.available_solutions');
@@ -79,29 +38,29 @@ class ScalexpertpluginValidationModuleFrontController extends ModuleFrontControl
         }
 
         $validateOrder = $this->module->validateOrder(
-            (int) $cart->id,
-            (int) Configuration::get(ScalexpertPlugin::CONFIGURATION_ORDER_STATE_FINANCING),
+            (int)$cart->id,
+            (int)Configuration::get(ScalexpertPlugin::CONFIGURATION_ORDER_STATE_FINANCING),
             $total,
             $solutionName,
             null,
             [],
-            (int) $currency->id,
+            (int)$currency->id,
             false,
             $customer->secure_key
         );
 
-        $apiClient = $this->get('scalexpert.api.client');
         $currentOrder = new Order($this->module->currentOrder);
-
         if ($validateOrder && Validate::isLoadedObject($currentOrder)) {
             try {
+                /* @var \ScalexpertPlugin\Helper\API\Client $apiClient */
+                $apiClient = $this->get('scalexpert.api.client');
                 $financingSubscription = $apiClient->createFinancingSubscription($currentOrder, $solutionCode);
 
                 if (!empty($financingSubscription['id'])) {
                     $entityManager = $this->get('doctrine.orm.entity_manager');
                     $orderFinancing = new ScalexpertOrderFinancing();
-                    $orderFinancing->setIdOrder((int) $currentOrder->id);
-                    $orderFinancing->setIdSubscription((string) $financingSubscription['id']);
+                    $orderFinancing->setIdOrder((int)$currentOrder->id);
+                    $orderFinancing->setIdSubscription((string)$financingSubscription['id']);
                     $entityManager->persist($orderFinancing);
                     $entityManager->flush();
 
@@ -135,5 +94,61 @@ class ScalexpertpluginValidationModuleFrontController extends ModuleFrontControl
             ]
         );
         \Tools::redirect($redirectURL);
+    }
+
+    protected function checkBeforeValidation(
+        $cart,
+        $customer
+    ): bool
+    {
+        if (
+            !($this->module instanceof ScalexpertPlugin)
+            || !$this->module->active
+        ) {
+            Tools::redirect('index.php?controller=order&step=1');
+            return false;
+        }
+
+        if (
+            $cart->id_customer == 0
+            || $cart->id_address_delivery == 0
+            || $cart->id_address_invoice == 0
+        ) {
+            Tools::redirect('index.php?controller=order&step=1');
+            return false;
+        }
+
+        // Check that this payment option is still available in case the customer changed his address
+        // just before the end of the checkout process
+        $authorized = false;
+        foreach (Module::getPaymentModules() as $module) {
+            if ('scalexpertplugin' === $module['name']) {
+                $authorized = true;
+                break;
+            }
+        }
+
+        if (!$authorized) {
+            $this->errors[] = $this->trans('This payment method is not available.', [], 'Modules.Scalexpertplugin.Shop');
+            $this->redirectWithNotifications(
+                $this->context->link->getPageLink('cart', null, null, ['action' => 'show'])
+            );
+        }
+
+        if (!Validate::isLoadedObject($customer)) {
+            Tools::redirect('index.php?controller=order&step=1');
+            return false;
+        }
+
+        $address = new Address((int)$cart->id_address_delivery);
+        if (Validate::isLoadedObject($address)) {
+            $phone = !empty($address->phone_mobile) ? $address->phone_mobile : $address->phone;
+            if (!preg_match('/^\+?(?:[0-9] ?){6,14}[0-9]$/', $phone)) {
+                $this->errors[] = $this->trans('Please provide a valid phone number to select this payment method', [], 'Modules.Scalexpertplugin.Shop');
+                $this->redirectWithNotifications($this->context->link->getPageLink('order'));
+            }
+        }
+
+        return true;
     }
 }

@@ -32,8 +32,11 @@
                         {/if}
                     {/block}
 
-                    {if !empty($subscription_status) && $subscription_status == 'REJECTED' &&
-                        !empty($order.details.reorder_url)
+                    {if
+                        !empty($subscription_status)
+                        && in_array($subscription_status, ['REJECTED', 'ABORTED'])
+                        && !empty($order.details.reorder_url)
+                        && !$customer.is_guest
                     }
                         <div class="button-reorder">
                             <a class="btn btn-primary"

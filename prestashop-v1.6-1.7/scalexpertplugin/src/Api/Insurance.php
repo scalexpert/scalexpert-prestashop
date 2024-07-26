@@ -33,31 +33,7 @@ class Insurance extends Entity
         $eligibleSolutions = [];
 
         foreach ($params as $param) {
-            $apiUrl = static::$scope.'/api/v1/eligible-solutions?'.http_build_query($param);
-            $result = Client::get($apiUrl);
-
-            if (!$result['hasError']) {
-                foreach ($result['data']['solutions'] as $solution) {
-                    if (empty($eligibleSolutions[$solution['solutionCode']])) {
-                        $eligibleSolutions[$solution['solutionCode']] = $solution;
-                    }
-                }
-            }
-        }
-
-        return $eligibleSolutions;
-    }
-
-    public static function getAllInsuranceSolutions()
-    {
-        $eligibleSolutions = [];
-
-        foreach (static::$buyerBillingCountry as $country) {
-            $param = [
-                'buyerBillingCountry' => $country
-            ];
-
-            $apiUrl = static::$scope.'/api/v1/eligible-solutions?'.http_build_query($param);
+            $apiUrl = static::$scope . '/api/v1/eligible-solutions?' . http_build_query($param);
             $result = Client::get($apiUrl);
 
             if (!$result['hasError']) {
@@ -75,7 +51,7 @@ class Insurance extends Entity
     public static function createItem($solutionCode, $idProduct)
     {
         $product = new \Product(
-            (int) $idProduct,
+            (int)$idProduct,
             false,
             \Context::getContext()->language->id,
             \Context::getContext()->shop->id
@@ -85,7 +61,7 @@ class Insurance extends Entity
         }
 
         $data = InsuranceFormatter::normalizeInsurance($product, $solutionCode);
-        $apiUrl = static::$scope.'/api/v1/items';
+        $apiUrl = static::$scope . '/api/v1/items';
         $result = Client::post($apiUrl, $data);
 
         if ($result['hasError']) {
@@ -103,7 +79,7 @@ class Insurance extends Entity
             'price' => $priceItem
         ];
 
-        $apiUrl = static::$scope.'/api/v1/items/_search-insurances';
+        $apiUrl = static::$scope . '/api/v1/items/_search-insurances';
         $result = Client::post($apiUrl, $data);
 
         if (
@@ -117,27 +93,20 @@ class Insurance extends Entity
             $context = \Context::getContext();
 
             foreach ($result['data']['insurances'] as &$insurance) {
-                if (isset($insurance['price'])) {
-                    $insurance['formattedPrice'] = \Tools::displayPrice($insurance['price']);
-                }
+                $insurance['itemId'] = $itemId;
+                $insurance['selected'] = false;
+                $insurance['formattedPrice'] = !empty($insurance['price']) ?
+                    \Tools::displayPrice((float)$insurance['price']) : '';
 
                 if (\Validate::isLoadedObject($context->cart)) {
                     $selectedInsuranceItem = CartInsurance::getInsuranceLineByInsuranceId(
-                        (int) $context->cart->id,
+                        (int)$context->cart->id,
                         $itemId,
                         $insurance['id']
                     );
 
-                    if (!empty($selectedInsuranceItem)) {
-                        $insurance['selected'] = true;
-                    }
+                    $insurance['selected'] = !empty($selectedInsuranceItem);
                 }
-
-                if (empty($insurance['selected'])) {
-                    $insurance['selected'] = false;
-                }
-
-                $insurance['itemId'] = $itemId;
             }
         }
 
@@ -157,7 +126,7 @@ class Insurance extends Entity
             'insuranceId' => $insuranceId,
         ];
 
-        $apiUrl = static::$scope.'/api/v1/quotations';
+        $apiUrl = static::$scope . '/api/v1/quotations';
         $result = Client::post($apiUrl, $data);
 
         if ($result['hasError']) {
@@ -169,7 +138,7 @@ class Insurance extends Entity
 
     public static function getInsuranceSubscriptionBySubscriptionId($subscriptionId)
     {
-        $apiUrl = static::$scope.'/api/v1/subscriptions/' . $subscriptionId;
+        $apiUrl = static::$scope . '/api/v1/subscriptions/' . $subscriptionId;
         $result = Client::get($apiUrl);
 
         if ($result['hasError']) {
@@ -203,7 +172,7 @@ class Insurance extends Entity
         }
 
         $currencyIsoCode = \Db::getInstance(_PS_USE_SQL_SLAVE_)
-            ->getValue('SELECT `iso_code` FROM ' . _DB_PREFIX_ . 'currency WHERE `id_currency` = ' . (int) $order->id_currency);
+            ->getValue('SELECT `iso_code` FROM ' . _DB_PREFIX_ . 'currency WHERE `id_currency` = ' . (int)$order->id_currency);
 
         // Prepare variables
         $idLang = \Context::getContext()->language->id;
@@ -217,8 +186,7 @@ class Insurance extends Entity
             ->from('order_detail', 'od')
             ->where('od.id_order = ' . (int)$order->id)
             ->where('od.product_id = ' . $cartInsurancesProduct['id_product'])
-            ->where('od.product_attribute_id = ' . ($cartInsurancesProduct['id_product_attribute'] ?: 0))
-        ;
+            ->where('od.product_attribute_id = ' . ($cartInsurancesProduct['id_product_attribute'] ?: 0));
         $productPrice = (float)Db::getInstance()->getValue($query);
         $productPrice = \Tools::ps_round($productPrice, 2);
 
@@ -227,8 +195,8 @@ class Insurance extends Entity
             'quoteId' => $quoteData['quoteId'],
             'insuranceId' => $cartInsurancesProduct['id_insurance'],
             'merchantGlobalOrderId' => (string)$order->reference,
-            'merchantBasketId' => (string) $cart->id,
-            'merchantBuyerId' => (string) $customer->id,
+            'merchantBasketId' => (string)$cart->id,
+            'merchantBuyerId' => (string)$customer->id,
             'producerQuoteExpirationDate' => preg_replace('/^(\d{4}-\d{2}-\d{2}).*$/', '$1', $quoteData['expirationDate']),
             'producerQuoteInsurancePrice' => $quoteData['insurancePrice'],
             'buyer' => [
@@ -241,7 +209,7 @@ class Insurance extends Entity
                 'brandName' => $manufacturer->name ?? '',
                 'price' => $productPrice,
                 'currencyCode' => $orderCurrency ?: '',
-                'orderId' => (string) $order->reference,
+                'orderId' => (string)$order->reference,
                 'category' => $defaultCategory->name ?? '',
                 'sku' => $product->reference ?: '',
                 'insurancePrice' => $quoteData['insurancePrice'],

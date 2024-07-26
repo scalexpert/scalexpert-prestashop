@@ -26,18 +26,18 @@ class ConfigChecker
 
     public function checkExistingKeys(): bool
     {
-        if ('production' == $this->configuration->get(KeysConfigurationFormDataConfiguration::SCALEXPERT_KEYS_TYPE)) {
-            if (!empty($this->configuration->get(KeysConfigurationFormDataConfiguration::SCALEXPERT_KEYS_ID_PROD))
+        if ('production' === $this->configuration->get(KeysConfigurationFormDataConfiguration::SCALEXPERT_KEYS_TYPE)) {
+            if (
+                !empty($this->configuration->get(KeysConfigurationFormDataConfiguration::SCALEXPERT_KEYS_ID_PROD))
                 && !empty($this->configuration->get(KeysConfigurationFormDataConfiguration::SCALEXPERT_KEYS_SECRET_PROD))
             ) {
                 return true;
             }
-        } else {
-            if (!empty($this->configuration->get(KeysConfigurationFormDataConfiguration::SCALEXPERT_KEYS_ID_TEST))
-                && !empty($this->configuration->get(KeysConfigurationFormDataConfiguration::SCALEXPERT_KEYS_SECRET_TEST))
-            ) {
-                return true;
-            }
+        } elseif (
+            !empty($this->configuration->get(KeysConfigurationFormDataConfiguration::SCALEXPERT_KEYS_ID_TEST))
+            && !empty($this->configuration->get(KeysConfigurationFormDataConfiguration::SCALEXPERT_KEYS_SECRET_TEST))
+        ) {
+            return true;
         }
 
         return false;

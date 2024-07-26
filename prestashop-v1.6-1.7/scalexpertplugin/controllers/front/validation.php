@@ -16,42 +16,17 @@ use ScalexpertPlugin\Model\FinancingOrder;
 class ScalexpertPluginValidationModuleFrontController extends ModuleFrontController
 {
     /**
-     * This class should be use by your Instant Payment
+     * This class should be used by your Instant Payment
      * Notification system to validate the order remotely
      */
     public function postProcess()
     {
-        /*
-         * If the module is not active anymore, no need to process anything.
-         */
-        $cart = $this->context->cart;
-        if (
-            $cart->id_customer == 0
-            || $cart->id_address_delivery == 0
-            || $cart->id_address_invoice == 0
-        ) {
-            $this->handleError($this->module->l('Cart is invalid.'));
-        }
+        $this->checkDataBeforeProcess();
 
-        if (!$this->module->active) {
-            $this->handleError($this->module->l('Payment method is disabled.'));
+        $solutionCode = Tools::getValue('solutionCode');
+        if (!$solutionCode) {
+            $this->handleError($this->module->l('You must chose a financial solution.'));
         }
-
-        $customer = new Customer($cart->id_customer);
-        if (!Validate::isLoadedObject($customer)) {
-            $this->handleError($this->module->l('No customer found.'));
-        }
-
-        $address = new Address((int) $cart->id_address_delivery);
-        if (Validate::isLoadedObject($address)) {
-            $phone = !empty($address->phone_mobile) ? $address->phone_mobile : $address->phone;
-            if (!preg_match('/^\+?(?:[0-9] ?){6,14}[0-9]$/', $phone)) {
-                $this->handleError($this->module->l('Please provide a valid phone number to select this payment method'));
-            }
-        }
-
-        $secure_key = Context::getContext()->customer->secure_key;
-        $currency_id = (int) Context::getContext()->currency->id;
 
         if ($this->isValidOrder() === true) {
             $payment_status = Configuration::get('SCALEXPERT_ORDER_STATE_WAITING');
@@ -59,11 +34,6 @@ class ScalexpertPluginValidationModuleFrontController extends ModuleFrontControl
         } else {
             $payment_status = Configuration::get('PS_OS_ERROR');
             $message = $this->module->l('An error occurred while processing payment');
-        }
-
-        $solutionCode = Tools::getValue('solutionCode');
-        if (!$solutionCode) {
-            $this->handleError($this->module->l('You must chose a financial solution.'));
         }
 
         $solutionName = '';
@@ -82,9 +52,9 @@ class ScalexpertPluginValidationModuleFrontController extends ModuleFrontControl
             $solutionName,
             $message,
             array(),
-            $currency_id,
+            (int) Context::getContext()->currency->id,
             false,
-            $secure_key
+            Context::getContext()->customer->secure_key
         );
 
         $newOrder = new \Order($this->module->currentOrder);
@@ -119,6 +89,39 @@ class ScalexpertPluginValidationModuleFrontController extends ModuleFrontControl
         return $validateOrder;
     }
 
+    protected function checkDataBeforeProcess()
+    {
+        /*
+         * If the module is not active anymore, no need to process anything.
+         */
+        if (!$this->module->active) {
+            $this->handleError($this->module->l('Payment method is disabled.'));
+        }
+
+        $cart = $this->context->cart;
+        if (
+            $cart->id_customer == 0
+            || $cart->id_address_delivery == 0
+            || $cart->id_address_invoice == 0
+        ) {
+            $this->handleError($this->module->l('Cart is invalid.'));
+        }
+
+        $customer = new Customer($cart->id_customer);
+        if (!Validate::isLoadedObject($customer)) {
+            $this->handleError($this->module->l('No customer found.'));
+        }
+
+        $phone = '';
+        $address = new Address((int) $cart->id_address_delivery);
+        if (Validate::isLoadedObject($address)) {
+            $phone = !empty($address->phone_mobile) ? $address->phone_mobile : $address->phone;
+        }
+        if (!preg_match('/^\+?(?:[0-9] ?){6,14}[0-9]$/', $phone)) {
+            $this->handleError($this->module->l('Please provide a valid phone number to select this payment method'));
+        }
+    }
+
     protected function isValidOrder()
     {
         /*
@@ -127,7 +130,7 @@ class ScalexpertPluginValidationModuleFrontController extends ModuleFrontControl
         return true;
     }
 
-    protected function redirectWithError($order): void
+    protected function redirectWithError($order)
     {
         // Update order state
         $order->setCurrentState(Configuration::get('PS_OS_ERROR'));
@@ -140,7 +143,7 @@ class ScalexpertPluginValidationModuleFrontController extends ModuleFrontControl
         \Tools::redirect($redirect);
     }
 
-    protected function handleError(string $message = ''): void
+    protected function handleError(string $message = '')
     {
         if (version_compare(_PS_VERSION_, '1.7', '>=')) {
             $this->errors[] = $message;

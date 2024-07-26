@@ -16,6 +16,7 @@ use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use ScalexpertPlugin\Form\Configuration\FinancingConfigurationFormDataConfiguration;
 use ScalexpertPlugin\Form\Configuration\InsuranceConfigurationFormDataConfiguration;
 use ScalexpertPlugin\Form\Customize\DesignCustomizeFormDataConfiguration;
+use ScalexpertPlugin\Helper\API\Client;
 use ScalexpertPlugin\Helper\ConfigChecker;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -37,79 +38,13 @@ class DesignTabController extends FrameworkBundleAdminController
             );
         }
 
-        $designFormDataHandler = $this->get('scalexpert.form.design_customize_form_data_handler');
-        $designForm = $designFormDataHandler->getForm();
-        $designForm->handleRequest($request);
-
+        /* @var Client $apiClient */
         $apiClient = $this->get('scalexpert.api.client');
         $financialSolutions = $apiClient->getAllFinancialSolutions();
         $insuranceSolutions = $apiClient->getAllInsuranceSolutions();
-        $allSolutions = array_merge($financialSolutions, $insuranceSolutions);
+        $allSolutions = $this->fillSolutions(array_merge($financialSolutions, $insuranceSolutions));
 
-        if (!empty($allSolutions)) {
-            $financing = json_decode(
-                $this->configuration->get(FinancingConfigurationFormDataConfiguration::CONFIGURATION_FINANCING, '{}'),
-                true
-            );
-
-            $insurance = json_decode(
-                $this->configuration->get(InsuranceConfigurationFormDataConfiguration::CONFIGURATION_INSURANCE, '{}'),
-                true
-            );
-
-            $configurationSolutions = array_merge($financing, $insurance);
-
-            foreach ($allSolutions as $solutionCode => &$solution) {
-                $solution['active'] = $configurationSolutions[$solutionCode] ?? false;
-
-                $solution['generalFields'] = [
-                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'excludedCategories'),
-                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'excludedProducts'),
-                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'position'),
-                ];
-
-                if (!empty($solution) && $solution['type'] === 'insurance') {
-                    $solution['productFields'] = [
-                        sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'productDisplay'),
-                        sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'productTitle'),
-                        sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'productSubtitle'),
-                        sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'productPosition'),
-                        sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'productDisplayLogo'),
-                    ];
-                } else {
-                    $solution['productFields'] = [
-                        sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'productDisplay'),
-                        sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'productTitle'),
-                        sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'productPosition'),
-                        sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'productDisplayLogo'),
-                    ];
-
-                    $solution['paymentFields'] = [
-                        sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'paymentTitle'),
-                        sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'paymentDisplayLogo'),
-                    ];
-                }
-
-                if (!empty($solution) && $solution['type'] === 'insurance') {
-                    $solution['cartFields'] = [
-                        sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'cartDisplay'),
-                        sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'cartTitle'),
-                        sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'cartPosition'),
-                        sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'cartDisplayLogo'),
-                    ];
-                }
-
-                $solutionNameHandler = $this->get('scalexpert.handler.solution_name');
-                $solutionName = $solutionNameHandler->getSolutionName($solutionCode);
-
-                if (!empty($solutionName)) {
-                    $solution['visualTitle'] = $solutionName;
-                }
-            }
-        }
-
-        $context = \Context::getContext();
-        $activeLink = $context->link->getAdminLink(
+        $activeLink = \Context::getContext()->link->getAdminLink(
             'AdminScalexpertPluginConfigTab',
             true,
             [
@@ -117,21 +52,22 @@ class DesignTabController extends FrameworkBundleAdminController
             ]
         );
 
+        $designFormDataHandler = $this->get('scalexpert.form.design_customize_form_data_handler');
+        $designForm = $designFormDataHandler->getForm();
+        $designForm->handleRequest($request);
+
         if ($designForm->isSubmitted() && $designForm->isValid()) {
             $errors = $designFormDataHandler->save($designForm->getData());
 
             if (empty($errors)) {
                 $this->addFlash('success', $this->trans('Successful update.', 'Admin.Notifications.Success'));
-
                 return $this->redirectToRoute('scalexpert_controller_tabs_admin_design');
             }
 
             $this->flashErrors($errors);
         }
 
-
         $template = '@Modules/scalexpertplugin/views/templates/admin/design.html.twig';
-
         if (version_compare(_PS_VERSION_, '8.1.0', '>=')) {
             $template = '@Modules/scalexpertplugin/views/templates/admin/ps81/design.html.twig';
         }
@@ -144,5 +80,72 @@ class DesignTabController extends FrameworkBundleAdminController
                 'activeLink' => $activeLink,
             ]
         );
+    }
+
+    private function fillSolutions(
+        array $allSolutions
+    ): array
+    {
+        if (empty($allSolutions)) {
+            return [];
+        }
+
+        $financing = json_decode(
+            $this->configuration->get(FinancingConfigurationFormDataConfiguration::CONFIGURATION_FINANCING, '{}'),
+            true
+        );
+        $insurance = json_decode(
+            $this->configuration->get(InsuranceConfigurationFormDataConfiguration::CONFIGURATION_INSURANCE, '{}'),
+            true
+        );
+        $configurationSolutions = array_merge($financing, $insurance);
+
+        foreach ($allSolutions as $solutionCode => &$solution) {
+            $solution['active'] = $configurationSolutions[$solutionCode] ?? false;
+
+            $solution['generalFields'] = [
+                sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'excludedCategories'),
+                sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'excludedProducts'),
+                sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'position'),
+            ];
+
+            if ('insurance' === $solution['type']) {
+                $solution['productFields'] = [
+                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'productDisplay'),
+                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'productTitle'),
+                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'productSubtitle'),
+                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'productPosition'),
+                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'productDisplayLogo'),
+                ];
+
+                $solution['cartFields'] = [
+                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'cartDisplay'),
+                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'cartTitle'),
+                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'cartPosition'),
+                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'cartDisplayLogo'),
+                ];
+            } else {
+                $solution['productFields'] = [
+                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'productDisplay'),
+                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'productTitle'),
+                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'productPosition'),
+                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'productDisplayLogo'),
+                ];
+
+                $solution['paymentFields'] = [
+                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'paymentTitle'),
+                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'paymentDisplayLogo'),
+                ];
+            }
+
+            $solutionNameHandler = $this->get('scalexpert.handler.solution_name');
+            $solutionName = $solutionNameHandler->getSolutionName($solutionCode);
+
+            if (!empty($solutionName)) {
+                $solution['visualTitle'] = $solutionName;
+            }
+        }
+
+        return $allSolutions;
     }
 }

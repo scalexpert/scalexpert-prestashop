@@ -11,6 +11,7 @@
 namespace ScalexpertPlugin\Command;
 
 use PrestaShop\PrestaShop\Adapter\SymfonyContainer;
+use ScalexpertPlugin\Service\UpdateOrdersStatesService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -29,9 +30,16 @@ class UpdateOrdersStatesCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $symfonyContainer = SymfonyContainer::getInstance();
-        $updateOrdersStatesService = $symfonyContainer->get('scalexpert.service.update_orders_states');
-        $updateOrdersStatesService->updateOrdersStates();
+        try {
+            $symfonyContainer = SymfonyContainer::getInstance();
+            /* @var UpdateOrdersStatesService $updateOrdersStatesService */
+            $updateOrdersStatesService = $symfonyContainer->get('scalexpert.service.update_orders_states');
+            $updateOrdersStatesService->updateOrdersStates();
+        } catch (\Exception $exception) {
+            echo $exception->getMessage();
+
+            return self::STATUS_ERROR;
+        }
 
         return self::STATUS_OK;
     }

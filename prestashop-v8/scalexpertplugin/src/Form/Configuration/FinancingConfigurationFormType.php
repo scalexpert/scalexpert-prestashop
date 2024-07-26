@@ -24,7 +24,12 @@ class FinancingConfigurationFormType extends TranslatorAwareType
 
     private $solutionNameHandler;
 
-    public function __construct(TranslatorInterface $translator, array $locales, $apiClient, $solutionNameHandler)
+    public function __construct(
+        TranslatorInterface $translator,
+        array $locales,
+        $apiClient,
+        $solutionNameHandler
+    )
     {
         $this->apiClient = $apiClient;
         $this->solutionNameHandler = $solutionNameHandler;

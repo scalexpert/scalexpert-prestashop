@@ -42,6 +42,96 @@
         <target>oups ! un incident technique est survenu, veuillez réitérer votre demande</target>
         <note>Line: </note>
       </trans-unit>
+      <trans-unit id="9af0c3ae1863b3ad3ead0ef482f6f164">
+        <source>Credit subscription is initialized</source>
+        <target>Demande de financement initiée</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="5fe27649f005bd4a95a02eb156961431">
+        <source>Credit subscription is completed, awaiting a final decision from the financial institution</source>
+        <target>Demande de financement transmise à l’organisme prêteur et en attente de décision</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="a6e2027166763a46e0039be7d5cf1f04">
+        <source>Credit subscription is accepted</source>
+        <target>Demande de financement acceptée</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="c80fa39e15bf8452854e3b5ca957be36">
+        <source>Credit subscription is refused</source>
+        <target>Demande de financement refusée</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="2edf1a5329f477221666285f04c9c107">
+        <source>Credit subscription is aborted by the customer or due to technical issue</source>
+        <target>Demande de financement abandonnée par le client ou suite à un incident technique</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="e0e43750013310e22014d744a1c62d0f">
+        <source>Credit subscription is cancelled</source>
+        <target>Demande de financement annulée</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="6cfdedb90e5b1f2eb4d55dd80bbfea70">
+        <source>Souscription en cours par le client</source>
+        <target>Souscription en cours par le client</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="4ed1c6a4512acece8923d1d52f3e955f">
+        <source>En attente de signature client </source>
+        <target>En attente de signature client</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="5addd42b98bca6baa85eba2d27689b5e">
+        <source>Contrat signé par le client</source>
+        <target>Contrat signé par le client</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="862e20e0a01baa37d4d9c0d11aa376c7">
+        <source>Informations complémentaires demandées au client</source>
+        <target>Informations complémentaires demandées au client</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="36f0631f641aaad0dbc1abb817f060a8">
+        <source>Souscription acceptée par l’organisme prêteur</source>
+        <target>Souscription acceptée par l’organisme prêteur</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="ff082fbcb95cb73f79fa00250b8d5a7f">
+        <source>En attente de confirmation de livraison des produits par le marchand</source>
+        <target>En attente de confirmation de livraison des produits par le marchand</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="93ecc45a55e6a31d3208be040db22edb">
+        <source>En attente du paiement de la commande par l’organisme prêteur</source>
+        <target>En attente du paiement de la commande par l’organisme prêteur</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="ecce20bac3527c54cffb7ea344f66466">
+        <source>Paiement de la commande réalisée par l’organisme prêteur</source>
+        <target>Paiement de la commande réalisée par l’organisme prêteur</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="5359a095a30f724ed93952b8ce4f7cc2">
+        <source>Refus de l’organisme prêteur</source>
+        <target>Refus de l’organisme prêteur</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="441064da8a28a6135d4dea33738fce0e">
+        <source>Abandon de la souscription par le client</source>
+        <target>Abandon de la souscription par le client</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="e54b17e489d0fc3193a0fdd96b4ab753">
+        <source>Incident technique lors de la souscription</source>
+        <target>Incident technique lors de la souscription</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="4993ccb1e29be6b2a38f7e51d8c605de">
+        <source>Annulation demandée par le client</source>
+        <target>Annulation demandée par le client</target>
+        <note>Line: </note>
+      </trans-unit>
       <trans-unit id="d063f1575c083cd73af189484512f143">
         <source>Insurance subscription activated</source>
         <target>souscription d'assurance activée</target>
@@ -77,6 +167,11 @@
         <target>souscription d'assurance avortée</target>
         <note>Line: </note>
       </trans-unit>
+      <trans-unit id="62073b9fecf7d295bd64bbe448cafb5e">
+        <source>An error occurred during financing subscription.</source>
+        <target>Un erreur s'est produite pendant la création du financement.</target>
+        <note>Line: </note>
+      </trans-unit>
       <trans-unit id="e2b7dec8fa4b498156dfee6e4c84b156">
         <source>This payment method is not available.</source>
         <target>Cette méthode de paiement n'est pas disponible.</target>
@@ -87,14 +182,19 @@
         <target>Veuillez renseigner un numéro de téléphone mobile ou fixe valide pour sélectionner ce moyen de paiement</target>
         <note>Line: </note>
       </trans-unit>
-      <trans-unit id="62073b9fecf7d295bd64bbe448cafb5e">
-        <source>An error occurred during financing subscription.</source>
-        <target>Un erreur s'est produite pendant la création du financement.</target>
+      <trans-unit id="66b914a3d0878daed70f10d165196200">
+        <source>An error occured. Please contact the merchant to have more informations</source>
+        <target>Une erreur s'est produite. Veuillez contacter le marchant pour plus d'informations</target>
         <note>Line: </note>
       </trans-unit>
-      <trans-unit id="022273b9111b908c53ffa49427a45f81">
-        <source>Your orders is paid</source>
-        <target>Votre commande est payée</target>
+      <trans-unit id="302bb59996be2100636f76e9cf964749">
+        <source>Your order is</source>
+        <target>Votre commande est au statut</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="ad921d60486366258809553a3db49a4a">
+        <source>unknown</source>
+        <target>inconnu</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="955c3f43fde8567155003e7ecce0683b">
@@ -102,19 +202,9 @@
         <target>Votre de demande de financement a été acceptée. un email de confirmation vous été envoyé.</target>
         <note>Line: </note>
       </trans-unit>
-      <trans-unit id="aa7d0ffd47bba01a6552d0bfad0134c2">
-        <source>Your orders are awaiting financing</source>
-        <target>Votre commande est en attente de financement</target>
-        <note>Line: </note>
-      </trans-unit>
       <trans-unit id="22bcfeaa71e0943bd2666644dd0850ea">
         <source>Your financing request has been sent to the lending organization and is being studied. You will soon receive an email informing you of the decision regarding this request.</source>
         <target>Votre demande de financement a été transmise à l'organisme prêteur et est à l'étude. Vous recevrez prochainement un email vous informant de la décision concernant cette demande.</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="067d916870e82a37f761ebdeca2c3aa1">
-        <source>Your orders is canceled</source>
-        <target>Votre commande est annulée</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="a731d3683f1389f720f902c2c822bd94">
@@ -122,14 +212,99 @@
         <target>Nous sommes désolés, votre demande de financement n'a pas été acceptée ou une erreur technique est survenue. Nous vous invitons à réessayer ou à réaliser une nouvelle commande en choisissant un autre mode de paiement.</target>
         <note>Line: </note>
       </trans-unit>
-      <trans-unit id="66b914a3d0878daed70f10d165196200">
-        <source>An error occured. Please contact the merchant to have more informations</source>
-        <target>Une erreur s'est produite. Veuillez contacter le marchant pour plus d'informations</target>
-        <note>Line: </note>
-      </trans-unit>
       <trans-unit id="303a74098e356909ffcf68b9bd4ca1b0">
         <source>Confirmer</source>
         <target>Confirmer</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="a82be0f551b8708bc08eb33cd9ded0cf">
+        <source>Information</source>
+        <target>Information</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="1f4353299fa745a2f2f635fb22e7611e">
+        <source>soit un [1]1er prélèvement[/1] de [2]%amountFirstStep%[/2]</source>
+        <target>soit un [1]1er prélèvement[/1] de [2]%amountFirstStep%[/2]</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="c245884e17e960eaf571a56a2af6aaf4">
+        <source>(frais inclus)</source>
+        <target>(frais inclus)</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="168669bc0fd171df4d9fc3da27fde2de">
+        <source>puis [1]%nbStepStay% prélèvements[/1] de [2]%amountStepStay%[/2]</source>
+        <target>puis [1]%nbStepStay% prélèvements[/1] de [2]%amountStepStay%[/2]</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="3bdce19ef25a6e5d5057e2a3e76a4116">
+        <source>soit [1]%nbSteps% prélèvements[/1] de [2]%amountStep%[/2]</source>
+        <target>soit [1]%nbSteps% prélèvements[/1] de [2]%amountStep%[/2]</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="d0a8b20a410fb3ed7caafba7f035a890">
+        <source>soit [1]%amountStep% / mois[/1]</source>
+        <target>soit [1]%amountStep% / mois[/1]</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="26a376173e7f6afcd5f1b63e4459ea4a">
+        <source>Simulez votre paiement</source>
+        <target>Simulez votre paiement</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="a0c8b430d8b0f155d06974945e3bd7ae">
+        <source>Montant total dû</source>
+        <target>Montant total dû</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="037129fad3d9e36aa6277511a86da981">
+        <source>Payer en %nbSteps% fois</source>
+        <target>Payer en %nbSteps% fois</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="6a661ab678a713c45c254d027b71aa7f">
+        <source>Aujourd'hui</source>
+        <target>Aujourd'hui</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="bb5310490d5757a3c94de729d0e56db3">
+        <source>%step%ème prélèvement</source>
+        <target>%step%ème prélèvement</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="bd01dd4c2cff71424feafb22cdf4996b">
+        <source>Montant du financement :</source>
+        <target>Montant du financement :</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="d5f37172606f29dc934fc50cf531f0e2">
+        <source>TAEG FIXE :</source>
+        <target>TAEG FIXE :</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="6b1a680432cdeda5cb3eafabaa55c0a6">
+        <source>Taux débiteur fixe :</source>
+        <target>Taux débiteur fixe :</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="3d538e452aa6507a088b31276a0328e1">
+        <source>Coût du crédit :</source>
+        <target>Coût du crédit :</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="db12b600951874a6776ef2cadd53257b">
+        <source>Frais de dossier :</source>
+        <target>Frais de dossier :</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="6e713459cb4da45529dea142c22947d7">
+        <source>Frais :</source>
+        <target>Frais :</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="24d7fc9c330fda505b9fa6e4dfc48c99">
+        <source>Montant total dû :</source>
+        <target>Montant total dû :</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="eaff1bdf24fcffe0e14e29a1bff51a12">
@@ -160,11 +335,6 @@
       <trans-unit id="0240be2dfe18ab35005c46f7e5fb42ee">
         <source>Notice d'information (NI)</source>
         <target>Notice d'information (NI)</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="a82be0f551b8708bc08eb33cd9ded0cf">
-        <source>Information</source>
-        <target>Information</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="877ff788108e33d104d2ce640d30e2ec">
@@ -220,6 +390,11 @@
       <trans-unit id="1b22721c0967c351b34d82496917654f">
         <source>If you have questions, comments or concerns, please contact our [1]expert customer support team[/1].</source>
         <target>Si vous avez des questions ou des commentaires, veuillez contacter notre [1]équipe d'assistance client experte[/1].</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="105376b653ea396877c0d8703542b5f7">
+        <source>Plus d'informations</source>
+        <target>Plus d'informations</target>
         <note>Line: </note>
       </trans-unit>
     </body>

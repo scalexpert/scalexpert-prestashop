@@ -42,18 +42,52 @@ class BuyerFormatter
         return [
             'locationType' => $locationType,
             'streetNumberSuffix' => '',
-            'streetName' => (string) $address->address1,
-            'streetNameComplement' => (string) $address->address2,
-            'zipCode' => (string) $address->postcode ?: 'NC',
-            'cityName' => (string) $address->city ?: 'NC',
-            'regionName' => (string) $address->id_state ?: 'NC',
-            'countryCode' => (string) $countryCode ?: 'NC',
+            'streetName' => $address->address1,
+            'streetNameComplement' => $address->address2,
+            'zipCode' => $address->postcode ?: 'NC',
+            'cityName' => $address->city ?: 'NC',
+            'regionName' => (string)$address->id_state ?: 'NC',
+            'countryCode' => (string)$countryCode ?: 'NC',
+        ];
+    }
+
+    public static function normalizeBuyer(\Customer $customer, \Address $address): array
+    {
+        $countryCode = \Country::getIsoById($address->id_country);
+
+        return [
+            'contact' => [
+                'lastName' => $customer->lastname ?: '',
+                'firstName' => $customer->firstname ?: '',
+                'email' => $customer->email ?: '',
+                'mobilePhoneNumber' => static::formatPhone(
+                    !empty($address->phone_mobile) ? $address->phone_mobile : $address->phone,
+                    $address->id_country
+                ),
+                'phoneNumber' => static::formatPhone(
+                    !empty($address->phone_mobile) ? $address->phone_mobile : $address->phone,
+                    $address->id_country
+                ),
+            ],
+            'address' => [
+                'streetNumber' => 0,
+                'streetNumberSuffix' => '',
+                'streetName' => $address->address1 ?: '',
+                'streetNameComplement' => $address->address2 ?: '',
+                'zipCode' => $address->postcode ?: 'NC',
+                'cityName' => $address->city ?: 'NC',
+                'regionName' => (string)$address->id_state ?: 'NC',
+                'countryCode' => (string)$countryCode ?: 'NC',
+            ]
         ];
     }
 
     protected static function formatPhone($phoneNumber, $idCountry): string
     {
-        if (!empty($phoneNumber) && strpos($phoneNumber, '+') === false) {
+        if (
+            !empty($phoneNumber)
+            && !str_starts_with($phoneNumber, '+')
+        ) {
             $addressCountry = new \Country($idCountry);
 
             if (!empty($addressCountry->call_prefix)) {

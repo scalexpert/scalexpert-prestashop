@@ -24,11 +24,6 @@ class Eligibility
 
     public static function getEligibleSolutionByProduct($idProduct)
     {
-        $oProduct = new \Product($idProduct);
-        if (!Validate::isLoadedObject($oProduct)) {
-            return [];
-        }
-
         $financingSolutions = static::getConfigSolutions();
         $jsonCustomizeProduct = Configuration::get('SCALEXPERT_CUSTOMIZE_PRODUCT');
         $customizeProduct = json_decode($jsonCustomizeProduct, true);
@@ -41,32 +36,19 @@ class Eligibility
         }
 
         foreach ($customizeProduct as $solutionCode => $params) {
-            if (empty($financingSolutions[$solutionCode])) {
+            if (
+                empty($financingSolutions[$solutionCode])
+                || empty($params['display'])
+            ) {
                 unset($customizeProduct[$solutionCode]);
             }
-            if (empty($params['display'])) {
+
+            if (static::belongsToExclusions(
+                $idProduct,
+                !empty($params['excludedCategories']) ? $params['excludedCategories'] : [],
+                !empty($params['excludedProducts']) ? $params['excludedProducts'] : []
+            )) {
                 unset($customizeProduct[$solutionCode]);
-            }
-
-            if (!empty($params['excludedCategories'])) {
-                $productCategories = $oProduct->getCategories();
-
-                foreach ($params['excludedCategories'] as $categoryID) {
-                    // Restricted category for the solution
-                    if (in_array($categoryID, $productCategories)) {
-                        unset($customizeProduct[$solutionCode]);
-                        break;
-                    }
-                }
-            }
-
-            if (!empty($params['excludedProducts'])) {
-                $excludedProducts = explode(',', $params['excludedProducts']);
-
-                // Restricted products for the solution
-                if (in_array($idProduct, $excludedProducts)) {
-                    unset($customizeProduct[$solutionCode]);
-                }
             }
         }
 
@@ -75,19 +57,21 @@ class Eligibility
 
     /**
      * @param \Cart $oCart
-     * @return array|mixed
+     * @return array
      * @throws \PrestaShopDatabaseException
      */
-    public static function getEligibleSolutionByCart($oCart)
+    public static function getEligibleSolutionByCart($oCart): array
     {
         if (!Validate::isLoadedObject($oCart)) {
             return [];
         }
 
+        $ids = [];
         foreach ($oCart->getProducts() as $product) {
-            if ($product['id_category_default'] == (int)Configuration::get('SCALEXPERT_INSURANCE_CATEGORY')) {
+            if ((int)$product['id_category_default'] === (int)Configuration::get('SCALEXPERT_INSURANCE_CATEGORY')) {
                 return [];
             }
+            $ids[] = $product['id_product'];
         }
 
         $financingSolutions = static::getConfigSolutions();
@@ -107,48 +91,53 @@ class Eligibility
                 continue;
             }
 
-            $ids = [];
-            foreach ($oCart->getProducts() as $product) {
-                $ids[] = $product['id_product'];
-            }
-
-            if (!empty($params['excludedCategories'])) {
-                $query = (new DbQuery())
-                    ->select('cp.id_category')
-                    ->from('category_product', 'cp')
-                    ->where('id_product IN ('.implode(',', $ids).')');
-                $productCategories = \Db::getInstance()->executeS($query);
-
-                if ($productCategories) {
-                    // Extract category ids for in_array check
-                    $categoryIds = [];
-                    foreach ($productCategories as $category) {
-                        $categoryIds[] = $category['id_category'];
-                    }
-
-                    foreach ($params['excludedCategories'] as $categoryID) {
-                        // Restricted category for the solution
-                        if (in_array($categoryID, $categoryIds)) {
-                            unset($customizeProduct[$solutionCode]);
-                            continue 2;
-                        }
-                    }
-                }
-            }
-
-            if (!empty($params['excludedProducts'])) {
-                $excludedProducts = explode(',', $params['excludedProducts']);
-
-                foreach ($ids as $id) {
-                    // Restricted products for the solution
-                    if (in_array($id, $excludedProducts)) {
-                        unset($customizeProduct[$solutionCode]);
-                        continue 2;
-                    }
+            foreach ($ids as $id) {
+                if (static::belongsToExclusions(
+                    $id,
+                    !empty($params['excludedCategories']) ? $params['excludedCategories'] : [],
+                    !empty($params['excludedProducts']) ? $params['excludedProducts'] : []
+                )) {
+                    unset($customizeProduct[$solutionCode]);
+                    continue 2;
                 }
             }
         }
 
         return $customizeProduct;
+    }
+
+    public static function belongsToExclusions(
+        $productId,
+        $excludedCategories,
+        $excludedProducts
+    ): bool
+    {
+        if (!empty($excludedCategories)) {
+            // Check category compatibility with current product on product page
+            $productCategories = \Product::getProductCategories($productId);
+
+            if (!empty($productCategories)) {
+                foreach ($excludedCategories as $categoryId) {
+                    // Restricted category for the solution
+                    if (in_array($categoryId, $productCategories)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        if (!empty($excludedProducts)) {
+            $products = explode(
+                ',',
+                $excludedProducts
+            );
+
+            // Restricted products for the solution
+            if (in_array($productId, $products)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

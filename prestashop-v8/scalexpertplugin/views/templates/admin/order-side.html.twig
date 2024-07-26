@@ -64,6 +64,12 @@
                         {{ 'Consolidated status'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
                         : {{ financialSubscription.consolidatedStatusDisplay }}
                     </div>
+                    {% if financialSubscription.consolidatedSubstatusDisplay is not empty %}
+                    <div class="row">
+                        {{ 'Consolidated substatus'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
+                        : {{ financialSubscription.consolidatedSubstatusDisplay }}
+                    </div>
+                    {% endif %}
                     <div class="row">
                         {{ 'Buyer financed amount'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
                         : {{ financialSubscription.buyerFinancedAmount }}
@@ -116,6 +122,15 @@
 
                                     <button class="btn btn-danger" type="submit"
                                             name="scalexpert_deliver_financial_subscription">{{ 'Confirmer la livraison'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
+                                    </button>
+                                </form>
+                            </div>
+                        {% elseif financialSubscription.isDelivered %}
+                            <br/>
+                            <div>
+                                <form action="#">
+                                    <button class="btn btn-danger" type="submit" disabled
+                                            name="scalexpert_deliver_financial_subscription">{{ 'Delivery done'|trans({}, 'Modules.Scalexpertplugin.Admin') }}
                                     </button>
                                 </form>
                             </div>

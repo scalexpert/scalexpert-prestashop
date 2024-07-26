@@ -13,11 +13,27 @@ declare(strict_types=1);
 namespace ScalexpertPlugin\Form\Configuration;
 
 use PrestaShopBundle\Form\Admin\Type\TranslatorAwareType;
+use ScalexpertPlugin\Handler\SolutionNameHandler;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Translation\TranslatorInterface;
 
 class MappingConfigurationFormType extends TranslatorAwareType
 {
+    /**
+     * @var SolutionNameHandler
+     */
+    private $solutionNameHandler;
+    public function __construct(
+        TranslatorInterface $translator,
+        array $locales,
+        SolutionNameHandler $solutionNameHandler
+    )
+    {
+        parent::__construct($translator, $locales);
+        $this->solutionNameHandler = $solutionNameHandler;
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $financialStates = MappingConfigurationFormDataConfiguration::FINANCING_STATES;
@@ -32,7 +48,11 @@ class MappingConfigurationFormType extends TranslatorAwareType
                 }
 
                 $builder->add($financialState, ChoiceType::class, [
-                    'label' => $this->getLabelByStatus($financialState),
+                    'label' => $this->solutionNameHandler->getFinancialStateLabel(
+                        $financialState,
+                        $this->getTranslator(),
+                        true
+                    ),
                     'choices' => $this->getChoices(),
                 ]);
             }
@@ -49,52 +69,5 @@ class MappingConfigurationFormType extends TranslatorAwareType
         }
 
         return $states;
-    }
-
-    private function getLabelByStatus($status)
-    {
-        switch ($status) {
-            case 'INITIALIZED':
-                $status = $this->trans(
-                    'Credit subscription is initialized (INITIALIZED)',
-                    'Modules.Scalexpertplugin.Admin'
-                );
-                break;
-            case 'PRE_ACCEPTED':
-                $status = $this->trans(
-                    'Credit subscription is completed, awaiting a final decision from the financial institution (PRE_ACCEPTED)',
-                    'Modules.Scalexpertplugin.Admin'
-                );
-                break;
-            case 'ACCEPTED':
-                $status = $this->trans(
-                    'Credit subscription is accepted (ACCEPTED)',
-                    'Modules.Scalexpertplugin.Admin'
-                );
-                break;
-            case 'REJECTED':
-                $status = $this->trans(
-                    'Credit subscription is refused (REJECTED)',
-                    'Modules.Scalexpertplugin.Admin'
-                );
-                break;
-            case 'ABORTED':
-                $status = $this->trans(
-                    'Credit subscription is aborted by the customer or due to technical issue (ABORTED)',
-                    'Modules.Scalexpertplugin.Admin'
-                );
-                break;
-            case 'CANCELLED':
-                $status = $this->trans(
-                    'Credit subscription is cancelled (CANCELLED)',
-                    'Modules.Scalexpertplugin.Admin'
-                );
-                break;
-            default:
-                $status = '';
-                break;
-        }
-
-        return $status;
     }
 }

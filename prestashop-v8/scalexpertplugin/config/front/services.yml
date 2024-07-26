@@ -23,6 +23,11 @@ services:
       - '@scalexpert.handler.logs'
       - '@doctrine.orm.default_entity_manager'
       - '@scalexpert.handler.hash'
+      - '@scalexpert.conf.solution_formatter'
+
+  # Helpers
+  scalexpert.conf.solution_formatter:
+    class: ScalexpertPlugin\Helper\SolutionFormatter
 
   # Services
   scalexpert.service.available_solutions:
@@ -62,6 +67,9 @@ services:
   scalexpert.service.insurance_configuration:
     class: ScalexpertPlugin\Form\Configuration\InsuranceConfigurationFormDataConfiguration
     arguments: [ '@prestashop.adapter.legacy.configuration' ]
+
+  scalexpert.service.solution_sorter:
+    class: ScalexpertPlugin\Service\SolutionSorterService
 
   # Handlers
   scalexpert.handler.solution_name:

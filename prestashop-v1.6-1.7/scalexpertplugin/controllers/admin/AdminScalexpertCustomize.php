@@ -9,6 +9,8 @@
  */
 
 
+use ScalexpertPlugin\Helper\SolutionManager;
+
 class AdminScalexpertCustomizeController extends ModuleAdminController
 {
     const CUSTOMIZE_PRODUCT_INDEX = 'customizeProduct';
@@ -38,10 +40,16 @@ class AdminScalexpertCustomizeController extends ModuleAdminController
     public function postProcess()
     {
         if (\Tools::isSubmit('submitAdminScalexpertCustomize')) {
-            \Configuration::updateValue(
-                'SCALEXPERT_CUSTOMIZE_PRODUCT',
-                json_encode(\Tools::getValue('customizeProduct'))
-            );
+            $formValues = \Tools::getValue(static::CUSTOMIZE_PRODUCT_INDEX);
+            foreach ($formValues as $k => $value) {
+                if (array_key_exists('excludedCategories', $value)) {
+                    continue;
+                }
+
+                $formValues[$k]['excludedCategories'] = [];
+            }
+
+            \Configuration::updateValue('SCALEXPERT_CUSTOMIZE_PRODUCT', json_encode($formValues));
 
             $this->confirmations[] = $this->_conf[4];
         }
@@ -151,10 +159,9 @@ class AdminScalexpertCustomizeController extends ModuleAdminController
             foreach ($customizeProduct as $solutionCode => $params) {
                 $params = $this->_prepareProductArray($params);
                 foreach ($params as $paramKey => $paramValue) {
+                    $index = static::CUSTOMIZE_PRODUCT_INDEX . '[' . $solutionCode . '][' . $paramKey . ']';
                     if ('excludedCategories' === $paramKey) {
                         $index = static::CUSTOMIZE_PRODUCT_INDEX . '[' . $solutionCode . '][' . $paramKey . '][]';
-                    } else {
-                        $index = static::CUSTOMIZE_PRODUCT_INDEX . '[' . $solutionCode . '][' . $paramKey . ']';
                     }
 
                     $this->fields_value[$index] = $paramValue;
@@ -163,11 +170,10 @@ class AdminScalexpertCustomizeController extends ModuleAdminController
         }
     }
 
-
     private function _addTabsCustomizeInsurancesDesign()
     {
         $insuranceSolutions = json_decode(Configuration::get('SCALEXPERT_INSURANCE_SOLUTIONS'), true);
-        if (null === $insuranceSolutions) {
+        if (empty($insuranceSolutions)) {
             return;
         }
 
@@ -246,7 +252,7 @@ class AdminScalexpertCustomizeController extends ModuleAdminController
                     $element['children'],
                     array_merge($parents, [$element['name']])
                 );
-                $result = array_merge($result, $results);
+                array_push($result, ...$results);
             }
         }
 
@@ -258,8 +264,7 @@ class AdminScalexpertCustomizeController extends ModuleAdminController
         return (
                 Configuration::get('SCALEXPERT_API_TEST_IDENTIFIER')
                 && Configuration::get('SCALEXPERT_API_TEST_KEY')
-            )
-            || (
+            ) || (
                 Configuration::get('SCALEXPERT_API_PRODUCTION_IDENTIFIER')
                 && Configuration::get('SCALEXPERT_API_PRODUCTION_KEY')
             );
@@ -274,7 +279,7 @@ class AdminScalexpertCustomizeController extends ModuleAdminController
         ];
     }
 
-    private function _prepareProductArray($array)
+    private function _prepareProductArray($array): array
     {
         return array_merge([
             'display' => '',
@@ -380,8 +385,8 @@ class AdminScalexpertCustomizeController extends ModuleAdminController
     {
         $this->_formTabs[$tabName] = ($solutionEnabled ? '<i class="icon-check"></i>' : '<i class="icon-close"></i>')
             . ' ' . '<img src="' . __PS_BASE_URI__ . 'modules/' . $this->module->name . '/views/img/flags/'
-            . strtolower($this->module->getSolutionFlag($solutionCode)) . '.jpg" />' . ' '
-            . $this->module->getSolutionDisplayName($solutionCode);
+            . strtolower(SolutionManager::getSolutionFlag($solutionCode)) . '.jpg" />' . ' '
+            . SolutionManager::getSolutionDisplayName($solutionCode, $this->module);
         $this->_formInputs[] = [
             'type' => 'html',
             'name' => 'html_data',
