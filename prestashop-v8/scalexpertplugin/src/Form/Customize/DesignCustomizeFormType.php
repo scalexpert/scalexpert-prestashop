@@ -97,44 +97,43 @@ class DesignCustomizeFormType extends TranslatorAwareType
                     ]);
                 }
 
-                $builder->add($solution['solutionCode'] . DesignCustomizeFormDataConfiguration::ID_DELIMITER . 'productDisplayLogo', SwitchType::class, [
-                    'label' => $this->trans('Display logo', 'Modules.Scalexpertplugin.Admin'),
-                    'choices' => [
-                        $this->trans('Disabled', 'Modules.Scalexpertplugin.Admin') => false,
-                        $this->trans('Enabled', 'Modules.Scalexpertplugin.Admin') => true,
-                    ],
-                    'default_empty_data' => false,
-                ]);
+                $builder
+                    ->add($solution['solutionCode'] . DesignCustomizeFormDataConfiguration::ID_DELIMITER . 'productDisplayLogo', SwitchType::class, [
+                        'label' => $this->trans('Display logo', 'Modules.Scalexpertplugin.Admin'),
+                        'choices' => [
+                            $this->trans('Disabled', 'Modules.Scalexpertplugin.Admin') => false,
+                            $this->trans('Enabled', 'Modules.Scalexpertplugin.Admin') => true,
+                        ],
+                        'default_empty_data' => false,
+                    ])
+                    ->add($solution['solutionCode'] . DesignCustomizeFormDataConfiguration::ID_DELIMITER . 'cartDisplay', SwitchType::class, [
+                        'label' => $this->trans('Display', 'Modules.Scalexpertplugin.Admin'),
+                        'choices' => [
+                            $this->trans('Disabled', 'Modules.Scalexpertplugin.Admin') => false,
+                            $this->trans('Enabled', 'Modules.Scalexpertplugin.Admin') => true,
+                        ],
+                        'default_empty_data' => false,
+                    ])
+                    ->add($solution['solutionCode'] . DesignCustomizeFormDataConfiguration::ID_DELIMITER . 'cartPosition', ChoiceType::class, [
+                        'label' => $this->trans('Position', 'Modules.Scalexpertplugin.Admin'),
+                        'choices' => [
+                            $this->trans('displayShoppingCartFooter', 'Modules.Scalexpertplugin.Admin') => 'displayShoppingCartFooter',
+                        ],
+                    ])
+                    ->add($solution['solutionCode'] . DesignCustomizeFormDataConfiguration::ID_DELIMITER . 'cartTitle', TextType::class, [
+                        'label' => $this->trans('Title', 'Modules.Scalexpertplugin.Admin'),
+                        'required' => false,
+                    ])
+                    ->add($solution['solutionCode'] . DesignCustomizeFormDataConfiguration::ID_DELIMITER . 'cartDisplayLogo', SwitchType::class, [
+                        'label' => $this->trans('Display logo', 'Modules.Scalexpertplugin.Admin'),
+                        'choices' => [
+                            $this->trans('Disabled', 'Modules.Scalexpertplugin.Admin') => false,
+                            $this->trans('Enabled', 'Modules.Scalexpertplugin.Admin') => true,
+                        ],
+                        'default_empty_data' => false,
+                    ]);
 
-                if (!empty($solution['type']) && $solution['type'] === 'insurance') {
-                    $builder
-                        ->add($solution['solutionCode'] . DesignCustomizeFormDataConfiguration::ID_DELIMITER . 'cartDisplay', SwitchType::class, [
-                            'label' => $this->trans('Display', 'Modules.Scalexpertplugin.Admin'),
-                            'choices' => [
-                                $this->trans('Disabled', 'Modules.Scalexpertplugin.Admin') => false,
-                                $this->trans('Enabled', 'Modules.Scalexpertplugin.Admin') => true,
-                            ],
-                            'default_empty_data' => false,
-                        ])
-                        ->add($solution['solutionCode'] . DesignCustomizeFormDataConfiguration::ID_DELIMITER . 'cartPosition', ChoiceType::class, [
-                            'label' => $this->trans('Position', 'Modules.Scalexpertplugin.Admin'),
-                            'choices' => [
-                                $this->trans('displayShoppingCartFooter', 'Modules.Scalexpertplugin.Admin') => 'displayShoppingCartFooter',
-                            ],
-                        ])
-                        ->add($solution['solutionCode'] . DesignCustomizeFormDataConfiguration::ID_DELIMITER . 'cartTitle', TextType::class, [
-                            'label' => $this->trans('Title', 'Modules.Scalexpertplugin.Admin'),
-                            'required' => false,
-                        ])
-                        ->add($solution['solutionCode'] . DesignCustomizeFormDataConfiguration::ID_DELIMITER . 'cartDisplayLogo', SwitchType::class, [
-                            'label' => $this->trans('Display logo', 'Modules.Scalexpertplugin.Admin'),
-                            'choices' => [
-                                $this->trans('Disabled', 'Modules.Scalexpertplugin.Admin') => false,
-                                $this->trans('Enabled', 'Modules.Scalexpertplugin.Admin') => true,
-                            ],
-                            'default_empty_data' => false,
-                        ]);
-                } else {
+                if (!empty($solution['type']) && $solution['type'] === 'financial') {
                     $builder
                         ->add($solution['solutionCode'] . DesignCustomizeFormDataConfiguration::ID_DELIMITER . 'paymentTitle', TextType::class, [
                             'label' => $this->trans('Title', 'Modules.Scalexpertplugin.Admin'),

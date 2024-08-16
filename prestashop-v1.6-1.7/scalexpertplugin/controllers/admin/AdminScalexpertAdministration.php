@@ -12,6 +12,7 @@
 use ScalexpertPlugin\Api\Client;
 use ScalexpertPlugin\Api\Financing;
 use ScalexpertPlugin\Api\Insurance;
+use ScalexpertPlugin\Helper\FinancingNamer;
 use ScalexpertPlugin\Helper\Hash;
 use ScalexpertPlugin\Helper\SolutionManager;
 
@@ -444,7 +445,7 @@ class AdminScalexpertAdministrationController extends ModuleAdminController
             }
 
             $this->_formInputs[] = [
-                'label' => SolutionManager::getFinancialStateLabel($state, $this->module, true),
+                'label' => FinancingNamer::getFinancialStateName($state, $this->module, true, true),
                 'type' => 'select',
                 'name' => 'orderStateMapping[' . $state . ']',
                 'options' => [

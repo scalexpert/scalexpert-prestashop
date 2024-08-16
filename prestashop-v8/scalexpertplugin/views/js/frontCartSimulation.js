@@ -9,11 +9,12 @@
 
 $(function () {
     let domDisplay = '',
-        modalSelector = '.sep_insuranceSolution [data-modal="sep_openModal"]',
-        xhr = '';
+        modalSelector = '.sep-Simulations [data-modal="sep_openModal"]',
+        xhr = '',
+        solutionSelector = '.sep-Simulations-solution [data-js="selectSolutionSimulation"]';
 
     $(document).ready(function () {
-        domDisplay = $('#scalexpertplugin-displayShoppingCartFooter');
+        domDisplay = $('#scalexpertplugin-displaySimulationShoppingCartFooter');
         if (domDisplay.length) {
             callAjax();
             eventPrestaShopUpdateCart();
@@ -21,20 +22,20 @@ $(function () {
     });
 
     function callAjax() {
-        if (typeof getInsuranceInsertsAjaxURL !== 'undefined') {
+        if (typeof getFinancialInsertsOnCartAjaxURL !== 'undefined') {
             abortAjax();
             xhr = $.ajax({
                 method: "POST",
                 headers: {"cache-control": "no-cache"},
-                url: getInsuranceInsertsAjaxURL,
+                url: getFinancialInsertsOnCartAjaxURL,
                 async: true,
                 cache: false,
                 dataType: 'json',
                 beforeSend: clearResult()
             })
-                .done(function (jsonData) {
-                    successAjax(jsonData);
-                });
+            .done(function (jsonData) {
+                successAjax(jsonData);
+            });
         }
 
     }
@@ -54,16 +55,10 @@ $(function () {
     }
 
     function successAjax(jsonData) {
-        let html = ''
         if (typeof jsonData !== 'undefined') {
-            if (typeof jsonData.insuranceInserts !== 'undefined' && jsonData.insuranceInserts.length) {
-                domDisplay.html(scalexpertpluginTemplateShoppingCartFooter.content.cloneNode(true));
-                jsonData.insuranceInserts.forEach(function (elm) {
-                    if (typeof elm !== 'undefined' && typeof elm.formattedInsert !== 'undefined') {
-                        html += elm.formattedInsert;
-                    }
-                });
-                domDisplay.find('.scalexpertplugin-content').html(html);
+            if (typeof jsonData.simulationInsert !== 'undefined' && jsonData.simulationInsert.length) {
+                domDisplay.html(jsonData.simulationInsert);
+                addEventChangeSimulation();
                 addEventOpenModal();
             }
         }
@@ -96,9 +91,31 @@ $(function () {
         }
     }
 
+    function addEventChangeSimulation() {
+        if($(solutionSelector).length) {
+            $(solutionSelector).each(function (i, elm) {
+                if (typeof elm !== 'undefined' && $(elm).length) {
+                    let idSolution = $(elm).attr('data-id');
+                    if (typeof idSolution !== 'undefined' && idSolution) {
+                        $(elm).off().on('click', function (e) {
+                            e.preventDefault();
+
+                            let idGroupSolutionSelect = '.sep-Simulations-groupSolution';
+                            $(idGroupSolutionSelect + ' .sep-Simulations-solution').hide();
+                            $(idGroupSolutionSelect + ' .sep-Simulations-solution[data-id="' + idSolution + '"]').show();
+
+                            return;
+                        });
+                    }
+
+                }
+            });
+        }
+    }
+
     function eventPrestaShopUpdateCart() {
         prestashop.on('updateCart', (event) => {
-            domDisplay = $('#scalexpertplugin-displayShoppingCartFooter');
+            domDisplay = $('#scalexpertplugin-displaySimulationShoppingCartFooter');
             if (domDisplay.length) {
                 callAjax();
             }

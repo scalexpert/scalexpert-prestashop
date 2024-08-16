@@ -9,12 +9,12 @@
 
 $(function () {
     var domDisplay = '',
-        modalSelector = '.sep_insuranceSolution [data-modal="sep_openModal"]',
-        selectorContentRadioInsurance = '.sep_insuranceSolution-choices',
-        xhr = '';
+        modalSelector = '.sep-Simulations [data-modal="sep_openModal"]',
+        xhr = '',
+        solutionSelector = '.sep-Simulations-solution [data-js="selectSolutionSimulation"]';
 
     $(document).ready(function () {
-        domDisplay = $('#scalexpertplugin-displayShoppingCartFooter');
+        domDisplay = $('#scalexpertplugin-displaySimulationShoppingCartFooter');
 
         if (domDisplay.length) {
             callAjax();
@@ -35,7 +35,7 @@ $(function () {
                 data: {
                     ajax: true,
                     action: 'cart',
-                    type: 'insurance'
+                    type: 'financial'
                 },
                 beforeSend: clearResult()
             }).success(function (jsonData) {
@@ -60,14 +60,13 @@ $(function () {
 
     function successAjax(jsonData) {
         if (!jsonData.hasError && typeof jsonData.content != 'undefined') {
-            domDisplay.html(scalexpertpluginTemplateShoppingCartFooter.content.cloneNode(true));
-            domDisplay.find('.scalexpertplugin-content').html(jsonData.content);
-            initCartInsuranceModals();
-            initRadio();
+            domDisplay.html(jsonData.content);
+            initCartSimulationModals();
+            addEventChangeSimulation();
         }
     }
 
-    function initCartInsuranceModals() {
+    function initCartSimulationModals() {
         if (typeof $.fancybox !== 'undefined') {
             if ($(modalSelector).length) {
                 $(modalSelector).each(function (i, elm) {
@@ -91,39 +90,43 @@ $(function () {
         }
     }
 
-    function initRadio() {
-        var $radios = getRadioInsurance();
-
-        if($radios !== null && $radios.length && typeof bindUniform !== 'undefined') {
-            bindUniform();
-        }
-    }
-
-
-    function getRadioInsurance() {
-        if( domDisplay.length &&
-            typeof selectorContentRadioInsurance !== 'undefined' &&
-            domDisplay.find(selectorContentRadioInsurance).find('input[type="radio"]').length ) {
-            return domDisplay.find(selectorContentRadioInsurance).find('input[type="radio"]');
-        }
-        return null;
-    }
-
     function eventUpdateQuantity() {
         $('.cart_quantity_up, .cart_quantity_down, .cart_quantity_delete').on('click', function () {
-            reloadInsurance();
+            reloadSimulation();
         });
         $('.cart_quantity_input').on('change',  function () {
-            reloadInsurance();
+            reloadSimulation();
         });
     }
 
-    function reloadInsurance() {
+    function reloadSimulation() {
         setTimeout(function() {
-            domDisplay = $('#scalexpertplugin-displayShoppingCartFooter');
+            domDisplay = $('#scalexpertplugin-displaySimulationShoppingCartFooter');
             if (domDisplay.length) {
                 callAjax();
             }
         }, 250);
+    }
+
+    function addEventChangeSimulation() {
+        if($(solutionSelector).length) {
+            $(solutionSelector).each(function (i, elm) {
+                if (typeof elm !== 'undefined' && $(elm).length) {
+
+                    var idSolution = $(elm).attr('data-id');
+                    if (typeof idSolution !== 'undefined' && idSolution) {
+                        $(elm).off().on('click', function (e) {
+                            e.preventDefault();
+
+                            var idGroupSolutionSelect = '.sep-Simulations-groupSolution';
+                            $(idGroupSolutionSelect + ' .sep-Simulations-solution').hide();
+                            $(idGroupSolutionSelect + ' .sep-Simulations-solution[data-id="' + idSolution + '"]').show();
+
+                            return;
+                        });
+                    }
+                }
+            });
+        }
     }
 });

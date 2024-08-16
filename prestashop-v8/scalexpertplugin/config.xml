@@ -2,7 +2,7 @@
 <module>
     <name>scalexpertplugin</name>
     <displayName><![CDATA[Scalexpert]]></displayName>
-    <version><![CDATA[1.4.0]]></version>
+    <version><![CDATA[1.5.0]]></version>
     <description><![CDATA[Description of Scalexpert module.]]></description>
     <author><![CDATA[Soci&eacute;t&eacute; g&eacute;n&eacute;rale]]></author>
     <tab><![CDATA[payments_gateways]]></tab>

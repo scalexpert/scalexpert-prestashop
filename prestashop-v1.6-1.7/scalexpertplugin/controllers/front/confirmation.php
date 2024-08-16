@@ -10,6 +10,7 @@
 
 
 use ScalexpertPlugin\Api\Financing;
+use ScalexpertPlugin\Helper\FinancingNamer;
 use ScalexpertPlugin\Helper\SolutionManager;
 use ScalexpertPlugin\Model\FinancingOrder;
 use ScalexpertPlugin\Service\OrderUpdater;
@@ -80,7 +81,7 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
             && isset($subscriptionInfo['consolidatedStatus'])
             && $this->updateOrderState($orders, $subscriptionInfo['consolidatedStatus'])
         ) {
-            $status = SolutionManager::getFinancialStateName(
+            $status = FinancingNamer::getFinancialStateName(
                 $subscriptionInfo['consolidatedStatus'],
                 $this->module
             );
@@ -99,7 +100,7 @@ class ScalexpertPluginConfirmationModuleFrontController extends ModuleFrontContr
                     break;
             }
         } else {
-            $status = SolutionManager::getFinancialStateName('', $this->module);
+            $status = FinancingNamer::getFinancialStateName('', $this->module);
             $subtitle = $this->module->l('We\'re sorry, your financing request was not accepted or a technical error occurred. We invite you to try again or place a new order by choosing another payment method.');
         }
 

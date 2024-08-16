@@ -35,7 +35,7 @@
                         <div class="sep-SimulationsModal-mainContent-right-top">
                             {l s='Simulez votre paiement' d='Modules.Scalexpertplugin.Shop'}
 
-                            {if !empty($solution.designConfiguration.custom.productDisplayLogo)}
+                            {if !empty($solution.designConfiguration.visualLogo)}
                                 <img class="-logo"
                                      src="{$solution.designConfiguration.visualLogo|default:''}"
                                      alt="Logo {$titleSolution|default:''}"

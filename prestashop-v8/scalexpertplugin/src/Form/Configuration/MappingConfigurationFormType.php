@@ -48,9 +48,10 @@ class MappingConfigurationFormType extends TranslatorAwareType
                 }
 
                 $builder->add($financialState, ChoiceType::class, [
-                    'label' => $this->solutionNameHandler->getFinancialStateLabel(
+                    'label' => $this->solutionNameHandler->getFinancialStateName(
                         $financialState,
                         $this->getTranslator(),
+                        true,
                         true
                     ),
                     'choices' => $this->getChoices(),

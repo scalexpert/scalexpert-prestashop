@@ -29,7 +29,7 @@
                                  data-idmodal="#{$md5GroupSolution|default:''}"
                             >
                         {/if}
-                        {if !empty($solution.designConfiguration.custom.productDisplayLogo) && !empty($solution.designConfiguration.visualLogo)}
+                        {if !empty($solution.designConfiguration.visualLogo)}
                             <img class="sep-Simulations-solution-logo"
                                  src="{$solution.designConfiguration.visualLogo|default:''}"
                                  alt="Logo {$titleSolution|default:''}"

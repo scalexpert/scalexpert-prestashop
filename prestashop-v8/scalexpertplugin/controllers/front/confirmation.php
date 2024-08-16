@@ -70,6 +70,8 @@ class ScalexpertpluginConfirmationModuleFrontController extends ModuleFrontContr
         if ($order->secure_key === $this->context->customer->secure_key) {
             sleep(2);
             $subscriptionStatus = $this->prepareConfirmationData($order);
+            // Reload Order object with new state
+            $order = new Order((int) $orderId);
         } else {
             $subscriptionStatus = '';
             $this->errors[] = $this->trans('An error occured. Please contact the merchant to have more informations', [], 'Modules.Scalexpertplugin.Shop');

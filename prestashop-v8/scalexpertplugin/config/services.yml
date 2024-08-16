@@ -11,6 +11,9 @@ services:
   scalexpert.handler.solution_name:
     class: ScalexpertPlugin\Handler\SolutionNameHandler
 
+  scalexpert.handler.insurance_name:
+    class: ScalexpertPlugin\Handler\InsuranceNameHandler
+
   scalexpert.handler.hash:
     class: ScalexpertPlugin\Handler\HashHandler
 
@@ -73,9 +76,6 @@ services:
 
   scalexpert.service.solution_sorter:
     class: ScalexpertPlugin\Service\SolutionSorterService
-
-  scalexpert.service.mapping_generator:
-    class: ScalexpertPlugin\Service\MappingGenerator
 
   scalexpert.service.subscription_canceler:
     class: ScalexpertPlugin\Service\SubscriptionCanceler

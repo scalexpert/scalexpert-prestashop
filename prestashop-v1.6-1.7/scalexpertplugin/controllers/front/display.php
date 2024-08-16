@@ -47,7 +47,20 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
 
     public function displayAjaxCart()
     {
-        $content = $this->_getInsuranceForCart();
+        $type = \Tools::getValue('type');
+        if (empty($type)) {
+            return;
+        }
+
+        $content = '';
+        if (
+            'financial' === $type
+            && 'FR' === strtoupper($this->context->language->iso_code)
+        ) {
+            $content = $this->_getSimulationForCart();
+        } elseif ('insurance' === $type) {
+            $content = $this->_getInsuranceForCart();
+        }
 
         $this->ajaxDie(\Tools::jsonEncode([
             'hasError' => false,
@@ -216,29 +229,73 @@ class ScalexpertPluginDisplayModuleFrontController extends ModuleFrontController
             $designData['solutionCodes']
         );
 
+        return $this->displaySimulatorContent($simulateResponse, $designData['designSolutions']);
+    }
+
+    private function _getSimulationForCart()
+    {
+        $oCart = Context::getContext()->cart;
+        if (!Validate::isLoadedObject($oCart)) {
+            return '';
+        }
+
+        $customizeProduct = FinancingEligibility::getEligibleSolutionByCart($oCart, true);
+        if (empty($customizeProduct)) {
+            return '';
+        }
+
+        $eligibleSolutions = Financing::getEligibleSolutionsForFront(
+            $oCart->getOrderTotal(),
+            strtoupper($this->context->language->iso_code)
+        );
+        if (!$eligibleSolutions) {
+            return '';
+        }
+
+        $designData = DataBuilder::buildDesignData($eligibleSolutions, $customizeProduct, false, true);
+
+        $simulateResponse = Financing::simulateFinancing(
+            $oCart->getOrderTotal(),
+            strtoupper($this->context->language->iso_code),
+            $designData['solutionCodes']
+        );
+
+        return $this->displaySimulatorContent($simulateResponse, $designData['designSolutions']);
+    }
+
+    private function displaySimulatorContent(
+        array $response,
+        array $designSolutions
+    ): string
+    {
         $content = '';
+
         if (
-            !$simulateResponse['hasError']
-            && isset($simulateResponse['data']['solutionSimulations'])
+            !$response['hasError']
+            && isset($response['data']['solutionSimulations'])
         ) {
             $simulationsFullData = SimulationFormatter::normalizeSimulations(
-                $simulateResponse['data'],
-                $designData['designSolutions'],
+                $response['data'],
+                $designSolutions,
                 true
             );
 
             $this->context->smarty->assign([
                 'solutionSimulations' => $simulationsFullData,
-                'financedAmount' => $simulateResponse['data']['financedAmount'],
+                'financedAmount' => $response['data']['financedAmount'],
                 'financedAmountFormatted' => \Tools::displayPrice(
-                    (float)$simulateResponse['data']['financedAmount']
+                    (float)$response['data']['financedAmount']
                 ),
             ]);
 
             if (version_compare(_PS_VERSION_, '1.7', '>=')) {
-                $content .= $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'scalexpertplugin/views/templates/hook/ps17/productFinancialSimulationContent.tpl');
+                $content .= $this->context->smarty->fetch(
+                    _PS_MODULE_DIR_ . 'scalexpertplugin/views/templates/hook/ps17/productFinancialSimulationContent.tpl'
+                );
             } else {
-                $content .= $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'scalexpertplugin/views/templates/hook/ps16/productFinancialSimulationContent.tpl');
+                $content .= $this->context->smarty->fetch(
+                    _PS_MODULE_DIR_ . 'scalexpertplugin/views/templates/hook/ps16/productFinancialSimulationContent.tpl'
+                );
             }
         }
 

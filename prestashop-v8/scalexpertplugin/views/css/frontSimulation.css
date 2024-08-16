@@ -155,3 +155,7 @@
 .sep-Simulations-solution .part_bottom .scalexpert_important {
     font-size: 15px;
 }
+
+#scalexpertplugin-displaySimulationShoppingCartFooter .sep-Simulations-Product-solution .sep-Simulations-solution-logo {
+    margin-left: auto;
+}

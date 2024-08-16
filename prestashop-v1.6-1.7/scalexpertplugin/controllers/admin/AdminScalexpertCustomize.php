@@ -126,6 +126,38 @@ class AdminScalexpertCustomizeController extends ModuleAdminController
                 $tabName
             );
 
+
+            //-----------------------------------
+            $this->_addCustomizeTitleField($tabName, false, true);
+            $this->_formInputs[] = [
+                'type' => 'switch',
+                'label' => $this->l('Display on the cart page'),
+                'name' => static::CUSTOMIZE_PRODUCT_INDEX . '[' . $solutionCode . '][display_cart]',
+                'class' => 't',
+                'is_bool' => true,
+                'values' => [
+                    [
+                        'value' => 1,
+                        'label' => $this->l('Enabled')
+                    ],
+                    [
+                        'value' => 0,
+                        'label' => $this->l('Disabled')
+                    ]
+                ],
+                'tab' => $tabName
+            ];
+            $this->_formInputs[] = [
+                'label' => $this->l('Title'),
+                'type' => 'text',
+                'required' => true,
+                'name' => static::CUSTOMIZE_PRODUCT_INDEX . '[' . $solutionCode . '][title_cart]',
+                'tab' => $tabName
+            ];
+            $this->_addLogoField(
+                static::CUSTOMIZE_PRODUCT_INDEX . '[' . $solutionCode . '][logo_cart]', $tabName
+            );
+
             //-----------------------------------
             $this->_addCustomizeTitleField($tabName, true, false);
             $this->_formInputs[] = [

@@ -74,3 +74,6 @@ services:
   # Handlers
   scalexpert.handler.solution_name:
     class: ScalexpertPlugin\Handler\SolutionNameHandler
+
+  scalexpert.handler.insurance_name:
+    class: ScalexpertPlugin\Handler\InsuranceNameHandler
