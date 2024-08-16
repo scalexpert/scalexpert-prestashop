@@ -51,17 +51,6 @@
                                     {% endfor %}
                                 {% endif %}
 
-                                {% if solution.paymentFields is defined %}
-                                    <h4 class="card-title">{{ 'Payment page design'|trans({}, 'Modules.Scalexpertplugin.Admin') }}</h4>
-                                    <hr>
-
-                                    {% if solution.paymentFields is defined %}
-                                        {% for field in solution.paymentFields %}
-                                            {{ form_row(designConfigurationForm[field]) }}
-                                        {% endfor %}
-                                    {% endif %}
-                                {% endif %}
-
                                 {% if solution.cartFields is defined %}
                                     <h4 class="card-title">{{ 'Cart page design'|trans({}, 'Modules.Scalexpertplugin.Admin') }}</h4>
                                     <hr>
@@ -73,6 +62,16 @@
                                     {% endif %}
                                 {% endif %}
 
+                                {% if solution.paymentFields is defined %}
+                                    <h4 class="card-title">{{ 'Payment page design'|trans({}, 'Modules.Scalexpertplugin.Admin') }}</h4>
+                                    <hr>
+
+                                    {% if solution.paymentFields is defined %}
+                                        {% for field in solution.paymentFields %}
+                                            {{ form_row(designConfigurationForm[field]) }}
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endif %}
                             </div>
                         </div>
                         <div class="card-footer">

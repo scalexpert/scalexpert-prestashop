@@ -366,7 +366,7 @@ class InsuranceProcess
 
         $cartInsurances = CartInsurance::getInsuranceByIdCart($cart->id);
         try {
-            $cartProducts = $cart->getProducts();
+            $cartProducts = $cart->getProducts(false, false, null, false);
         } catch (\Exception $exception) {
             $cartProducts = [];
         }

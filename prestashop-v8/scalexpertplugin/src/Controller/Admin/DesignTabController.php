@@ -132,6 +132,13 @@ class DesignTabController extends FrameworkBundleAdminController
                     sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'productDisplayLogo'),
                 ];
 
+                $solution['cartFields'] = [
+                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'cartDisplay'),
+                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'cartTitle'),
+                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'cartPosition'),
+                    sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'cartDisplayLogo'),
+                ];
+
                 $solution['paymentFields'] = [
                     sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'paymentTitle'),
                     sprintf('%s' . DesignCustomizeFormDataConfiguration::ID_DELIMITER . '%s', $solutionCode, 'paymentDisplayLogo'),

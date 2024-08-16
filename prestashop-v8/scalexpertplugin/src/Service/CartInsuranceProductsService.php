@@ -140,7 +140,7 @@ class CartInsuranceProductsService
     public function handleCartQty($cart)
     {
         try {
-            $cartProducts = $cart->getProducts();
+            $cartProducts = $cart->getProducts(false, false, null, false);
         } catch (\Exception $exception) {
             $cartProducts = [];
         }

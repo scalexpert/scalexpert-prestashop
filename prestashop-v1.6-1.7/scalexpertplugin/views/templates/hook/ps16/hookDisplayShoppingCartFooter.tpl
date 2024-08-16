@@ -11,6 +11,8 @@
 <script>
     var scalexpertpluginFrontUrl = '{$scalexpertpluginFrontUrl|default:''}';
 </script>
+
+<div id="scalexpertplugin-displaySimulationShoppingCartFooter"></div>
 <div id="scalexpertplugin-displayShoppingCartFooter"></div>
 
 <template id="scalexpertpluginTemplateShoppingCartFooter">

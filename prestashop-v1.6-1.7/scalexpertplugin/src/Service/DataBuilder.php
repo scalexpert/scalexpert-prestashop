@@ -15,7 +15,8 @@ class DataBuilder
     public static function buildDesignData(
         $eligibleSolutions,
         $customizeProduct,
-        $isPayment = false
+        $isPayment = false,
+        $isCart = false
     ): array
     {
         $solutionCodes = [];
@@ -35,6 +36,11 @@ class DataBuilder
                     $designSolutions[$solutionCode]['displayLogo'] = $customizeProduct[$solutionCode]['logo_payment'];
                     if (!empty($customizeProduct[$solutionCode]['title_payment'])) {
                         $designSolutions[$solutionCode]['visualTitle'] = $customizeProduct[$solutionCode]['title_payment'];
+                    }
+                } elseif ($isCart) {
+                    $designSolutions[$solutionCode]['displayLogo'] = $customizeProduct[$solutionCode]['logo_cart'];
+                    if (!empty($customizeProduct[$solutionCode]['title_cart'])) {
+                        $designSolutions[$solutionCode]['visualTitle'] = $customizeProduct[$solutionCode]['title_cart'];
                     }
                 } else {
                     $designSolutions[$solutionCode]['displayLogo'] = $customizeProduct[$solutionCode]['logo'];

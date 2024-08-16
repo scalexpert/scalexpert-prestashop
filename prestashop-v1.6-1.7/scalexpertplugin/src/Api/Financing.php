@@ -280,7 +280,10 @@ class Financing extends Entity
             || empty($buyerBillingCountry)
             || empty($solutionCodes)
         ) {
-            return [];
+            return [
+                'hasError' => true,
+                'error' => 'Empty param.'
+            ];
         }
 
         $params = [

@@ -60,7 +60,7 @@ class Eligibility
      * @return array
      * @throws \PrestaShopDatabaseException
      */
-    public static function getEligibleSolutionByCart($oCart): array
+    public static function getEligibleSolutionByCart($oCart, bool $isCartPage = false): array
     {
         if (!Validate::isLoadedObject($oCart)) {
             return [];
@@ -86,7 +86,13 @@ class Eligibility
         }
 
         foreach ($customizeProduct as $solutionCode => $params) {
-            if (empty($financingSolutions[$solutionCode])) {
+            if (
+                empty($financingSolutions[$solutionCode])
+                || (
+                    $isCartPage
+                    && empty($params['display_cart'])
+                )
+            ) {
                 unset($customizeProduct[$solutionCode]);
                 continue;
             }

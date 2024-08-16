@@ -32,8 +32,10 @@ use ScalexpertPlugin\Form\Configuration\KeysConfigurationFormDataConfiguration;
 use ScalexpertPlugin\Form\Configuration\MappingConfigurationFormDataConfiguration;
 use ScalexpertPlugin\Form\Configuration\RegroupPaymentsConfigurationFormDataConfiguration;
 use ScalexpertPlugin\Form\Customize\DesignCustomizeFormDataConfiguration;
+use ScalexpertPlugin\Handler\InsuranceNameHandler;
 use ScalexpertPlugin\Handler\SolutionNameHandler;
 use ScalexpertPlugin\Helper\API\Client;
+use ScalexpertPlugin\Helper\MappingGenerator;
 use ScalexpertPlugin\Service\AvailableSolutionsService;
 use ScalexpertPlugin\Service\CartInsuranceProductsService;
 use ScalexpertPlugin\Service\InsurancesSubscriptionsService;
@@ -49,7 +51,7 @@ class ScalexpertPlugin extends PaymentModule
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.4.0';
+        $this->version = '1.5.0';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 
@@ -93,17 +95,15 @@ class ScalexpertPlugin extends PaymentModule
 
     public function install()
     {
-        /* @var \ScalexpertPlugin\Service\MappingGenerator $mappingGenerator */
-        $mappingGenerator = $this->get('scalexpert.service.mapping_generator');
-
         return parent::install()
             && $this->initDatabase()
             && $this->createInsuranceProductsCategory()
             && $this->createFinancingOrderState()
             && $this->createMeta()
-            && $mappingGenerator->generateDefaultMapping()
+            && $this->createMapping()
             && $this->manuallyInstallTab()
-            && $this->registerHooks();
+            && $this->registerHooks()
+            ;
     }
 
     private function registerHooks(): bool
@@ -328,6 +328,11 @@ class ScalexpertPlugin extends PaymentModule
         $meta->url_rewrite = $url_rewrites;
 
         return $meta->save();
+    }
+
+    public function createMapping(): bool
+    {
+        return MappingGenerator::generateDefaultMapping();
     }
 
     public function uninstallFinancingOrderState()
@@ -653,8 +658,8 @@ class ScalexpertPlugin extends PaymentModule
     }
 
     private function getSingleAndGroupedSolutionSimulations(
-        $availableSolutionsService,
-        $solutionSorterService
+        AvailableSolutionsService $availableSolutionsService,
+        SolutionSorterService $solutionSorterService
     ): array
     {
         $groupedSolutionSimulations = [];
@@ -1142,6 +1147,11 @@ class ScalexpertPlugin extends PaymentModule
 
     private function _getCartHeader(bool $activeInsurances): void
     {
+        $this->context->controller->registerJavascript(
+            'frontCartSimulationJS',
+            $this->_path . 'views/js/frontCartSimulation.js'
+        );
+
         if ($activeInsurances) {
             $this->context->controller->registerJavascript(
                 'frontCartInsuranceJS',
@@ -1271,9 +1281,10 @@ class ScalexpertPlugin extends PaymentModule
                 ) ?? '';
             }
 
-            $financialSubscription['consolidatedStatusDisplay'] = $solutionNameHandler->getFinancialStateLabel(
+            $financialSubscription['consolidatedStatusDisplay'] = $solutionNameHandler->getFinancialStateName(
                 $financialSubscription['consolidatedStatus'],
-                $this->getTranslator()
+                $this->getTranslator(),
+                true
             );
             $financialSubscription['consolidatedSubstatusDisplay'] = $solutionNameHandler->getFinancialSubStateName(
                 $financialSubscription['consolidatedSubstatus'],
@@ -1303,8 +1314,8 @@ class ScalexpertPlugin extends PaymentModule
 
         /* @var Client $apiClient */
         $apiClient = $this->get('scalexpert.api.client');
-        /* @var SolutionNameHandler $solutionNameHandler */
-        $solutionNameHandler = $this->get('scalexpert.handler.solution_name');
+        /* @var InsuranceNameHandler $insuranceNameHandler */
+        $insuranceNameHandler = $this->get('scalexpert.handler.insurance_name');
 
         $insuranceSubscriptionsByProduct = [];
         $idLang = $this->context->language->id;
@@ -1326,7 +1337,7 @@ class ScalexpertPlugin extends PaymentModule
                     $subscriptionsToAdd[] = [
                         'subscriptionId' => $subscriptionId ?? '',
                         'consolidatedStatus' => $apiSubscription['consolidatedStatus'] ?
-                            $solutionNameHandler->getInsuranceStateName(
+                            $insuranceNameHandler->getInsuranceStateName(
                                 $apiSubscription['consolidatedStatus'],
                                 $this->getTranslator()
                             ) : '',

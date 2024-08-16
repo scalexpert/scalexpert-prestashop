@@ -172,7 +172,8 @@ class AvailableSolutionsService
 
     public function getSimulationForAvailableFinancialSolutions(
         $productID = null,
-        $productIDAttribute = null
+        $productIDAttribute = null,
+        bool $isCartPage = false
     ): array
     {
         $productPrice = $this->getProductPrice($productID, $productIDAttribute);
@@ -188,7 +189,7 @@ class AvailableSolutionsService
         $simulateResponse = $this->apiClient->simulateFinancing(
             $productPrice,
             $buyerBillingCountry,
-            $this->getAvailableSolutions($financialSolutions, $productID, true)
+            $this->getAvailableSolutions($financialSolutions, $productID, true, $isCartPage)
         );
 
         if (
@@ -212,7 +213,6 @@ class AvailableSolutionsService
 
             // Add customization data
             $solutionSimulations[$k]['designConfiguration'] = $financialSolutions[$solutionCode];
-            $solutionSimulations[$k]['designConfiguration']['custom'] = $designConfiguration[$solutionCode] ?? [];
             if ($productID) {
                 if (!empty($designConfiguration[$solutionCode]['productTitle'])) {
                     $solutionSimulations[$k]['designConfiguration']['visualTitle'] =
@@ -220,6 +220,15 @@ class AvailableSolutionsService
                 }
 
                 if (empty($designConfiguration[$solutionCode]['productDisplayLogo'])) {
+                    $solutionSimulations[$k]['designConfiguration']['visualLogo'] = null;
+                }
+            } elseif($isCartPage) {
+                if (!empty($designConfiguration[$solutionCode]['cartTitle'])) {
+                    $solutionSimulations[$k]['designConfiguration']['visualTitle'] =
+                        $designConfiguration[$solutionCode]['cartTitle'];
+                }
+
+                if (empty($designConfiguration[$solutionCode]['cartDisplayLogo'])) {
                     $solutionSimulations[$k]['designConfiguration']['visualLogo'] = null;
                 }
             } else {
@@ -356,7 +365,8 @@ class AvailableSolutionsService
     protected function getAvailableSolutions(
         array $financialSolutions,
               $productID = null,
-        bool  $onlyCode = false
+        bool  $onlyCode = false,
+        bool  $isCartPage = false
     ): array
     {
         if (empty($financialSolutions)) {
@@ -404,6 +414,14 @@ class AvailableSolutionsService
                     (int)$productID,
                     $designConfiguration[$solutionCode]
                 )
+            ) {
+                continue;
+            }
+
+            // On cart page, check cartDisplay is enabled
+            if (
+                $isCartPage
+                && !$designConfiguration[$solutionCode]['cartDisplay']
             ) {
                 continue;
             }

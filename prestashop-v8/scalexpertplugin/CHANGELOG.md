@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.5.0] - 2024-08-14
+### New features
+- Add financing simulator on cart page
+
+## [1.4.1] - 2024-08-05
+### Bugfix
+- Fix displaying of order state on confirmation page
+- Fix install process
+- Set fullInfos parameter to false in Cart->getProducts() call to prevent ajax add to cart issue
+
 ## [1.4.0] - 2024-06-25
 ### New features
 - Use the “isDelivered” boolean to display or not the delivery confirmation request button on the order details page in the back office

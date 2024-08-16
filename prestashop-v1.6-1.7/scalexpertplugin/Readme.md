@@ -1,3 +1,3 @@
 # Scalexpert plugins for Prestashop 1.6, 1.7
 
-Version: 1.4.0
+Version: 1.5.0

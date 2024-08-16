@@ -11,7 +11,9 @@
 
 use ScalexpertPlugin\Api\Insurance;
 use ScalexpertPlugin\Helper\FinancingEligibility;
+use ScalexpertPlugin\Helper\FinancingNamer;
 use ScalexpertPlugin\Helper\InsuranceEligibility;
+use ScalexpertPlugin\Helper\InsuranceNamer;
 use ScalexpertPlugin\Helper\InsuranceProcess;
 use ScalexpertPlugin\Helper\SimulationFormatter;
 use ScalexpertPlugin\Helper\SolutionManager;
@@ -65,7 +67,7 @@ class ScalexpertPlugin extends PaymentModule
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.4.0';
+        $this->version = '1.5.0';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 
@@ -511,23 +513,28 @@ class ScalexpertPlugin extends PaymentModule
 
     private function _getCartHeader($activeInsurances)
     {
-        if (
-            $activeInsurances
-            && version_compare(_PS_VERSION_, '1.7', '>=')
-        ) {
+        if (version_compare(_PS_VERSION_, '1.7', '>=')) {
             Media::addJsDef([
                 'scalexpertpluginFrontUrl' => $this->context->link->getModuleLink('scalexpertplugin', 'display')
             ]);
 
             $this->context->controller->registerJavascript(
-                'frontCartInsuranceJS',
-                $this->_path . 'views/js/ps17/frontCart-insurance.js'
+                'frontCartSimulationJS',
+                $this->_path . 'views/js/ps17/frontCartSimulation.js'
             );
 
-            $this->context->controller->registerStylesheet(
-                'frontProductAdditionalInfoInsuranceCSS',
-                $this->_path . 'views/css/ps17/frontProductAdditionalInfo-insurance.css'
-            );
+            if ($activeInsurances) {
+
+                $this->context->controller->registerJavascript(
+                    'frontCartInsuranceJS',
+                    $this->_path . 'views/js/ps17/frontCart-insurance.js'
+                );
+
+                $this->context->controller->registerStylesheet(
+                    'frontProductAdditionalInfoInsuranceCSS',
+                    $this->_path . 'views/css/ps17/frontProductAdditionalInfo-insurance.css'
+                );
+            }
         }
     }
 
@@ -558,10 +565,12 @@ class ScalexpertPlugin extends PaymentModule
             if (
                 property_exists($this->context->controller, 'step')
                 && $this->context->controller->step === 0
-                && $activeInsurances
             ) {
-                $this->context->controller->addJS($this->_path . 'views/js/ps16/frontCart-insurance.js');
-                $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontProductButtons-insurance.css');
+                $this->context->controller->addJS($this->_path . 'views/js/ps16/frontCartSimulation.js');
+                if($activeInsurances) {
+                    $this->context->controller->addJS($this->_path . 'views/js/ps16/frontCart-insurance.js');
+                    $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontProductButtons-insurance.css');
+                }
             }
         }
     }
@@ -918,7 +927,7 @@ class ScalexpertPlugin extends PaymentModule
 
         $status = $this->l('Unknown state');
         if (isset($subscriptionInfo['consolidatedStatus'])) {
-            $status = SolutionManager::getFinancialStateName($subscriptionInfo['consolidatedStatus'], $this);
+            $status = FinancingNamer::getFinancialStateName($subscriptionInfo['consolidatedStatus'], $this);
         }
 
         try {
@@ -1086,11 +1095,12 @@ class ScalexpertPlugin extends PaymentModule
                 $element['buyerFinancedAmountDisplay'] = Tools::displayPrice(
                     $element['buyerFinancedAmount']
                 );
-                $element['consolidatedStatusDisplay'] = SolutionManager::getFinancialStateLabel(
+                $element['consolidatedStatusDisplay'] = FinancingNamer::getFinancialStateName(
                     $element['consolidatedStatus'],
-                    $this
+                    $this,
+                    true
                 );
-                $element['consolidatedSubStatusDisplay'] = SolutionManager::getFinancialSubStateName(
+                $element['consolidatedSubStatusDisplay'] = FinancingNamer::getFinancialSubStateName(
                     $element['consolidatedSubstatus'],
                     $this
                 );
@@ -1186,11 +1196,12 @@ class ScalexpertPlugin extends PaymentModule
                 $element['buyerFinancedAmountDisplay'] = Tools::displayPrice(
                     $element['buyerFinancedAmount']
                 );
-                $element['consolidatedStatusDisplay'] = SolutionManager::getFinancialStateLabel(
+                $element['consolidatedStatusDisplay'] = FinancingNamer::getFinancialStateName(
                     $element['consolidatedStatus'],
-                    $this
+                    $this,
+                    true
                 );
-                $element['consolidatedSubStatusDisplay'] = SolutionManager::getFinancialSubStateName(
+                $element['consolidatedSubStatusDisplay'] = FinancingNamer::getFinancialSubStateName(
                     $element['consolidatedSubstatus'],
                     $this
                 );
@@ -1335,7 +1346,7 @@ class ScalexpertPlugin extends PaymentModule
                     $subscriptionsToAdd[] = [
                         'subscriptionId' => $subscriptionId ?? '',
                         'consolidatedStatus' => $apiSubscription['consolidatedStatus'] ?
-                            SolutionManager::getInsuranceStateName($apiSubscription['consolidatedStatus'], $this) : '',
+                            InsuranceNamer::getInsuranceStateName($apiSubscription['consolidatedStatus'], $this) : '',
                         'duration' => $apiSubscription['duration'] ?? '',
                         'producerQuoteInsurancePrice' => Tools::displayPrice(
                                 $apiSubscription['producerQuoteInsurancePrice'],

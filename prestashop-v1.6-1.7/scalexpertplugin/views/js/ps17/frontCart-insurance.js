@@ -8,9 +8,9 @@
  */
 
 $(function () {
-    let domDisplay = '';
-    let modalSelector = '.sep_insuranceSolution [data-modal="sep_openModal"]';
-    let xhr = '';
+    let domDisplay = '',
+        modalSelector = '.sep_insuranceSolution [data-modal="sep_openModal"]',
+        xhr = '';
 
     $(document).ready(function () {
         domDisplay = $('#scalexpertplugin-displayShoppingCartFooter');
@@ -32,7 +32,8 @@ $(function () {
                 dataType: 'json',
                 data: {
                     ajax: true,
-                    action: 'cart'
+                    action: 'cart',
+                    type: 'insurance'
                 },
                 beforeSend: clearResult()
             }).done(function (jsonData) {

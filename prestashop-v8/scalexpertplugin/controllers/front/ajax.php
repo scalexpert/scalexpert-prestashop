@@ -46,6 +46,23 @@ class ScalexpertpluginAjaxModuleFrontController extends ModuleFrontController
         }
     }
 
+    public function displayAjaxGetFinancialInsertsOnCart(): void
+    {
+        /* @var AvailableSolutionsService $availableSolutionsService */
+        /* @var SolutionSorterService $solutionSorterService */
+        $availableSolutionsService = $this->get('scalexpert.service.available_solutions');
+        $solutionSorterService = $this->get('scalexpert.service.solution_sorter');
+        $buyerBillingCountry = $availableSolutionsService->getContextBuyerBillingCountry();
+
+        if ('fr' === $buyerBillingCountry) {
+            $simulationInsert = $this->getSimulationInsert(
+                $availableSolutionsService,
+                $solutionSorterService
+            );
+            $this->ajaxDie(json_encode(['simulationInsert' => $simulationInsert]));
+        }
+    }
+
     public function displayAjaxGetInsuranceInserts(): void
     {
         $productID = Tools::getValue('id_product', null);
@@ -85,13 +102,14 @@ class ScalexpertpluginAjaxModuleFrontController extends ModuleFrontController
     private function getSimulationInsert(
         AvailableSolutionsService $availableSolutionsService,
         SolutionSorterService     $solutionSorterService,
-                                  $productID,
-                                  $productAttributeID
+                                  $productID = null,
+                                  $productAttributeID = null
     ): string
     {
         $availableSimulation = $availableSolutionsService->getSimulationForAvailableFinancialSolutions(
             $productID,
-            $productAttributeID
+            $productAttributeID,
+            true
         );
         if (
             empty($availableSimulation)
@@ -133,7 +151,7 @@ class ScalexpertpluginAjaxModuleFrontController extends ModuleFrontController
     private function getFinancialInserts(
         AvailableSolutionsService $availableSolutionsService,
         SolutionSorterService     $solutionSorterService,
-                                  $productID
+                                  $productID = null
     ): array
     {
         $availableFinancialSolutions = $availableSolutionsService->getAvailableFinancialSolutions($productID);
