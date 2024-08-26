@@ -1,24 +1,50 @@
-<?php return array (
-  'root' => 
-  array (
-    'pretty_version' => '1.0.0+no-version-set',
-    'version' => '1.0.0.0',
-    'aliases' => 
-    array (
+<?php return array(
+    'root' => array(
+        'pretty_version' => 'dev-develop',
+        'version' => 'dev-develop',
+        'type' => 'library',
+        'install_path' => __DIR__ . '/../../',
+        'aliases' => array(),
+        'reference' => '358fc905676ce86ef0dd30e8fbba8a2ad783a582',
+        'name' => 'module/scalexpertplugin',
+        'dev' => true,
     ),
-    'reference' => NULL,
-    'name' => '__root__',
-  ),
-  'versions' => 
-  array (
-    '__root__' => 
-    array (
-      'pretty_version' => '1.0.0+no-version-set',
-      'version' => '1.0.0.0',
-      'aliases' => 
-      array (
-      ),
-      'reference' => NULL,
+    'versions' => array(
+        'giggsey/libphonenumber-for-php' => array(
+            'pretty_version' => '8.13.0',
+            'version' => '8.13.0.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../giggsey/libphonenumber-for-php',
+            'aliases' => array(),
+            'reference' => 'eb1cea72dc8d020e149062371a2c6717457cf561',
+            'dev_requirement' => false,
+        ),
+        'giggsey/locale' => array(
+            'pretty_version' => '1.9',
+            'version' => '1.9.0.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../giggsey/locale',
+            'aliases' => array(),
+            'reference' => 'b07f1eace8072ccc61445ad8fbd493ff9d783043',
+            'dev_requirement' => false,
+        ),
+        'module/scalexpertplugin' => array(
+            'pretty_version' => 'dev-develop',
+            'version' => 'dev-develop',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'reference' => '358fc905676ce86ef0dd30e8fbba8a2ad783a582',
+            'dev_requirement' => false,
+        ),
+        'symfony/polyfill-mbstring' => array(
+            'pretty_version' => 'v1.19.0',
+            'version' => '1.19.0.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/polyfill-mbstring',
+            'aliases' => array(),
+            'reference' => 'b5f7b932ee6fa802fc792eabd77c4c88084517ce',
+            'dev_requirement' => false,
+        ),
     ),
-  ),
 );

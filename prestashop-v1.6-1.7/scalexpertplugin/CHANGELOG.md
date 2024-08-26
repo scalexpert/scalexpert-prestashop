@@ -1,10 +1,14 @@
 # Changelog
 
+## [1.6.0] - 2024-08-26
+### New features
+- Add new lib and process to validate and reformat phone number
+
 ## [1.5.0] - 2024-08-14
 ### New features
 - Add financing simulator on cart page
 
-## [1.4.1] - 2024-08-05
+## [1.4.1] - 2024-05-08
 ### Bugfix
 - Set fullInfos parameter to false in Cart->getProducts() call to prevent ajax add to cart issue
 

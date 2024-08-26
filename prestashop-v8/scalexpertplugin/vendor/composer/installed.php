@@ -1,0 +1,56 @@
+<?php return array(
+    'root' => array(
+        'pretty_version' => 'dev-develop',
+        'version' => 'dev-develop',
+        'type' => 'prestashop-module',
+        'install_path' => __DIR__ . '/../../',
+        'aliases' => array(),
+        'reference' => 'e0ea59c270510da450f473f5d36ec923566f7d39',
+        'name' => 'module/scalexpertplugin',
+        'dev' => true,
+    ),
+    'versions' => array(
+        'giggsey/libphonenumber-for-php' => array(
+            'pretty_version' => '8.13.42',
+            'version' => '8.13.42.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../giggsey/libphonenumber-for-php',
+            'aliases' => array(),
+            'reference' => 'b7ee848bbd1958ff7464522d5c6e3688cca2a125',
+            'dev_requirement' => false,
+        ),
+        'giggsey/libphonenumber-for-php-lite' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => '8.13.42',
+            ),
+        ),
+        'giggsey/locale' => array(
+            'pretty_version' => '2.6',
+            'version' => '2.6.0.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../giggsey/locale',
+            'aliases' => array(),
+            'reference' => '37874fa473131247c348059fb7b8985efc18b5ea',
+            'dev_requirement' => false,
+        ),
+        'module/scalexpertplugin' => array(
+            'pretty_version' => 'dev-develop',
+            'version' => 'dev-develop',
+            'type' => 'prestashop-module',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'reference' => 'e0ea59c270510da450f473f5d36ec923566f7d39',
+            'dev_requirement' => false,
+        ),
+        'symfony/polyfill-mbstring' => array(
+            'pretty_version' => 'v1.30.0',
+            'version' => '1.30.0.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/polyfill-mbstring',
+            'aliases' => array(),
+            'reference' => 'fd22ab50000ef01661e2a31d850ebaa297f8e03c',
+            'dev_requirement' => false,
+        ),
+    ),
+);
