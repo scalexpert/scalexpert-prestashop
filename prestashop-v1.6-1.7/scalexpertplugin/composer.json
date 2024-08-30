@@ -15,5 +15,8 @@
         }
     },
     "require": {
+        "giggsey/libphonenumber-for-php": "8.13",
+        "giggsey/locale": "1.9",
+        "symfony/polyfill-mbstring": "1.19"
     }
 }

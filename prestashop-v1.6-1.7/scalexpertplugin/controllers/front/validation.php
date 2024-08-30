@@ -112,13 +112,20 @@ class ScalexpertPluginValidationModuleFrontController extends ModuleFrontControl
             $this->handleError($this->module->l('No customer found.'));
         }
 
-        $phone = '';
         $address = new Address((int) $cart->id_address_delivery);
         if (Validate::isLoadedObject($address)) {
-            $phone = !empty($address->phone_mobile) ? $address->phone_mobile : $address->phone;
-        }
-        if (!preg_match('/^\+?(?:[0-9] ?){6,14}[0-9]$/', $phone)) {
-            $this->handleError($this->module->l('Please provide a valid phone number to select this payment method'));
+            try {
+                $this->parsePhone($address->phone_mobile, $address->id_country);
+                $this->parsePhone($address->phone, $address->id_country);
+                $address->save();
+                $isValid = true;
+            } catch (\Exception $e) {
+                $isValid = false;
+            }
+
+            if (!$isValid) {
+                $this->handleError($this->module->l('Please provide a valid phone number to select this payment method'));
+            }
         }
     }
 
@@ -153,5 +160,26 @@ class ScalexpertPluginValidationModuleFrontController extends ModuleFrontControl
         } else {
             \Tools::redirect('index.php?controller=order&step=1&phoneError=1');
         }
+    }
+
+    /**
+     * @throws Exception
+     */
+    protected function parsePhone(&$phone, $idCountry)
+    {
+        if (empty($phone)) {
+            return;
+        }
+
+        $isoCode = Country::getIsoById($idCountry);
+        $phoneNumberUtil = \libphonenumber\PhoneNumberUtil::getInstance();
+        $phoneNumberObject = $phoneNumberUtil->parse($phone, $isoCode);
+        $isValid = $phoneNumberUtil->isValidNumber($phoneNumberObject);
+        if (!$isValid) {
+            throw new \Exception('Phone is not valid');
+        }
+
+        $formattedPhone = $phoneNumberUtil->format($phoneNumberObject, \libphonenumber\PhoneNumberFormat::E164);
+        $phone = $formattedPhone;
     }
 }

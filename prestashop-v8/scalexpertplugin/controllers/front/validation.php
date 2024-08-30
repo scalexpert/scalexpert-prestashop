@@ -142,13 +142,42 @@ class ScalexpertpluginValidationModuleFrontController extends ModuleFrontControl
 
         $address = new Address((int)$cart->id_address_delivery);
         if (Validate::isLoadedObject($address)) {
-            $phone = !empty($address->phone_mobile) ? $address->phone_mobile : $address->phone;
-            if (!preg_match('/^\+?(?:[0-9] ?){6,14}[0-9]$/', $phone)) {
+            try {
+                $this->parsePhone($address->phone_mobile, $address->id_country);
+                $this->parsePhone($address->phone, $address->id_country);
+                $address->save();
+                $isValid = true;
+            } catch (\Exception $e) {
+                $isValid = false;
+            }
+
+            if (!$isValid) {
                 $this->errors[] = $this->trans('Please provide a valid phone number to select this payment method', [], 'Modules.Scalexpertplugin.Shop');
                 $this->redirectWithNotifications($this->context->link->getPageLink('order'));
             }
         }
 
         return true;
+    }
+
+    /**
+     * @throws Exception
+     */
+    protected function parsePhone(&$phone, $idCountry): void
+    {
+        if (empty($phone)) {
+            return;
+        }
+
+        $isoCode = Country::getIsoById($idCountry);
+        $phoneNumberUtil = \libphonenumber\PhoneNumberUtil::getInstance();
+        $phoneNumberObject = $phoneNumberUtil->parse($phone, $isoCode);
+        $isValid = $phoneNumberUtil->isValidNumber($phoneNumberObject);
+        if (!$isValid) {
+            throw new \Exception('Phone is not valid');
+        }
+
+        $formattedPhone = $phoneNumberUtil->format($phoneNumberObject, \libphonenumber\PhoneNumberFormat::E164);
+        $phone = $formattedPhone;
     }
 }

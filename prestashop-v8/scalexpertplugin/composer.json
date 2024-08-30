@@ -15,7 +15,8 @@
         }
     },
     "require": {
-        "php": ">=7.2.0"
+        "php": ">=7.2.0",
+        "giggsey/libphonenumber-for-php": "^8.13"
     },
     "config": {
         "preferred-install": "dist",

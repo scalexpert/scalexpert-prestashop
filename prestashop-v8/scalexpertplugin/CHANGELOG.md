@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.6.0] - 2024-08-26
+### New features
+- Add new lib and process to validate and reformat phone number
+
 ## [1.5.0] - 2024-08-14
 ### New features
 - Add financing simulator on cart page

@@ -6,18 +6,47 @@ namespace Composer\Autoload;
 
 class ComposerStaticInitaeede27128c157f15be4481e790e5d5d
 {
+    public static $files = array (
+        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
+    );
+
     public static $prefixLengthsPsr4 = array (
+        'l' => 
+        array (
+            'libphonenumber\\' => 15,
+        ),
         'S' => 
         array (
+            'Symfony\\Polyfill\\Mbstring\\' => 26,
             'ScalexpertPlugin\\' => 17,
+        ),
+        'G' => 
+        array (
+            'Giggsey\\Locale\\' => 15,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
+        'libphonenumber\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/giggsey/libphonenumber-for-php/src',
+        ),
+        'Symfony\\Polyfill\\Mbstring\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
+        ),
         'ScalexpertPlugin\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
         ),
+        'Giggsey\\Locale\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/giggsey/locale/src',
+        ),
+    );
+
+    public static $classMap = array (
+        'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
@@ -25,6 +54,7 @@ class ComposerStaticInitaeede27128c157f15be4481e790e5d5d
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInitaeede27128c157f15be4481e790e5d5d::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInitaeede27128c157f15be4481e790e5d5d::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitaeede27128c157f15be4481e790e5d5d::$classMap;
 
         }, null, ClassLoader::class);
     }
