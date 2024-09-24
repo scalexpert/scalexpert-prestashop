@@ -67,7 +67,7 @@ class ScalexpertPlugin extends PaymentModule
     {
         $this->name = 'scalexpertplugin';
         $this->tab = 'payments_gateways';
-        $this->version = '1.6.0';
+        $this->version = '1.6.1';
         $this->author = 'Société générale';
         $this->need_instance = 0;
 
@@ -448,20 +448,20 @@ class ScalexpertPlugin extends PaymentModule
         if (version_compare(_PS_VERSION_, '1.7', '>=')) {
             $this->context->controller->registerStylesheet(
                 'frontContentModalCSS',
-                $this->_path . 'views/css/ps17/frontContentModal.css'
+                'modules/' . $this->name . '/views/css/ps17/frontContentModal.css'
             );
             $this->context->controller->registerStylesheet(
                 'frontSimulation',
-                $this->_path . 'views/css/ps17/frontSimulation.css'
+                'modules/' . $this->name . '/views/css/ps17/frontSimulation.css'
             );
             $this->context->controller->registerStylesheet(
                 'frontSimulationModal',
-                $this->_path . 'views/css/ps17/frontSimulationModal.css'
+                'modules/' . $this->name . '/views/css/ps17/frontSimulationModal.css'
             );
         } else {
-            $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontGlobal.css');
-            $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontSimulation.css');
-            $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontSimulationModal.css');
+            $this->context->controller->addCSS('modules/' . $this->name . '/views/css/ps16/frontGlobal.css');
+            $this->context->controller->addCSS('modules/' . $this->name . '/views/css/ps16/frontSimulation.css');
+            $this->context->controller->addCSS('modules/' . $this->name . '/views/css/ps16/frontSimulationModal.css');
         }
     }
 
@@ -475,38 +475,38 @@ class ScalexpertPlugin extends PaymentModule
             ]);
             $this->context->controller->registerStylesheet(
                 'frontProductButtonsCSS',
-                $this->_path . 'views/css/ps17/frontProductButtons.css'
+                'modules/' . $this->name . '/views/css/ps17/frontProductButtons.css'
             );
 
             $this->context->controller->registerStylesheet(
                 'frontProductSimulation',
-                $this->_path . 'views/css/ps17/frontProductSimulation.css'
+                'modules/' . $this->name . '/views/css/ps17/frontProductSimulation.css'
             );
 
             $this->context->controller->registerJavascript(
                 'frontProductButtonsJS',
-                $this->_path . 'views/js/ps17/frontProductButtons.js'
+                'modules/' . $this->name . '/views/js/ps17/frontProductButtons.js'
             );
 
             if ($activeInsurances) {
                 $this->context->controller->registerJavascript(
                     'frontProductButtonsInsuranceJS',
-                    $this->_path . 'views/js/ps17/frontProductButtons-insurance.js'
+                    'modules/' . $this->name . '/views/js/ps17/frontProductButtons-insurance.js'
                 );
 
                 $this->context->controller->registerStylesheet(
                     'frontProductAdditionalInfoInsuranceCSS',
-                    $this->_path . 'views/css/ps17/frontProductAdditionalInfo-insurance.css'
+                    'modules/' . $this->name . '/views/css/ps17/frontProductAdditionalInfo-insurance.css'
                 );
             }
         } else {
-            $this->context->controller->addJS($this->_path . 'views/js/ps16/frontProductButtons.js');
-            $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontProductButtons.css');
-            $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontProductSimulation.css');
+            $this->context->controller->addJS('modules/' . $this->name . '/views/js/ps16/frontProductButtons.js');
+            $this->context->controller->addCSS('modules/' . $this->name . '/views/css/ps16/frontProductButtons.css');
+            $this->context->controller->addCSS('modules/' . $this->name . '/views/css/ps16/frontProductSimulation.css');
 
             if ($activeInsurances) {
-                $this->context->controller->addJS($this->_path . 'views/js/ps16/frontProductButtons-insurance.js');
-                $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontProductButtons-insurance.css');
+                $this->context->controller->addJS('modules/' . $this->name . '/views/js/ps16/frontProductButtons-insurance.js');
+                $this->context->controller->addCSS('modules/' . $this->name . '/views/css/ps16/frontProductButtons-insurance.css');
             }
         }
     }
@@ -520,19 +520,19 @@ class ScalexpertPlugin extends PaymentModule
 
             $this->context->controller->registerJavascript(
                 'frontCartSimulationJS',
-                $this->_path . 'views/js/ps17/frontCartSimulation.js'
+                'modules/' . $this->name . '/views/js/ps17/frontCartSimulation.js'
             );
 
             if ($activeInsurances) {
 
                 $this->context->controller->registerJavascript(
                     'frontCartInsuranceJS',
-                    $this->_path . 'views/js/ps17/frontCart-insurance.js'
+                    'modules/' . $this->name . '/views/js/ps17/frontCart-insurance.js'
                 );
 
                 $this->context->controller->registerStylesheet(
                     'frontProductAdditionalInfoInsuranceCSS',
-                    $this->_path . 'views/css/ps17/frontProductAdditionalInfo-insurance.css'
+                    'modules/' . $this->name . '/views/css/ps17/frontProductAdditionalInfo-insurance.css'
                 );
             }
         }
@@ -546,30 +546,30 @@ class ScalexpertPlugin extends PaymentModule
             ]);
             $this->context->controller->registerStylesheet(
                 'frontPaymentOptionsCSS',
-                $this->_path . 'views/css/ps17/frontPaymentOptions.css'
+                'modules/' . $this->name . '/views/css/ps17/frontPaymentOptions.css'
             );
 
             $this->context->controller->registerJavascript(
                 'frontPaymentOptionsJS',
-                $this->_path . 'views/js/ps17/frontPaymentOptions.js'
+                'modules/' . $this->name . '/views/js/ps17/frontPaymentOptions.js'
             );
 
             $this->context->controller->registerJavascript(
                 'frontPaymentSimulation',
-                $this->_path . 'views/js/ps17/frontPaymentSimulation.js'
+                'modules/' . $this->name . '/views/js/ps17/frontPaymentSimulation.js'
             );
         } else {
-            $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontPayment.css');
+            $this->context->controller->addCSS('modules/' . $this->name . '/views/css/ps16/frontPayment.css');
 
             /* First step order */
             if (
                 property_exists($this->context->controller, 'step')
                 && $this->context->controller->step === 0
             ) {
-                $this->context->controller->addJS($this->_path . 'views/js/ps16/frontCartSimulation.js');
+                $this->context->controller->addJS('modules/' . $this->name . '/views/js/ps16/frontCartSimulation.js');
                 if($activeInsurances) {
-                    $this->context->controller->addJS($this->_path . 'views/js/ps16/frontCart-insurance.js');
-                    $this->context->controller->addCSS($this->_path . 'views/css/ps16/frontProductButtons-insurance.css');
+                    $this->context->controller->addJS('modules/' . $this->name . '/views/js/ps16/frontCart-insurance.js');
+                    $this->context->controller->addCSS('modules/' . $this->name . '/views/css/ps16/frontProductButtons-insurance.css');
                 }
             }
         }
@@ -666,7 +666,7 @@ class ScalexpertPlugin extends PaymentModule
      */
     public function hookDisplayBackOfficeHeader()
     {
-        $this->context->controller->addCSS($this->_path . 'views/css/back.css');
+        $this->context->controller->addCSS('modules/' . $this->name . '/views/css/back.css');
 
         if (
             property_exists($this->context->controller, 'module')
@@ -674,7 +674,7 @@ class ScalexpertPlugin extends PaymentModule
             && $this->context->controller->module->name === $this->name
         ) {
             $this->context->controller->addJquery();
-            $this->context->controller->addJS($this->_path . 'views/js/back.js');
+            $this->context->controller->addJS('modules/' . $this->name . '/views/js/back.js');
             $this->context->controller->addCSS('/js/jquery/plugins/autocomplete/jquery.autocomplete.css');
             $this->context->controller->addJS('/js/jquery/plugins/autocomplete/jquery.autocomplete.js');
         }

@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.6.1] - 2024-09-24
+### Bugfix
+- Fix path building for front assets
+- Add .htaccess to deny log access from browser
+
 ## [1.6.0] - 2024-08-26
 ### New features
 - Add new lib and process to validate and reformat phone number
